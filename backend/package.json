@@ -1,0 +1,77 @@
+{
+  "name": "laraibcreative-backend",
+  "version": "1.0.0",
+  "description": "Backend API for LaraibCreative - Custom tailoring e-commerce platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node src/seeds/index.js",
+    "seed:categories": "node src/seeds/categories.seed.js",
+    "seed:products": "node src/seeds/products.seed.js",
+    "seed:settings": "node src/seeds/settings.seed.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "backup": "node scripts/backup-db.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "tailoring",
+    "custom-orders",
+    "fashion",
+    "api"
+  ],
+  "author": "LaraibCreative",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.7.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "mongoose": "^8.6.3",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.9",
+    "pdfkit": "^0.15.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.33.5",
+    "slugify": "^1.6.6",
+    "twilio": "^5.3.2",
+    "validator": "^13.12.0",
+    "winston": "^3.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.10.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.3",
+    "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/laraibcreative-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/laraibcreative-backend/issues"
+  }
+}
