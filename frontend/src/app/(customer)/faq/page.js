@@ -46,7 +46,7 @@ const FAQPage = () => {
     },
     {
       category: 'orders',
-      question: 'Can I order if I don\'t have exact measurements?',
+      question: "Can I order if I don't have exact measurements?",
       answer: 'Yes! We provide a detailed size guide with standard measurements for S, M, L, XL sizes. You can also watch our measurement tutorial video or contact us on WhatsApp for assistance. We recommend taking measurements for the best fit, but standard sizes work too.'
     },
     {
@@ -62,7 +62,7 @@ const FAQPage = () => {
     {
       category: 'orders',
       question: 'What if I want to copy a brand article design?',
-      answer: 'We specialize in designer replicas! Simply upload clear photos of the original design from all angles, specify any modifications you want, select your fabric, and we\'ll recreate it for you with precision.'
+      answer: "We specialize in designer replicas! Simply upload clear photos of the original design from all angles, specify any modifications you want, select your fabric, and we'll recreate it for you with precision."
     },
 
     // Payments
@@ -79,7 +79,7 @@ const FAQPage = () => {
     {
       category: 'payments',
       question: 'How do I upload my payment receipt?',
-      answer: 'During checkout, you\'ll see an upload button in the payment section. Take a clear screenshot of your transaction showing the transaction ID, date, and amount, then upload it. You can also email it to orders@laraibcreative.com with your order number.'
+      answer: "During checkout, you'll see an upload button in the payment section. Take a clear screenshot of your transaction showing the transaction ID, date, and amount, then upload it. You can also email it to orders@laraibcreative.com with your order number."
     },
     {
       category: 'payments',
@@ -89,7 +89,7 @@ const FAQPage = () => {
     {
       category: 'payments',
       question: 'Do you offer refunds?',
-      answer: 'Refunds are processed for orders cancelled within 24 hours before stitching starts. Once stitching begins, we cannot offer refunds, but we\'ll work with you to ensure alterations meet your satisfaction.'
+      answer: "Refunds are processed for orders cancelled within 24 hours before stitching starts. Once stitching begins, we cannot offer refunds, but we'll work with you to ensure alterations meet your satisfaction."
     },
 
     // Stitching
@@ -101,7 +101,7 @@ const FAQPage = () => {
     {
       category: 'stitching',
       question: 'Do I need to provide fabric?',
-      answer: 'No, you can choose fabric from our catalog and we\'ll include it in the price. However, if you have your own fabric, you can send it to us and we\'ll only charge stitching fees.'
+      answer: "No, you can choose fabric from our catalog and we'll include it in the price. However, if you have your own fabric, you can send it to us and we'll only charge stitching fees."
     },
     {
       category: 'stitching',
@@ -111,12 +111,12 @@ const FAQPage = () => {
     {
       category: 'stitching',
       question: 'Can you add customizations like extra embroidery?',
-      answer: 'Yes! You can request additional embroidery, sequins, lace work, or any embellishments. Mention your requirements in the special instructions during order, and we\'ll provide a quote.'
+      answer: "Yes! You can request additional embroidery, sequins, lace work, or any embellishments. Mention your requirements in the special instructions during order, and we'll provide a quote."
     },
     {
       category: 'stitching',
-      question: 'What if the stitching doesn\'t match the reference image?',
-      answer: 'We strive for 95%+ accuracy with reference images. If there\'s a significant difference, contact us within 3 days of delivery with photos, and we\'ll make it right through alterations or a redo if necessary.'
+      question: "What if the stitching doesn't match the reference image?",
+      answer: "We strive for 95%+ accuracy with reference images. If there's a significant difference, contact us within 3 days of delivery with photos, and we'll make it right through alterations or a redo if necessary."
     },
 
     // Delivery
@@ -133,11 +133,11 @@ const FAQPage = () => {
     {
       category: 'delivery',
       question: 'Can I track my order?',
-      answer: 'Yes! Once your order is dispatched, you\'ll receive a tracking number via WhatsApp and email. You can also track status in real-time through your account dashboard.'
+      answer: "Yes! Once your order is dispatched, you'll receive a tracking number via WhatsApp and email. You can also track status in real-time through your account dashboard."
     },
     {
       category: 'delivery',
-      question: 'What if I\'m not available at delivery time?',
+      question: "What if I'm not available at delivery time?",
       answer: 'Our courier will attempt delivery 2-3 times. You can also coordinate with them via the tracking number to schedule a convenient time. Alternatively, provide an alternate contact person.'
     },
     {
@@ -150,27 +150,27 @@ const FAQPage = () => {
     {
       category: 'returns',
       question: 'What is your return policy?',
-      answer: 'We don\'t accept returns on custom-stitched items as they\'re made specifically for you. However, we offer free alterations within 7 days if there\'s a fitting issue. For ready-made products, returns are accepted within 7 days if unworn.'
+      answer: "We don't accept returns on custom-stitched items as they're made specifically for you. However, we offer free alterations within 7 days if there's a fitting issue. For ready-made products, returns are accepted within 7 days if unworn."
     },
     {
       category: 'returns',
       question: 'Are alterations free?',
-      answer: 'Yes! First alteration within 7 days of delivery is completely free if it\'s due to measurement discrepancy or fitting issues. You\'ll need to send the item back to us (shipping covered by you) and we\'ll fix it and return it.'
+      answer: "Yes! First alteration within 7 days of delivery is completely free if it's due to measurement discrepancy or fitting issues. You'll need to send the item back to us (shipping covered by you) and we'll fix it and return it."
     },
     {
       category: 'returns',
-      question: 'What if the color doesn\'t match?',
-      answer: 'Fabric colors may vary slightly due to screen settings and lighting. We try our best to match colors accurately. If there\'s a significant mismatch, contact us within 24 hours of delivery with photos, and we\'ll find a solution.'
+      question: "What if the color doesn't match?",
+      answer: "Fabric colors may vary slightly due to screen settings and lighting. We try our best to match colors accurately. If there's a significant mismatch, contact us within 24 hours of delivery with photos, and we'll find a solution."
     },
     {
       category: 'returns',
       question: 'How do I request an alteration?',
-      answer: 'Contact us via WhatsApp (+92 300 1234567) within 7 days of delivery. Share photos showing the fitting issue and your order number. We\'ll guide you through the alteration process.'
+      answer: "Contact us via WhatsApp (+92 300 1234567) within 7 days of delivery. Share photos showing the fitting issue and your order number. We'll guide you through the alteration process."
     },
     {
       category: 'returns',
       question: 'Can I exchange for a different design?',
-      answer: 'Exchanges are not possible for custom-stitched items. However, if you\'re not satisfied, we\'ll work with you to alter the current design to your liking or offer a discount on your next order.'
+      answer: "Exchanges are not possible for custom-stitched items. However, if you're not satisfied, we'll work with you to alter the current design to your liking or offer a discount on your next order."
     }
   ];
 
@@ -311,7 +311,7 @@ const FAQPage = () => {
           <Phone className="w-12 h-12 mx-auto mb-6" />
           <h2 className="text-3xl font-bold mb-4">Still Have Questions?</h2>
           <p className="text-xl mb-8 text-pink-100 max-w-2xl mx-auto">
-            Can't find what you're looking for? Our team is here to help!
+            Can&apos;t find what you&apos;re looking for? Our team is here to help!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

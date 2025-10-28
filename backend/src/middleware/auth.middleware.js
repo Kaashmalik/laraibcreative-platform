@@ -85,6 +85,56 @@ const verifyToken = async (req, res, next) => {
 };
 
 /**
+ * Alias for verifyToken - used in routes as 'protect'
+ * Protects routes requiring authentication
+ */
+const protect = verifyToken;
+
+/**
+ * Middleware to check if user is admin
+ * Must be used after protect/verifyToken middleware
+ */
+const adminOnly = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required. Please login.'
+    });
+  }
+
+  if (req.user.role !== 'admin' && req.user.role !== 'super-admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Admin privileges required.'
+    });
+  }
+
+  next();
+};
+
+/**
+ * Middleware to check if user is super admin
+ * Must be used after protect/verifyToken middleware
+ */
+const superAdminOnly = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required. Please login.'
+    });
+  }
+
+  if (req.user.role !== 'super-admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Super admin privileges required.'
+    });
+  }
+
+  next();
+};
+
+/**
  * Middleware to verify refresh token
  * Used specifically for token refresh endpoint
  */
@@ -187,6 +237,32 @@ const optionalAuth = async (req, res, next) => {
 };
 
 /**
+ * Role-based authorization middleware
+ * Allows access to users with specific roles
+ * @param {...string} roles - Allowed roles (e.g., 'admin', 'super-admin')
+ * @example authorize('admin', 'super-admin')
+ */
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required. Please login.'
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied. Required role: ${roles.join(' or ')}`
+      });
+    }
+
+    next();
+  };
+};
+
+/**
  * Generate JWT access token
  * @param {string} userId - User ID to encode in token
  * @returns {string} JWT access token
@@ -259,9 +335,16 @@ const clearAuthCookies = (res) => {
 };
 
 module.exports = {
+  // Main auth middlewares
   verifyToken,
+  protect, // Alias for verifyToken
+  adminOnly,
+  superAdminOnly,
   verifyRefreshToken,
   optionalAuth,
+  authorize,
+  
+  // Token utilities
   generateAccessToken,
   generateRefreshToken,
   setAuthCookies,
