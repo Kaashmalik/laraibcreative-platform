@@ -1,25 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 /**
  * CustomerInfoForm Component
  * Step 1 of checkout - Collect customer contact information
- * 
- * Features:
- * - Real-time validation
- * - Auto-fill WhatsApp with phone number
- * - Email format validation
- * - Phone number validation (Pakistan format)
- * - Error messages
- * - Required field indicators
- * 
- * @param {Object} formData - Current form data
- * @param {Function} updateFormData - Function to update form data
- * @param {Function} onNext - Function to proceed to next step
  */
 
-export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
+export default function CustomerInfoForm({ data, onUpdate, onNext }) {
+  const [formData, setFormData] = useState(data || {
+    fullName: '',
+    email: '',
+    phone: '',
+    whatsapp: '',
+  });
+
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
@@ -41,7 +36,6 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
 
       case 'phone':
         if (!value.trim()) return 'Phone number is required';
-        // Pakistan phone format: 03XX-XXXXXXX or 92XXX-XXXXXXX
         const cleanPhone = value.replace(/[\s-]/g, '');
         if (!/^(03\d{9}|92\d{10})$/.test(cleanPhone)) {
           return 'Invalid phone number (e.g., 0300-1234567)';
@@ -67,11 +61,13 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    updateFormData('customerInfo', { [name]: value });
+    const newFormData = { ...formData, [name]: value };
+    setFormData(newFormData);
 
     // Auto-fill WhatsApp with phone number if WhatsApp is empty
-    if (name === 'phone' && !formData.customerInfo.whatsapp) {
-      updateFormData('customerInfo', { whatsapp: value });
+    if (name === 'phone' && !formData.whatsapp) {
+      newFormData.whatsapp = value;
+      setFormData(newFormData);
     }
 
     // Clear error when user starts typing
@@ -103,7 +99,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
     const fields = ['fullName', 'email', 'phone', 'whatsapp'];
     
     fields.forEach(field => {
-      const error = validateField(field, formData.customerInfo[field]);
+      const error = validateField(field, formData[field]);
       if (error) newErrors[field] = error;
     });
 
@@ -117,6 +113,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
 
     // If no errors, proceed to next step
     if (Object.keys(newErrors).length === 0) {
+      onUpdate(formData);
       onNext();
     }
   };
@@ -142,7 +139,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
             type="text"
             id="fullName"
             name="fullName"
-            value={formData.customerInfo.fullName}
+            value={formData.fullName}
             onChange={handleChange}
             onBlur={handleBlur}
             placeholder="Enter your full name"
@@ -171,7 +168,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
             type="email"
             id="email"
             name="email"
-            value={formData.customerInfo.email}
+            value={formData.email}
             onChange={handleChange}
             onBlur={handleBlur}
             placeholder="your.email@example.com"
@@ -209,7 +206,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
               type="tel"
               id="phone"
               name="phone"
-              value={formData.customerInfo.phone}
+              value={formData.phone}
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="0300-1234567"
@@ -248,7 +245,7 @@ export default function CustomerInfoForm({ formData, updateFormData, onNext }) {
               type="tel"
               id="whatsapp"
               name="whatsapp"
-              value={formData.customerInfo.whatsapp}
+              value={formData.whatsapp}
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="0300-1234567"

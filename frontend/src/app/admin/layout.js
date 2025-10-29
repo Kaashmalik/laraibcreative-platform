@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Admin Layout Component
  * 
@@ -11,9 +13,10 @@
  * @requires AdminSidebar - Left navigation panel
  * @requires AdminHeader - Top navigation bar
  * @requires useAuth - Authentication hook for role verification
+ * 
+ * Note: Metadata removed as it cannot be exported from client components.
+ * To add metadata, create a separate server component wrapper or use next/head
  */
-
-'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -171,12 +174,3 @@ export default function AdminLayout({ children }) {
     </div>
   );
 }
-
-/**
- * Layout Metadata
- * Configure page title and description for admin area
- */
-export const metadata = {
-  title: 'Admin Dashboard - LaraibCreative',
-  description: 'Manage your e-commerce store',
-};

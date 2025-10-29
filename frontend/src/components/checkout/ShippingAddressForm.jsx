@@ -5,20 +5,22 @@ import { useState } from 'react';
 /**
  * ShippingAddressForm Component
  * Step 2 of checkout - Collect shipping address
- * 
- * Features:
- * - Complete address input
- * - City dropdown (major Pakistani cities)
- * - Province selection
- * - Postal code validation
- * - Delivery instructions
- * - Save address option
- * - Real-time validation
  */
 
 export default function ShippingAddressForm({ formData, updateFormData, onNext, onBack }) {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  const data = formData?.shippingAddress || {
+    fullAddress: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    deliveryInstructions: '',
+    saveAddress: false
+  };
+
+  const [localData, setLocalData] = useState(data);
 
   // Major Pakistani cities
   const cities = [
@@ -83,7 +85,8 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
     
-    updateFormData('shippingAddress', { [name]: newValue });
+    const newData = { ...localData, [name]: newValue };
+    setLocalData(newData);
 
     // Clear error when user starts typing
     if (touched[name]) {
@@ -114,7 +117,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
     const requiredFields = ['fullAddress', 'city', 'province', 'postalCode'];
     
     requiredFields.forEach(field => {
-      const error = validateField(field, formData.shippingAddress[field]);
+      const error = validateField(field, localData[field]);
       if (error) newErrors[field] = error;
     });
 
@@ -128,6 +131,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
 
     // If no errors, proceed to next step
     if (Object.keys(newErrors).length === 0) {
+      updateFormData('shippingAddress', localData);
       onNext();
     }
   };
@@ -152,7 +156,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
           <textarea
             id="fullAddress"
             name="fullAddress"
-            value={formData.shippingAddress.fullAddress}
+            value={localData.fullAddress}
             onChange={handleChange}
             onBlur={handleBlur}
             rows={3}
@@ -186,7 +190,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
             <select
               id="city"
               name="city"
-              value={formData.shippingAddress.city}
+              value={localData.city}
               onChange={handleChange}
               onBlur={handleBlur}
               className={`
@@ -220,7 +224,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
             <select
               id="province"
               name="province"
-              value={formData.shippingAddress.province}
+              value={localData.province}
               onChange={handleChange}
               onBlur={handleBlur}
               className={`
@@ -256,7 +260,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
             type="text"
             id="postalCode"
             name="postalCode"
-            value={formData.shippingAddress.postalCode}
+            value={localData.postalCode}
             onChange={handleChange}
             onBlur={handleBlur}
             maxLength={5}
@@ -285,7 +289,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
           <textarea
             id="deliveryInstructions"
             name="deliveryInstructions"
-            value={formData.shippingAddress.deliveryInstructions}
+            value={localData.deliveryInstructions}
             onChange={handleChange}
             rows={2}
             placeholder="Any special delivery instructions (e.g., gate code, best time to deliver)"
@@ -300,7 +304,7 @@ export default function ShippingAddressForm({ formData, updateFormData, onNext, 
             type="checkbox"
             id="saveAddress"
             name="saveAddress"
-            checked={formData.shippingAddress.saveAddress}
+            checked={localData.saveAddress}
             onChange={handleChange}
             className="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded 
               focus:ring-purple-500 cursor-pointer"

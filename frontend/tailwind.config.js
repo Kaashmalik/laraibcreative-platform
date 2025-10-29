@@ -30,8 +30,8 @@ const config = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Playfair Display', 'ui-serif', 'Georgia', 'serif'],
         mono: ['Fira Code', 'ui-monospace', 'monospace'],
       },
       fontSize: {

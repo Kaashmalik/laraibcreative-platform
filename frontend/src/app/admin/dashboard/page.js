@@ -23,10 +23,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import RevenueChart from './components/RevenueChart';
+import OrdersPieChart from './components/OrdersPieChart';
+import PopularProductsChart from './components/PopularProductsChart';
 import StatsCard from '@/components/admin/StatsCard';
-import RevenueChart from '@/components/admin/RevenueChart';
-import OrdersPieChart from '@/components/admin/OrdersPieChart';
-import PopularProductsChart from '@/components/admin/PopularProductsChart';
 import Link from 'next/link';
 import { 
   DollarSign, 
@@ -34,10 +34,8 @@ import {
   Users, 
   TrendingUp,
   Clock,
-  CheckCircle,
   AlertCircle,
   Download,
-  Calendar,
   RefreshCw,
   Plus,
   Eye,
@@ -216,7 +214,7 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Welcome back! Here's what's happening with your store today.
+            Welcome back! Here&apos;s what&apos;s happening with your store today.
           </p>
         </div>
 
@@ -296,7 +294,7 @@ export default function AdminDashboardPage() {
           icon={AlertCircle}
           iconColor="text-red-600"
           iconBgColor="bg-red-100 dark:bg-red-900/30"
-          alert={dashboardData.stats.pendingPayments > 5}
+          alert={dashboardData.stats.pendingPayments > 3}
         />
       </div>
 
