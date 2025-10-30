@@ -1,4 +1,3 @@
-// backend/src/config/constants.js
 // ==========================================
 // BACKEND APPLICATION CONSTANTS
 // ==========================================

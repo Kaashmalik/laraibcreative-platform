@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide a password'],
     minlength: [8, 'Password must be at least 8 characters'],
-    select: false // Don't return password by default
+    select: false
   },
   phone: {
     type: String,
@@ -89,9 +89,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(v) {
-        return /^(\+92|0)?[0-9]{10}$/.test(v.replace(/[\s-]/g, ''));
+        const cleaned = v.replace(/[\s-]/g, '');
+        // Match: +923001234567 (13 chars) OR 03001234567 (11 chars) OR 3001234567 (10 chars)
+        return /^(\+92[0-9]{10}|0[0-9]{10}|[0-9]{10})$/.test(cleaned);
       },
-      message: 'Please provide a valid Pakistani phone number'
+      message: 'Please provide a valid Pakistani phone number (e.g., +923001234567, 03001234567)'
     }
   },
   whatsapp: {
@@ -100,7 +102,8 @@ const userSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         if (!v) return true;
-        return /^(\+92|0)?[0-9]{10}$/.test(v.replace(/[\s-]/g, ''));
+        const cleaned = v.replace(/[\s-]/g, '');
+        return /^(\+92[0-9]{10}|0[0-9]{10}|[0-9]{10})$/.test(cleaned);
       },
       message: 'Please provide a valid WhatsApp number'
     }
@@ -200,36 +203,36 @@ userSchema.index({ emailVerified: 1 });
 // VIRTUAL PROPERTIES
 // ============================================
 
-// Virtual for account locked status
 userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
-// Virtual for full phone with country code
-userSchema.virtual('phoneWithCode').get(function() {
+userSchema.virtual('normalizedPhone').get(function() {
   if (!this.phone) return '';
   const cleaned = this.phone.replace(/[\s-]/g, '');
+  
   if (cleaned.startsWith('+92')) return cleaned;
   if (cleaned.startsWith('0')) return '+92' + cleaned.substring(1);
   return '+92' + cleaned;
+});
+
+userSchema.virtual('phoneWithCode').get(function() {
+  return this.normalizedPhone;
 });
 
 // ============================================
 // PRE-SAVE MIDDLEWARE
 // ============================================
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
-  // Only hash password if it's modified
   if (!this.isModified('password')) return next();
   
   try {
     const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 12);
     this.password = await bcrypt.hash(this.password, salt);
     
-    // Set password changed timestamp
     if (!this.isNew) {
-      this.passwordChangedAt = Date.now() - 1000; // Subtract 1 sec to ensure token is created after password change
+      this.passwordChangedAt = Date.now() - 1000;
     }
     
     next();
@@ -238,7 +241,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Sync WhatsApp with phone if not provided
 userSchema.pre('save', function(next) {
   if (!this.whatsapp && this.phone) {
     this.whatsapp = this.phone;
@@ -246,20 +248,22 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Ensure only one default address
+// FIXED: Race condition safe default address handling
 userSchema.pre('save', function(next) {
-  if (this.isModified('addresses')) {
+  if (this.isModified('addresses') && this.addresses.length > 0) {
     const defaultAddresses = this.addresses.filter(addr => addr.isDefault);
     
     if (defaultAddresses.length > 1) {
       // Keep only the last one as default
-      this.addresses.forEach((addr, index) => {
-        if (index < this.addresses.length - 1) {
-          addr.isDefault = false;
+      let foundDefault = false;
+      for (let i = this.addresses.length - 1; i >= 0; i--) {
+        if (this.addresses[i].isDefault && !foundDefault) {
+          foundDefault = true;
+        } else if (this.addresses[i].isDefault) {
+          this.addresses[i].isDefault = false;
         }
-      });
-    } else if (defaultAddresses.length === 0 && this.addresses.length > 0) {
-      // If no default, make first one default
+      }
+    } else if (defaultAddresses.length === 0) {
       this.addresses[0].isDefault = true;
     }
   }
@@ -270,11 +274,6 @@ userSchema.pre('save', function(next) {
 // INSTANCE METHODS
 // ============================================
 
-/**
- * Compare entered password with hashed password
- * @param {string} candidatePassword - Password to compare
- * @returns {Promise<boolean>}
- */
 userSchema.methods.comparePassword = async function(candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
@@ -283,11 +282,6 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
-/**
- * Check if password was changed after JWT was issued
- * @param {number} JWTTimestamp - JWT issued timestamp
- * @returns {boolean}
- */
 userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
@@ -296,12 +290,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-/**
- * Increment login attempts and lock account if necessary
- * @returns {Promise}
- */
 userSchema.methods.incLoginAttempts = function() {
-  // If we have a previous lock that has expired, restart at 1
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
       $set: { loginAttempts: 1 },
@@ -311,9 +300,8 @@ userSchema.methods.incLoginAttempts = function() {
   
   const updates = { $inc: { loginAttempts: 1 } };
   const maxAttempts = parseInt(process.env.MAX_LOGIN_ATTEMPTS) || 5;
-  const lockTime = parseInt(process.env.LOCK_TIME) || 2 * 60 * 60 * 1000; // 2 hours
+  const lockTime = parseInt(process.env.LOCK_TIME) || 2 * 60 * 60 * 1000;
   
-  // Lock account after max attempts
   if (this.loginAttempts + 1 >= maxAttempts && !this.isLocked) {
     updates.$set = { lockUntil: Date.now() + lockTime };
   }
@@ -321,10 +309,6 @@ userSchema.methods.incLoginAttempts = function() {
   return this.updateOne(updates);
 };
 
-/**
- * Reset login attempts after successful login
- * @returns {Promise}
- */
 userSchema.methods.resetLoginAttempts = function() {
   return this.updateOne({
     $set: { loginAttempts: 0 },
@@ -332,11 +316,6 @@ userSchema.methods.resetLoginAttempts = function() {
   });
 };
 
-/**
- * Update last login timestamp and IP
- * @param {string} ipAddress - User's IP address
- * @returns {Promise}
- */
 userSchema.methods.updateLastLogin = function(ipAddress) {
   return this.updateOne({ 
     $set: { 
@@ -346,16 +325,10 @@ userSchema.methods.updateLastLogin = function(ipAddress) {
   });
 };
 
-/**
- * Update customer statistics after order
- * @param {number} orderAmount - Order total amount
- * @returns {Promise}
- */
 userSchema.methods.updateCustomerStats = async function(orderAmount) {
   this.totalOrders += 1;
   this.totalSpent += orderAmount;
   
-  // Update customer type based on spending and order count
   const vipThreshold = parseInt(process.env.VIP_SPENDING_THRESHOLD) || 50000;
   const vipOrdersThreshold = parseInt(process.env.VIP_ORDERS_THRESHOLD) || 10;
   
@@ -371,10 +344,6 @@ userSchema.methods.updateCustomerStats = async function(orderAmount) {
   await this.save();
 };
 
-/**
- * Generate email verification token
- * @returns {string} - Plain text token (to send in email)
- */
 userSchema.methods.generateEmailVerificationToken = function() {
   const verificationToken = crypto.randomBytes(32).toString('hex');
   
@@ -383,16 +352,11 @@ userSchema.methods.generateEmailVerificationToken = function() {
     .update(verificationToken)
     .digest('hex');
   
-  // Token expires in 24 hours
   this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
   
   return verificationToken;
 };
 
-/**
- * Generate password reset token
- * @returns {string} - Plain text token (to send in email)
- */
 userSchema.methods.generatePasswordResetToken = function() {
   const resetToken = crypto.randomBytes(32).toString('hex');
   
@@ -401,19 +365,12 @@ userSchema.methods.generatePasswordResetToken = function() {
     .update(resetToken)
     .digest('hex');
   
-  // Token expires in 10 minutes
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   
   return resetToken;
 };
 
-/**
- * Add address to user
- * @param {object} addressData - Address data
- * @returns {Promise}
- */
 userSchema.methods.addAddress = async function(addressData) {
-  // If this is set as default, unset all other defaults
   if (addressData.isDefault) {
     this.addresses.forEach(addr => {
       addr.isDefault = false;
@@ -425,12 +382,50 @@ userSchema.methods.addAddress = async function(addressData) {
   return this.addresses[this.addresses.length - 1];
 };
 
-/**
- * Update existing address
- * @param {string} addressId - Address ID to update
- * @param {object} updateData - New address data
- * @returns {Promise}
- */
+// FIXED: Atomic update for default address to prevent race conditions
+userSchema.methods.setDefaultAddress = async function(addressId) {
+  const result = await this.constructor.findOneAndUpdate(
+    { 
+      _id: this._id,
+      'addresses._id': addressId 
+    },
+    [
+      {
+        $set: {
+          addresses: {
+            $map: {
+              input: '$addresses',
+              as: 'addr',
+              in: {
+                $mergeObjects: [
+                  '$$addr',
+                  {
+                    isDefault: {
+                      $cond: [
+                        { $eq: ['$$addr._id', mongoose.Types.ObjectId(addressId)] },
+                        true,
+                        false
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ],
+    { new: true }
+  );
+  
+  if (!result) {
+    throw new Error('Address not found');
+  }
+  
+  Object.assign(this, result.toObject());
+  return this;
+};
+
 userSchema.methods.updateAddress = async function(addressId, updateData) {
   const address = this.addresses.id(addressId);
   
@@ -438,7 +433,6 @@ userSchema.methods.updateAddress = async function(addressId, updateData) {
     throw new Error('Address not found');
   }
   
-  // If setting as default, unset all others
   if (updateData.isDefault) {
     this.addresses.forEach(addr => {
       if (addr._id.toString() !== addressId.toString()) {
@@ -452,11 +446,6 @@ userSchema.methods.updateAddress = async function(addressId, updateData) {
   return address;
 };
 
-/**
- * Delete address
- * @param {string} addressId - Address ID to delete
- * @returns {Promise}
- */
 userSchema.methods.deleteAddress = async function(addressId) {
   const address = this.addresses.id(addressId);
   
@@ -467,7 +456,6 @@ userSchema.methods.deleteAddress = async function(addressId) {
   const wasDefault = address.isDefault;
   address.remove();
   
-  // If deleted address was default and there are other addresses, make first one default
   if (wasDefault && this.addresses.length > 0) {
     this.addresses[0].isDefault = true;
   }
@@ -475,10 +463,6 @@ userSchema.methods.deleteAddress = async function(addressId) {
   await this.save();
 };
 
-/**
- * Get default address
- * @returns {object|null}
- */
 userSchema.methods.getDefaultAddress = function() {
   return this.addresses.find(addr => addr.isDefault) || this.addresses[0] || null;
 };
@@ -487,45 +471,23 @@ userSchema.methods.getDefaultAddress = function() {
 // STATIC METHODS
 // ============================================
 
-/**
- * Find user by email
- * @param {string} email
- * @returns {Promise<User>}
- */
 userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
-/**
- * Find user by phone
- * @param {string} phone
- * @returns {Promise<User>}
- */
 userSchema.statics.findByPhone = function(phone) {
   const cleaned = phone.replace(/[\s-]/g, '');
   return this.findOne({ phone: new RegExp(cleaned, 'i') });
 };
 
-/**
- * Find all active users
- * @returns {Promise<User[]>}
- */
 userSchema.statics.findActive = function() {
   return this.find({ isActive: true });
 };
 
-/**
- * Find VIP customers
- * @returns {Promise<User[]>}
- */
 userSchema.statics.findVIPCustomers = function() {
   return this.find({ customerType: 'vip', isActive: true });
 };
 
-/**
- * Get customer statistics
- * @returns {Promise<object>}
- */
 userSchema.statics.getCustomerStats = async function() {
   const stats = await this.aggregate([
     {
@@ -545,12 +507,6 @@ userSchema.statics.getCustomerStats = async function() {
   return stats;
 };
 
-/**
- * Search users (admin function)
- * @param {string} query - Search query
- * @param {object} filters - Additional filters
- * @returns {Promise<User[]>}
- */
 userSchema.statics.searchUsers = function(query, filters = {}) {
   const searchRegex = new RegExp(query, 'i');
   
@@ -565,28 +521,12 @@ userSchema.statics.searchUsers = function(query, filters = {}) {
 };
 
 // ============================================
-// QUERY MIDDLEWARE
-// ============================================
-
-// Exclude deleted/inactive users by default in find queries
-// userSchema.pre(/^find/, function(next) {
-//   // Uncomment if you want soft deletes
-//   // this.find({ isActive: { $ne: false } });
-//   next();
-// });
-
-// ============================================
 // METHODS FOR JSON RESPONSE
 // ============================================
 
-/**
- * Remove sensitive data from JSON response
- * @returns {object}
- */
 userSchema.methods.toJSON = function() {
   const obj = this.toObject();
   
-  // Remove sensitive fields
   delete obj.password;
   delete obj.passwordResetToken;
   delete obj.passwordResetExpires;
@@ -600,10 +540,6 @@ userSchema.methods.toJSON = function() {
   return obj;
 };
 
-/**
- * Get public profile (for other users to see)
- * @returns {object}
- */
 userSchema.methods.getPublicProfile = function() {
   return {
     _id: this._id,
@@ -615,10 +551,6 @@ userSchema.methods.getPublicProfile = function() {
   };
 };
 
-/**
- * Get safe profile (for user's own data)
- * @returns {object}
- */
 userSchema.methods.getSafeProfile = function() {
   const obj = this.toObject();
   delete obj.password;

@@ -1,9 +1,3 @@
-/**
- * Product Model Schema for LaraibCreative
- * Supports both ready-made products and custom stitching services
- * Handles brand article replicas and fully custom designs
- */
-
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 
@@ -13,26 +7,12 @@ const FabricSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Fabric type is required'],
     enum: [
-      'Lawn',
-      'Chiffon',
-      'Silk',
-      'Cotton',
-      'Velvet',
-      'Organza',
-      'Georgette',
-      'Jacquard',
-      'Linen',
-      'Khaddar',
-      'Karandi',
-      'Cambric',
-      'Marina',
-      'Net',
-      'Banarsi',
-      'Raw Silk',
-      'Jamawar',
-      'Other'
+      'Lawn', 'Chiffon', 'Silk', 'Cotton', 'Velvet', 'Organza',
+      'Georgette', 'Jacquard', 'Linen', 'Khaddar', 'Karandi',
+      'Cambric', 'Marina', 'Net', 'Banarsi', 'Raw Silk',
+      'Jamawar', 'Other'
     ],
-    index: true // For filtering by fabric type
+    index: true
   },
   composition: {
     type: String,
@@ -41,7 +21,7 @@ const FabricSchema = new mongoose.Schema({
     default: ''
   },
   weight: {
-    type: String, // e.g., "Light", "Medium", "Heavy"
+    type: String,
     enum: ['Light', 'Medium', 'Heavy', ''],
     default: ''
   },
@@ -62,13 +42,13 @@ const FabricSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-// Sub-schema for pricing structure
+// Sub-schema for pricing
 const PricingSchema = new mongoose.Schema({
   basePrice: {
     type: Number,
     required: [true, 'Base price is required'],
     min: [0, 'Price cannot be negative'],
-    index: true // For price range filtering
+    index: true
   },
   customStitchingCharge: {
     type: Number,
@@ -78,17 +58,14 @@ const PricingSchema = new mongoose.Schema({
   brandArticleCharge: {
     type: Number,
     default: 0,
-    min: [0, 'Brand article charge cannot be negative'],
-    // Additional charge for copying brand articles
+    min: [0, 'Brand article charge cannot be negative']
   },
   fabricProvidedByLC: {
-    // If LC provides fabric, this is the cost
     type: Number,
     default: 0,
     min: [0, 'Fabric cost cannot be negative']
   },
   rushOrderFee: {
-    // Express delivery additional charge
     type: Number,
     default: 0,
     min: [0, 'Rush order fee cannot be negative']
@@ -119,22 +96,19 @@ const PricingSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-// Sub-schema for customization options
+// Sub-schema for customization
 const CustomizationSchema = new mongoose.Schema({
   allowFullyCustom: {
     type: Boolean,
-    default: true,
-    // Customer provides design idea + measurements
+    default: true
   },
   allowBrandArticle: {
     type: Boolean,
-    default: true,
-    // Customer uploads brand article photos to replicate
+    default: true
   },
   allowOwnFabric: {
     type: Boolean,
-    default: true,
-    // Customer can provide their own fabric
+    default: true
   },
   maxReferenceImages: {
     type: Number,
@@ -167,7 +141,7 @@ const CustomizationSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-// Sub-schema for size and measurements
+// Sub-schema for size
 const SizeAvailabilitySchema = new mongoose.Schema({
   standardSizes: [{
     type: String,
@@ -189,10 +163,7 @@ const SEOSchema = new mongoose.Schema({
   metaTitle: {
     type: String,
     trim: true,
-    maxlength: [60, 'Meta title should not exceed 60 characters'],
-    default: function() {
-      return this.title;
-    }
+    maxlength: [60, 'Meta title should not exceed 60 characters']
   },
   metaDescription: {
     type: String,
@@ -209,17 +180,14 @@ const SEOSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
-  ogImage: {
-    type: String,
-    // Open Graph image for social sharing
-  }
+  ogImage: String
 }, { _id: false });
 
-// Sub-schema for inventory (if tracking stock)
+// Sub-schema for inventory
 const InventorySchema = new mongoose.Schema({
   trackInventory: {
     type: Boolean,
-    default: false // Most items are made-to-order
+    default: false
   },
   stockQuantity: {
     type: Number,
@@ -233,7 +201,7 @@ const InventorySchema = new mongoose.Schema({
   sku: {
     type: String,
     unique: true,
-    sparse: true, // Allows null values
+    sparse: true,
     uppercase: true,
     trim: true
   }
@@ -241,21 +209,20 @@ const InventorySchema = new mongoose.Schema({
 
 // Main Product Schema
 const ProductSchema = new mongoose.Schema({
-  // ============ BASIC INFORMATION ============
   title: {
     type: String,
     required: [true, 'Product title is required'],
     trim: true,
     minlength: [5, 'Title must be at least 5 characters'],
     maxlength: [200, 'Title cannot exceed 200 characters'],
-    index: 'text' // Text search index
+    index: 'text'
   },
   
   slug: {
     type: String,
     unique: true,
     lowercase: true,
-    index: true, // Important for SEO URLs
+    index: true,
     trim: true
   },
   
@@ -273,7 +240,6 @@ const ProductSchema = new mongoose.Schema({
     maxlength: [250, 'Short description cannot exceed 250 characters']
   },
 
-  // ============ DESIGN CODE ============
   designCode: {
     type: String,
     required: [true, 'Design code is required'],
@@ -281,16 +247,33 @@ const ProductSchema = new mongoose.Schema({
     uppercase: true,
     trim: true,
     index: true,
-    // Format: LC-2025-001, LC-2025-002, etc.
     match: [/^LC-\d{4}-\d{3,4}$/, 'Invalid design code format. Use LC-YYYY-XXX']
   },
 
-  // ============ CATEGORIZATION ============
+  // FIXED: Enhanced category reference with validation
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
     required: [true, 'Category is required'],
-    index: true
+    index: true,
+    validate: {
+      validator: async function(value) {
+        try {
+          const Category = mongoose.model('Category');
+          const category = await Category.findById(value);
+          return category && category.isActive;
+        } catch (error) {
+          return false;
+        }
+      },
+      message: 'Selected category does not exist or is inactive'
+    }
+  },
+  
+  // FIXED: Category snapshot for historical data
+  categorySnapshot: {
+    name: String,
+    slug: String
   },
   
   subcategory: {
@@ -302,20 +285,9 @@ const ProductSchema = new mongoose.Schema({
   occasion: {
     type: String,
     enum: [
-      'Bridal',
-      'Party Wear',
-      'Casual',
-      'Formal',
-      'Semi-Formal',
-      'Mehndi',
-      'Walima',
-      'Engagement',
-      'Eid',
-      'Summer',
-      'Winter',
-      'Everyday',
-      'Office Wear',
-      'Other'
+      'Bridal', 'Party Wear', 'Casual', 'Formal', 'Semi-Formal',
+      'Mehndi', 'Walima', 'Engagement', 'Eid', 'Summer', 'Winter',
+      'Everyday', 'Office Wear', 'Other'
     ],
     index: true
   },
@@ -327,14 +299,13 @@ const ProductSchema = new mongoose.Schema({
     index: true
   }],
 
-  // ============ IMAGES ============
   images: {
     type: [{
       url: {
         type: String,
         required: true
       },
-      publicId: String, // Cloudinary public ID for deletion
+      publicId: String,
       altText: String,
       displayOrder: {
         type: Number,
@@ -352,15 +323,10 @@ const ProductSchema = new mongoose.Schema({
   primaryImage: {
     type: String,
     required: [true, 'Primary image is required']
-    // Set automatically to first image if not specified
   },
   
-  thumbnailImage: {
-    type: String
-    // Optimized thumbnail for grid views
-  },
+  thumbnailImage: String,
 
-  // ============ COLORS ============
   availableColors: [{
     name: {
       type: String,
@@ -371,51 +337,41 @@ const ProductSchema = new mongoose.Schema({
       type: String,
       match: [/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color code']
     },
-    image: String, // Image showing this color variant
+    image: String,
     inStock: {
       type: Boolean,
       default: true
     }
   }],
 
-  // ============ FABRIC DETAILS ============
   fabric: {
     type: FabricSchema,
     required: true
   },
 
-  // ============ PRICING ============
   pricing: {
     type: PricingSchema,
     required: true
   },
 
-  // ============ CUSTOMIZATION OPTIONS ============
   customization: {
     type: CustomizationSchema,
     required: true
   },
 
-  // ============ SIZE & MEASUREMENTS ============
   sizeAvailability: {
     type: SizeAvailabilitySchema,
     required: true
   },
 
-  // ============ PRODUCT TYPE ============
   productType: {
     type: String,
-    enum: [
-      'ready-made',        // Pre-stitched, ready to ship
-      'custom-only',       // Only available as custom order
-      'both'              // Available both ready-made and custom
-    ],
+    enum: ['ready-made', 'custom-only', 'both'],
     default: 'both',
     required: true,
     index: true
   },
 
-  // ============ AVAILABILITY ============
   availability: {
     status: {
       type: String,
@@ -426,10 +382,8 @@ const ProductSchema = new mongoose.Schema({
     expectedRestockDate: Date
   },
 
-  // ============ INVENTORY (OPTIONAL) ============
   inventory: InventorySchema,
 
-  // ============ FEATURES & HIGHLIGHTS ============
   features: [{
     type: String,
     trim: true,
@@ -439,10 +393,8 @@ const ProductSchema = new mongoose.Schema({
   whatsIncluded: [{
     type: String,
     trim: true
-    // e.g., "Shirt", "Trouser", "Dupatta"
   }],
 
-  // ============ PRODUCT STATUS ============
   isActive: {
     type: Boolean,
     default: true,
@@ -466,7 +418,6 @@ const ProductSchema = new mongoose.Schema({
     default: false
   },
 
-  // ============ PERFORMANCE METRICS ============
   views: {
     type: Number,
     default: 0,
@@ -496,13 +447,12 @@ const ProductSchema = new mongoose.Schema({
     ref: 'User'
   }],
 
-  // ============ REVIEWS & RATINGS ============
   averageRating: {
     type: Number,
     default: 0,
     min: [0, 'Rating cannot be negative'],
     max: [5, 'Rating cannot exceed 5'],
-    set: val => Math.round(val * 10) / 10 // Round to 1 decimal
+    set: val => Math.round(val * 10) / 10
   },
   
   totalReviews: {
@@ -519,16 +469,13 @@ const ProductSchema = new mongoose.Schema({
     one: { type: Number, default: 0 }
   },
 
-  // ============ SEO OPTIMIZATION ============
   seo: SEOSchema,
 
-  // ============ RELATED PRODUCTS ============
   relatedProducts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product'
   }],
 
-  // ============ ADMIN METADATA ============
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -543,10 +490,8 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     trim: true,
     maxlength: [500, 'Admin notes too long']
-    // Internal notes not visible to customers
   },
 
-  // ============ SOFT DELETE ============
   isDeleted: {
     type: Boolean,
     default: false,
@@ -561,13 +506,12 @@ const ProductSchema = new mongoose.Schema({
   }
 
 }, {
-  timestamps: true, // Adds createdAt and updatedAt automatically
+  timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
-// ============ INDEXES FOR PERFORMANCE ============
-// Compound indexes for common queries
+// ============ INDEXES ============
 ProductSchema.index({ category: 1, isActive: 1, isFeatured: -1 });
 ProductSchema.index({ 'pricing.basePrice': 1, isActive: 1 });
 ProductSchema.index({ occasion: 1, isActive: 1 });
@@ -575,11 +519,10 @@ ProductSchema.index({ 'fabric.type': 1, isActive: 1 });
 ProductSchema.index({ productType: 1, 'availability.status': 1 });
 ProductSchema.index({ isFeatured: -1, createdAt: -1 });
 ProductSchema.index({ isNewArrival: -1, createdAt: -1 });
-ProductSchema.index({ views: -1 }); // For popular products
-ProductSchema.index({ purchased: -1 }); // For best sellers
-ProductSchema.index({ averageRating: -1, totalReviews: -1 }); // For top-rated
+ProductSchema.index({ views: -1 });
+ProductSchema.index({ purchased: -1 });
+ProductSchema.index({ averageRating: -1, totalReviews: -1 });
 
-// Text index for search functionality
 ProductSchema.index({
   title: 'text',
   description: 'text',
@@ -594,8 +537,7 @@ ProductSchema.index({
   }
 });
 
-// ============ VIRTUAL FIELDS ============
-// Calculate final price after discount
+// ============ VIRTUALS ============
 ProductSchema.virtual('finalPrice').get(function() {
   const { basePrice, discount } = this.pricing;
   
@@ -603,7 +545,6 @@ ProductSchema.virtual('finalPrice').get(function() {
     return basePrice;
   }
   
-  // Check if discount is still valid
   const now = new Date();
   if (discount.startDate && now < discount.startDate) {
     return basePrice;
@@ -612,7 +553,6 @@ ProductSchema.virtual('finalPrice').get(function() {
     return basePrice;
   }
   
-  // Apply discount
   if (discount.percentage > 0) {
     return basePrice - (basePrice * discount.percentage / 100);
   } else if (discount.amount > 0) {
@@ -622,7 +562,6 @@ ProductSchema.virtual('finalPrice').get(function() {
   return basePrice;
 });
 
-// Check if product is on sale
 ProductSchema.virtual('isOnSale').get(function() {
   if (!this.pricing.discount || !this.pricing.discount.isActive) {
     return false;
@@ -637,7 +576,6 @@ ProductSchema.virtual('isOnSale').get(function() {
   return (this.pricing.discount.percentage > 0 || this.pricing.discount.amount > 0);
 });
 
-// Calculate discount percentage for display
 ProductSchema.virtual('discountPercentage').get(function() {
   if (!this.isOnSale) return 0;
   
@@ -652,36 +590,88 @@ ProductSchema.virtual('discountPercentage').get(function() {
   return 0;
 });
 
-// Virtual for URL
 ProductSchema.virtual('url').get(function() {
   return `/products/${this.slug}`;
 });
 
-// Check if low stock (if tracking inventory)
 ProductSchema.virtual('isLowStock').get(function() {
   if (!this.inventory.trackInventory) return false;
   return this.inventory.stockQuantity <= this.inventory.lowStockThreshold;
 });
 
 // ============ PRE-SAVE HOOKS ============
-// Generate slug from title
-ProductSchema.pre('save', function(next) {
+// FIXED: Improved slug generation with better collision handling
+ProductSchema.pre('save', async function(next) {
   if (this.isModified('title') || !this.slug) {
-    this.slug = slugify(this.title, {
+    let baseSlug = slugify(this.title, {
       lower: true,
       strict: true,
-      remove: /[*+~.()'"!:@]/g
+      remove: /[*+~.()'"!:@]/g,
     });
-    
-    // Add design code to slug for uniqueness
+
     if (this.designCode) {
-      this.slug = `${this.slug}-${this.designCode.toLowerCase()}`;
+      baseSlug = `${baseSlug}-${this.designCode.toLowerCase()}`;
+    }
+
+    let slug = baseSlug;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      try {
+        const existing = await mongoose.model('Product').findOne(
+          { 
+            slug, 
+            _id: { $ne: this._id },
+            isDeleted: false 
+          }
+        );
+        
+        if (!existing) {
+          this.slug = slug;
+          break;
+        }
+        
+        attempts++;
+        slug = `${baseSlug}-${attempts}`;
+        
+      } catch (error) {
+        if (error.code === 11000 && attempts < maxAttempts) {
+          attempts++;
+          slug = `${baseSlug}-${attempts}`;
+          continue;
+        }
+        throw error;
+      }
+    }
+    
+    if (attempts >= maxAttempts) {
+      throw new Error('Unable to generate unique slug after maximum attempts');
     }
   }
   next();
 });
 
-// Set primary image if not set
+// FIXED: Store category snapshot
+ProductSchema.pre('save', async function(next) {
+  if ((this.isModified('category') || this.isNew) && this.category) {
+    try {
+      const Category = mongoose.model('Category');
+      const category = await Category.findById(this.category).select('name slug');
+      
+      if (category) {
+        this.categorySnapshot = {
+          name: category.name,
+          slug: category.slug
+        };
+      }
+    } catch (error) {
+      console.error('Error storing category snapshot:', error);
+    }
+  }
+  next();
+});
+
 ProductSchema.pre('save', function(next) {
   if (!this.primaryImage && this.images && this.images.length > 0) {
     this.primaryImage = this.images[0].url;
@@ -689,17 +679,13 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-// Generate thumbnail if not set (assuming you have image processing)
 ProductSchema.pre('save', function(next) {
   if (!this.thumbnailImage && this.primaryImage) {
-    // In production, you'd generate a thumbnail using Sharp or Cloudinary
-    // For now, just use primary image
     this.thumbnailImage = this.primaryImage;
   }
   next();
 });
 
-// Auto-generate SEO fields if not provided
 ProductSchema.pre('save', function(next) {
   if (!this.seo.metaTitle) {
     this.seo.metaTitle = this.title.substring(0, 60);
@@ -717,10 +703,7 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-// Sanitize HTML in description (prevent XSS)
 ProductSchema.pre('save', function(next) {
-  // In production, use a library like DOMPurify or sanitize-html
-  // For now, basic sanitization
   if (this.isModified('description')) {
     this.description = this.description
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -730,7 +713,6 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-// Update isNewArrival automatically (products are new for 30 days)
 ProductSchema.pre('save', function(next) {
   if (this.isNew) {
     this.isNewArrival = true;
@@ -745,7 +727,6 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-// Validate discount dates
 ProductSchema.pre('save', function(next) {
   const { discount } = this.pricing;
   
@@ -761,33 +742,27 @@ ProductSchema.pre('save', function(next) {
 });
 
 // ============ INSTANCE METHODS ============
-// Increment view count
 ProductSchema.methods.incrementViews = async function() {
   this.views += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-// Increment clicks
 ProductSchema.methods.incrementClicks = async function() {
   this.clicks += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-// Increment cart additions
 ProductSchema.methods.incrementCartAdditions = async function() {
   this.addedToCart += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-// Increment purchase count
 ProductSchema.methods.incrementPurchases = async function() {
   this.purchased += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-// Update rating (called when new review is added)
 ProductSchema.methods.updateRating = async function(newRating) {
-  // Update rating distribution
   this.ratingDistribution[
     newRating === 5 ? 'five' :
     newRating === 4 ? 'four' :
@@ -795,7 +770,6 @@ ProductSchema.methods.updateRating = async function(newRating) {
     newRating === 2 ? 'two' : 'one'
   ] += 1;
   
-  // Recalculate average rating
   const totalRatings = 
     (this.ratingDistribution.five * 5) +
     (this.ratingDistribution.four * 4) +
@@ -809,7 +783,6 @@ ProductSchema.methods.updateRating = async function(newRating) {
   return this.save({ validateBeforeSave: false });
 };
 
-// Check if in stock
 ProductSchema.methods.isInStock = function() {
   if (this.availability.status === 'out-of-stock' || 
       this.availability.status === 'discontinued') {
@@ -820,11 +793,9 @@ ProductSchema.methods.isInStock = function() {
     return this.inventory.stockQuantity > 0;
   }
   
-  // Made-to-order products are always "in stock"
   return true;
 };
 
-// Soft delete
 ProductSchema.methods.softDelete = async function(userId) {
   this.isDeleted = true;
   this.deletedAt = new Date();
@@ -833,7 +804,6 @@ ProductSchema.methods.softDelete = async function(userId) {
   return this.save({ validateBeforeSave: false });
 };
 
-// Restore soft deleted product
 ProductSchema.methods.restore = async function() {
   this.isDeleted = false;
   this.deletedAt = undefined;
@@ -843,7 +813,6 @@ ProductSchema.methods.restore = async function() {
 };
 
 // ============ STATIC METHODS ============
-// Find active products only (excluding soft deleted)
 ProductSchema.statics.findActive = function(conditions = {}) {
   return this.find({
     ...conditions,
@@ -852,7 +821,6 @@ ProductSchema.statics.findActive = function(conditions = {}) {
   });
 };
 
-// Find featured products
 ProductSchema.statics.findFeatured = function(limit = 8) {
   return this.find({
     isFeatured: true,
@@ -863,7 +831,6 @@ ProductSchema.statics.findFeatured = function(limit = 8) {
   .sort({ createdAt: -1 });
 };
 
-// Find new arrivals
 ProductSchema.statics.findNewArrivals = function(limit = 12) {
   return this.find({
     isNewArrival: true,
@@ -874,7 +841,6 @@ ProductSchema.statics.findNewArrivals = function(limit = 12) {
   .sort({ createdAt: -1 });
 };
 
-// Find best sellers
 ProductSchema.statics.findBestSellers = function(limit = 10) {
   return this.find({
     isActive: true,
@@ -884,7 +850,6 @@ ProductSchema.statics.findBestSellers = function(limit = 10) {
   .limit(limit);
 };
 
-// Find by price range
 ProductSchema.statics.findByPriceRange = function(min, max) {
   return this.find({
     'pricing.basePrice': { $gte: min, $lte: max },
@@ -893,7 +858,6 @@ ProductSchema.statics.findByPriceRange = function(min, max) {
   });
 };
 
-// Search products
 ProductSchema.statics.search = function(query, options = {}) {
   const {
     category,
@@ -928,12 +892,10 @@ ProductSchema.statics.search = function(query, options = {}) {
     .select('-adminNotes');
 };
 
-// Auto-generate design code
 ProductSchema.statics.generateDesignCode = async function() {
   const year = new Date().getFullYear();
   const prefix = `LC-${year}-`;
   
-  // Find the last product of this year
   const lastProduct = await this.findOne({
     designCode: new RegExp(`^${prefix}`)
   })
@@ -944,7 +906,6 @@ ProductSchema.statics.generateDesignCode = async function() {
     return `${prefix}001`;
   }
   
-  // Extract number and increment
   const lastNumber = parseInt(lastProduct.designCode.split('-')[2]);
   const newNumber = (lastNumber + 1).toString().padStart(3, '0');
   
@@ -952,19 +913,25 @@ ProductSchema.statics.generateDesignCode = async function() {
 };
 
 // ============ POST HOOKS ============
-// Update category product count after save
 ProductSchema.post('save', async function(doc) {
   if (doc.category) {
-    const Category = mongoose.model('Category');
-    await Category.updateProductCount(doc.category);
+    try {
+      const Category = mongoose.model('Category');
+      await Category.updateProductCount(doc.category);
+    } catch (error) {
+      console.error('Error updating category product count:', error);
+    }
   }
 });
 
-// Update category product count after delete
 ProductSchema.post('remove', async function(doc) {
   if (doc.category) {
-    const Category = mongoose.model('Category');
-    await Category.updateProductCount(doc.category);
+    try {
+      const Category = mongoose.model('Category');
+      await Category.updateProductCount(doc.category);
+    } catch (error) {
+      console.error('Error updating category product count:', error);
+    }
   }
 });
 

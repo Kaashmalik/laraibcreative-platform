@@ -1,30 +1,36 @@
-/**
- * Settings Model
- * 
- * Manages all application settings including:
- * - General site configuration
- * - Payment gateway details
- * - Shipping rules and charges
- * - Email/SMS/WhatsApp templates
- * - SEO configuration
- * - User management settings
- * 
- * Security: Sensitive data (API keys, passwords) are encrypted
- * Performance: Indexed by type for fast retrieval
- * Versioning: Tracks who modified settings and when
- */
-
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 
-// Encryption helper for sensitive data
-const ENCRYPTION_KEY = process.env.SETTINGS_ENCRYPTION_KEY || crypto.randomBytes(32);
+// FIXED: Critical encryption key validation
+const ENCRYPTION_KEY = (() => {
+  const key = process.env.SETTINGS_ENCRYPTION_KEY;
+  
+  if (!key) {
+    throw new Error(
+      'CRITICAL: SETTINGS_ENCRYPTION_KEY environment variable is required.\n' +
+      'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+    );
+  }
+  
+  // Convert hex string to buffer
+  if (key.length === 64) {
+    return Buffer.from(key, 'hex');
+  }
+  
+  // If raw string, ensure it's 32 bytes
+  if (Buffer.from(key).length !== 32) {
+    throw new Error('SETTINGS_ENCRYPTION_KEY must be exactly 32 bytes (64 hex characters)');
+  }
+  
+  return Buffer.from(key);
+})();
+
 const IV_LENGTH = 16;
 
 function encrypt(text) {
   if (!text) return text;
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   return iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -35,13 +41,13 @@ function decrypt(text) {
   const textParts = text.split(':');
   const iv = Buffer.from(textParts.shift(), 'hex');
   const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
 }
 
-// Sub-schemas for better organization
+// Sub-schemas
 const PaymentAccountSchema = new mongoose.Schema({
   bankName: {
     type: String,
@@ -173,7 +179,6 @@ const WhatsAppTemplateSchema = new mongoose.Schema({
 
 // Main Settings Schema
 const SettingsSchema = new mongoose.Schema({
-  // Setting Type (for querying specific setting groups)
   type: {
     type: String,
     required: true,
@@ -181,22 +186,18 @@ const SettingsSchema = new mongoose.Schema({
     index: true
   },
 
-  // Version control
   version: {
     type: Number,
     default: 1
   },
 
-  // Is this setting currently active?
   isActive: {
     type: Boolean,
     default: true,
     index: true
   },
 
-  // ==================== GENERAL SETTINGS ====================
   general: {
-    // Site Information
     siteName: {
       type: String,
       trim: true,
@@ -216,7 +217,6 @@ const SettingsSchema = new mongoose.Schema({
       trim: true
     },
 
-    // Contact Information
     contact: {
       email: {
         type: String,
@@ -234,7 +234,9 @@ const SettingsSchema = new mongoose.Schema({
         trim: true,
         validate: {
           validator: function(v) {
-            return !v || /^(\+92|0)?[0-9]{10}$/.test(v.replace(/[\s-]/g, ''));
+            if (!v) return true;
+            const cleaned = v.replace(/[\s-]/g, '');
+            return /^(\+92[0-9]{10}|0[0-9]{10}|[0-9]{10})$/.test(cleaned);
           },
           message: 'Invalid Pakistani phone number'
         }
@@ -244,7 +246,9 @@ const SettingsSchema = new mongoose.Schema({
         trim: true,
         validate: {
           validator: function(v) {
-            return !v || /^(\+92|0)?[0-9]{10}$/.test(v.replace(/[\s-]/g, ''));
+            if (!v) return true;
+            const cleaned = v.replace(/[\s-]/g, '');
+            return /^(\+92[0-9]{10}|0[0-9]{10}|[0-9]{10})$/.test(cleaned);
           },
           message: 'Invalid WhatsApp number'
         }
@@ -261,7 +265,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Business Hours
     businessHours: {
       monday: { open: String, close: String, isClosed: Boolean },
       tuesday: { open: String, close: String, isClosed: Boolean },
@@ -272,7 +275,6 @@ const SettingsSchema = new mongoose.Schema({
       sunday: { open: String, close: String, isClosed: Boolean }
     },
 
-    // Currency
     currency: {
       code: {
         type: String,
@@ -290,7 +292,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Maintenance Mode
     maintenanceMode: {
       enabled: {
         type: Boolean,
@@ -307,9 +308,7 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== PAYMENT SETTINGS ====================
   payment: {
-    // Manual Payment Methods
     bankTransfer: {
       enabled: {
         type: Boolean,
@@ -330,7 +329,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Jazz Cash
     jazzCash: {
       enabled: {
         type: Boolean,
@@ -350,7 +348,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // EasyPaisa
     easyPaisa: {
       enabled: {
         type: Boolean,
@@ -370,7 +367,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Cash on Delivery
     cashOnDelivery: {
       enabled: {
         type: Boolean,
@@ -397,15 +393,14 @@ const SettingsSchema = new mongoose.Schema({
       }]
     },
 
-    // Future Payment Gateways (Encrypted API Keys)
     stripe: {
       enabled: {
         type: Boolean,
         default: false
       },
       publicKey: String,
-      secretKey: String, // Will be encrypted
-      webhookSecret: String // Will be encrypted
+      secretKey: String,
+      webhookSecret: String
     },
 
     paypal: {
@@ -414,16 +409,13 @@ const SettingsSchema = new mongoose.Schema({
         default: false
       },
       clientId: String,
-      clientSecret: String // Will be encrypted
+      clientSecret: String
     }
   },
 
-  // ==================== SHIPPING SETTINGS ====================
   shipping: {
-    // Shipping Zones
     zones: [ShippingZoneSchema],
 
-    // Default Settings
     defaultEstimatedDays: {
       min: {
         type: Number,
@@ -435,7 +427,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Free Shipping
     freeShipping: {
       enabled: {
         type: Boolean,
@@ -448,7 +439,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Rush Order
     rushOrder: {
       enabled: {
         type: Boolean,
@@ -466,16 +456,13 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Tracking
     trackingEnabled: {
       type: Boolean,
       default: true
     }
   },
 
-  // ==================== EMAIL SETTINGS ====================
   email: {
-    // SMTP Configuration
     smtp: {
       host: {
         type: String,
@@ -494,7 +481,7 @@ const SettingsSchema = new mongoose.Schema({
         type: String,
         trim: true
       },
-      password: String, // Will be encrypted
+      password: String,
       fromName: {
         type: String,
         trim: true
@@ -506,7 +493,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Email Templates
     templates: {
       orderConfirmation: EmailTemplateSchema,
       paymentVerified: EmailTemplateSchema,
@@ -519,7 +505,6 @@ const SettingsSchema = new mongoose.Schema({
       newsletter: EmailTemplateSchema
     },
 
-    // Email Notifications
     notifications: {
       orderPlaced: {
         toCustomer: { type: Boolean, default: true },
@@ -535,7 +520,6 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== SMS SETTINGS ====================
   sms: {
     enabled: {
       type: Boolean,
@@ -546,8 +530,8 @@ const SettingsSchema = new mongoose.Schema({
       enum: ['twilio', 'nexmo', 'local'],
       default: 'local'
     },
-    apiKey: String, // Will be encrypted
-    apiSecret: String, // Will be encrypted
+    apiKey: String,
+    apiSecret: String,
     senderId: {
       type: String,
       trim: true,
@@ -560,35 +544,28 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== WHATSAPP SETTINGS ====================
   whatsapp: {
     enabled: {
       type: Boolean,
       default: true
     },
     
-    // API Configuration
     api: {
       provider: {
         type: String,
         enum: ['twilio', 'whatsapp-business', 'manual'],
         default: 'manual'
       },
-      apiKey: String, // Will be encrypted
+      apiKey: String,
       phoneNumberId: String,
-      accessToken: String // Will be encrypted
+      accessToken: String
     },
 
-    // Business Number
     businessNumber: {
       type: String,
-      trim: true,
-      required: function() {
-        return this.whatsapp?.enabled;
-      }
+      trim: true
     },
 
-    // Templates
     templates: {
       orderConfirmation: WhatsAppTemplateSchema,
       paymentVerified: WhatsAppTemplateSchema,
@@ -597,7 +574,6 @@ const SettingsSchema = new mongoose.Schema({
       orderDelivered: WhatsAppTemplateSchema
     },
 
-    // Notifications
     notifications: {
       orderPlaced: { type: Boolean, default: true },
       paymentVerified: { type: Boolean, default: true },
@@ -606,7 +582,6 @@ const SettingsSchema = new mongoose.Schema({
       orderDelivered: { type: Boolean, default: true }
     },
 
-    // Auto-reply settings
     autoReply: {
       enabled: { type: Boolean, default: false },
       message: { type: String, trim: true },
@@ -614,9 +589,7 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== SEO SETTINGS ====================
   seo: {
-    // Homepage Meta
     homepage: {
       metaTitle: {
         type: String,
@@ -635,7 +608,6 @@ const SettingsSchema = new mongoose.Schema({
       ogImage: String
     },
 
-    // Global SEO
     siteName: String,
     separator: {
       type: String,
@@ -643,7 +615,6 @@ const SettingsSchema = new mongoose.Schema({
     },
     defaultImage: String,
 
-    // Google Services
     googleAnalyticsId: {
       type: String,
       trim: true,
@@ -666,13 +637,11 @@ const SettingsSchema = new mongoose.Schema({
     },
     googleSearchConsoleVerification: String,
 
-    // Facebook Pixel
     facebookPixelId: {
       type: String,
       trim: true
     },
 
-    // Structured Data
     structuredData: {
       organization: {
         enabled: { type: Boolean, default: true },
@@ -686,7 +655,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Robots & Sitemap
     robotsTxt: {
       type: String,
       trim: true
@@ -697,7 +665,6 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== SOCIAL MEDIA SETTINGS ====================
   social: {
     facebook: {
       enabled: { type: Boolean, default: false },
@@ -706,7 +673,7 @@ const SettingsSchema = new mongoose.Schema({
     instagram: {
       enabled: { type: Boolean, default: true },
       url: { type: String, trim: true },
-      accessToken: String, // Will be encrypted
+      accessToken: String,
       autoFetch: { type: Boolean, default: false }
     },
     twitter: {
@@ -727,53 +694,44 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== SECURITY SETTINGS ====================
   security: {
-    // Rate Limiting
     rateLimit: {
       enabled: { type: Boolean, default: true },
       maxRequests: { type: Number, default: 100 },
       windowMinutes: { type: Number, default: 15 }
     },
 
-    // Password Policy
     passwordPolicy: {
       minLength: { type: Number, default: 8 },
       requireUppercase: { type: Boolean, default: true },
       requireLowercase: { type: Boolean, default: true },
       requireNumbers: { type: Boolean, default: true },
       requireSpecialChars: { type: Boolean, default: true },
-      expiryDays: { type: Number, default: 0 } // 0 = never expires
+      expiryDays: { type: Number, default: 0 }
     },
 
-    // Session
     sessionTimeout: {
       type: Number,
-      default: 30 // minutes
+      default: 30
     },
 
-    // JWT
     jwtExpiry: {
-      accessToken: { type: Number, default: 3600 }, // 1 hour in seconds
-      refreshToken: { type: Number, default: 604800 } // 7 days in seconds
+      accessToken: { type: Number, default: 3600 },
+      refreshToken: { type: Number, default: 604800 }
     },
 
-    // Two-Factor Authentication
     twoFactorAuth: {
       enabled: { type: Boolean, default: false },
       required: { type: Boolean, default: false }
     },
 
-    // IP Whitelisting (Admin)
     ipWhitelist: {
       enabled: { type: Boolean, default: false },
       ips: [String]
     }
   },
 
-  // ==================== NOTIFICATION SETTINGS ====================
   notifications: {
-    // Admin Notifications
     admin: {
       newOrder: {
         email: { type: Boolean, default: true },
@@ -793,7 +751,6 @@ const SettingsSchema = new mongoose.Schema({
       }
     },
 
-    // Customer Notifications
     customer: {
       orderUpdates: {
         email: { type: Boolean, default: true },
@@ -807,14 +764,11 @@ const SettingsSchema = new mongoose.Schema({
     }
   },
 
-  // ==================== METADATA ====================
-  // Change tracking
   lastModifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
 
-  // Change history
   changeLog: [{
     field: String,
     oldValue: mongoose.Schema.Types.Mixed,
@@ -830,7 +784,6 @@ const SettingsSchema = new mongoose.Schema({
     ipAddress: String
   }],
 
-  // Notes
   notes: {
     type: String,
     trim: true
@@ -848,7 +801,6 @@ SettingsSchema.index({ lastModifiedBy: 1, updatedAt: -1 });
 
 // ==================== PRE-SAVE MIDDLEWARE ====================
 SettingsSchema.pre('save', function(next) {
-  // Encrypt sensitive fields before saving
   const sensitiveFields = [
     'payment.stripe.secretKey',
     'payment.stripe.webhookSecret',
@@ -863,7 +815,7 @@ SettingsSchema.pre('save', function(next) {
 
   sensitiveFields.forEach(fieldPath => {
     const value = fieldPath.split('.').reduce((obj, key) => obj?.[key], this);
-    if (value && !value.includes(':')) { // Not already encrypted
+    if (value && !value.includes(':')) {
       const keys = fieldPath.split('.');
       let obj = this;
       for (let i = 0; i < keys.length - 1; i++) {
@@ -873,7 +825,6 @@ SettingsSchema.pre('save', function(next) {
     }
   });
 
-  // Increment version on update
   if (!this.isNew) {
     this.version += 1;
   }
@@ -883,9 +834,6 @@ SettingsSchema.pre('save', function(next) {
 
 // ==================== METHODS ====================
 
-/**
- * Decrypt sensitive field
- */
 SettingsSchema.methods.decryptField = function(fieldPath) {
   const value = fieldPath.split('.').reduce((obj, key) => obj?.[key], this);
   if (value && value.includes(':')) {
@@ -894,9 +842,6 @@ SettingsSchema.methods.decryptField = function(fieldPath) {
   return value;
 };
 
-/**
- * Get SMTP configuration with decrypted password
- */
 SettingsSchema.methods.getSMTPConfig = function() {
   if (!this.email?.smtp) return null;
   
@@ -911,9 +856,6 @@ SettingsSchema.methods.getSMTPConfig = function() {
   };
 };
 
-/**
- * Get active payment methods
- */
 SettingsSchema.methods.getActivePaymentMethods = function() {
   const methods = [];
   
@@ -959,13 +901,9 @@ SettingsSchema.methods.getActivePaymentMethods = function() {
   return methods;
 };
 
-/**
- * Calculate shipping charge for a city
- */
 SettingsSchema.methods.calculateShipping = function(city, orderValue = 0) {
   if (!this.shipping?.zones) return { charge: 0, estimatedDays: { min: 7, max: 14 } };
   
-  // Find matching zone
   const zone = this.shipping.zones.find(z => 
     z.isActive && z.cities.some(c => c.toLowerCase() === city.toLowerCase())
   );
@@ -978,7 +916,6 @@ SettingsSchema.methods.calculateShipping = function(city, orderValue = 0) {
     };
   }
   
-  // Check free shipping threshold
   if (this.shipping.freeShipping?.enabled && 
       orderValue >= this.shipping.freeShipping.minimumOrderValue) {
     return {
@@ -988,7 +925,6 @@ SettingsSchema.methods.calculateShipping = function(city, orderValue = 0) {
     };
   }
   
-  // Check zone-specific free shipping
   if (zone.freeShippingThreshold > 0 && orderValue >= zone.freeShippingThreshold) {
     return {
       charge: 0,
@@ -1003,9 +939,6 @@ SettingsSchema.methods.calculateShipping = function(city, orderValue = 0) {
   };
 };
 
-/**
- * Get email template with variable replacement
- */
 SettingsSchema.methods.getEmailTemplate = function(templateName, variables = {}) {
   const template = this.email?.templates?.[templateName];
   if (!template || !template.isActive) return null;
@@ -1013,41 +946,32 @@ SettingsSchema.methods.getEmailTemplate = function(templateName, variables = {})
   let subject = template.subject;
   let body = template.body;
   
-  // Replace variables
   Object.keys(variables).forEach(key => {
-    const placeholder = `{{${key}}}`;
-    subject = subject.replace(new RegExp(placeholder, 'g'), variables[key]);
-    body = body.replace(new RegExp(placeholder, 'g'), variables[key]);
+    const placeholder = new RegExp(`{{${key}}}`, 'g');
+    subject = subject.replace(placeholder, variables[key]);
+    body = body.replace(placeholder, variables[key]);
   });
   
   return { subject, body };
 };
 
-/**
- * Get WhatsApp template with variable replacement
- */
 SettingsSchema.methods.getWhatsAppTemplate = function(templateName, variables = {}) {
   const template = this.whatsapp?.templates?.[templateName];
   if (!template || !template.isActive) return null;
   
   let message = template.message;
   
-  // Replace variables
   Object.keys(variables).forEach(key => {
-    const placeholder = `{{${key}}}`;
-    message = message.replace(new RegExp(placeholder, 'g'), variables[key]);
+    const placeholder = new RegExp(`{{${key}}}`, 'g');
+    message = message.replace(placeholder, variables[key]);
   });
   
   return message;
 };
 
-/**
- * Check if in maintenance mode
- */
 SettingsSchema.methods.isInMaintenanceMode = function(ipAddress = null) {
   if (!this.general?.maintenanceMode?.enabled) return false;
   
-  // Check if IP is whitelisted
   if (ipAddress && this.general.maintenanceMode.allowedIPs?.includes(ipAddress)) {
     return false;
   }
@@ -1055,9 +979,6 @@ SettingsSchema.methods.isInMaintenanceMode = function(ipAddress = null) {
   return true;
 };
 
-/**
- * Log changes for audit trail
- */
 SettingsSchema.methods.logChange = function(field, oldValue, newValue, userId, ipAddress) {
   this.changeLog.push({
     field,
@@ -1071,16 +992,10 @@ SettingsSchema.methods.logChange = function(field, oldValue, newValue, userId, i
 
 // ==================== STATICS ====================
 
-/**
- * Get settings by type
- */
 SettingsSchema.statics.getByType = async function(type) {
   return await this.findOne({ type, isActive: true });
 };
 
-/**
- * Get or create settings with defaults
- */
 SettingsSchema.statics.getOrCreate = async function(type) {
   let settings = await this.findOne({ type });
   
@@ -1092,16 +1007,11 @@ SettingsSchema.statics.getOrCreate = async function(type) {
   return settings;
 };
 
-/**
- * Update specific setting field
- */
 SettingsSchema.statics.updateField = async function(type, fieldPath, value, userId, ipAddress) {
   const settings = await this.getOrCreate(type);
   
-  // Get old value for logging
   const oldValue = fieldPath.split('.').reduce((obj, key) => obj?.[key], settings);
   
-  // Set new value
   const keys = fieldPath.split('.');
   let obj = settings;
   for (let i = 0; i < keys.length - 1; i++) {
@@ -1110,7 +1020,6 @@ SettingsSchema.statics.updateField = async function(type, fieldPath, value, user
   }
   obj[keys[keys.length - 1]] = value;
   
-  // Log change
   settings.logChange(fieldPath, oldValue, value, userId, ipAddress);
   settings.lastModifiedBy = userId;
   
@@ -1120,9 +1029,6 @@ SettingsSchema.statics.updateField = async function(type, fieldPath, value, user
 
 // ==================== VIRTUALS ====================
 
-/**
- * Get formatted business hours
- */
 SettingsSchema.virtual('formattedBusinessHours').get(function() {
   if (!this.general?.businessHours) return null;
   
@@ -1141,9 +1047,6 @@ SettingsSchema.virtual('formattedBusinessHours').get(function() {
   });
 });
 
-/**
- * Get contact information formatted
- */
 SettingsSchema.virtual('contactInfo').get(function() {
   if (!this.general?.contact) return null;
   
@@ -1157,24 +1060,157 @@ SettingsSchema.virtual('contactInfo').get(function() {
   };
 });
 
-/**
- * Check if site is operational
- */
 SettingsSchema.virtual('isOperational').get(function() {
   return this.isActive && !this.general?.maintenanceMode?.enabled;
 });
 
-// Enable virtuals in JSON output
 SettingsSchema.set('toJSON', { virtuals: true });
 SettingsSchema.set('toObject', { virtuals: true });
 
+// ==================== VALIDATION METHODS ====================
+
+SettingsSchema.methods.validateEmailConfig = function() {
+  const errors = [];
+  
+  if (this.email?.smtp) {
+    if (!this.email.smtp.host) errors.push('SMTP host is required');
+    if (!this.email.smtp.port) errors.push('SMTP port is required');
+    if (!this.email.smtp.username) errors.push('SMTP username is required');
+    if (!this.email.smtp.password) errors.push('SMTP password is required');
+    if (!this.email.smtp.fromEmail) errors.push('From email is required');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+SettingsSchema.methods.validatePaymentConfig = function() {
+  const errors = [];
+  
+  if (this.payment?.bankTransfer?.enabled) {
+    if (!this.payment.bankTransfer.accounts || this.payment.bankTransfer.accounts.length === 0) {
+      errors.push('At least one bank account is required for bank transfer');
+    }
+  }
+  
+  if (this.payment?.cashOnDelivery?.enabled) {
+    if (!this.payment.cashOnDelivery.availableCities || 
+        this.payment.cashOnDelivery.availableCities.length === 0) {
+      errors.push('COD cities must be specified');
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+SettingsSchema.methods.validateShippingConfig = function() {
+  const errors = [];
+  
+  if (!this.shipping?.zones || this.shipping.zones.length === 0) {
+    errors.push('At least one shipping zone is required');
+  }
+  
+  this.shipping?.zones?.forEach((zone, index) => {
+    if (!zone.name) errors.push(`Zone ${index + 1}: Name is required`);
+    if (zone.cities.length === 0) errors.push(`Zone ${index + 1}: At least one city is required`);
+    if (zone.baseCharge < 0) errors.push(`Zone ${index + 1}: Base charge cannot be negative`);
+    if (zone.estimatedDays.min > zone.estimatedDays.max) {
+      errors.push(`Zone ${index + 1}: Min days cannot exceed max days`);
+    }
+  });
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// ==================== UTILITY METHODS ====================
+
+SettingsSchema.methods.exportSettings = function(includeSensitive = false) {
+  const obj = this.toObject();
+  
+  delete obj._id;
+  delete obj.__v;
+  delete obj.createdAt;
+  delete obj.updatedAt;
+  delete obj.changeLog;
+  
+  if (!includeSensitive) {
+    sanitizeSensitiveData(obj);
+  }
+  
+  return obj;
+};
+
+SettingsSchema.statics.importSettings = async function(data, userId, ipAddress) {
+  const { type } = data;
+  if (!type) throw new Error('Settings type is required');
+  
+  let settings = await this.findOne({ type });
+  
+  if (settings) {
+    Object.assign(settings, data);
+    settings.lastModifiedBy = userId;
+    settings.logChange('import', 'full_import', 'imported', userId, ipAddress);
+  } else {
+    settings = new this(data);
+    settings.lastModifiedBy = userId;
+  }
+  
+  await settings.save();
+  return settings;
+};
+
+SettingsSchema.statics.resetToDefaults = async function(type) {
+  const settings = await this.findOne({ type });
+  if (settings) {
+    await settings.deleteOne();
+  }
+  
+  return await this.getOrCreate(type);
+};
+
+SettingsSchema.methods.cloneToType = async function(newType) {
+  const cloned = this.toObject();
+  delete cloned._id;
+  delete cloned.createdAt;
+  delete cloned.updatedAt;
+  delete cloned.changeLog;
+  
+  cloned.type = newType;
+  cloned.version = 1;
+  
+  const newSettings = new this.constructor(cloned);
+  await newSettings.save();
+  return newSettings;
+};
+
+// ==================== QUERY HELPERS ====================
+
+SettingsSchema.query.active = function() {
+  return this.where({ isActive: true });
+};
+
+SettingsSchema.query.byType = function(type) {
+  return this.where({ type });
+};
+
+SettingsSchema.query.withSensitive = function() {
+  return this.transform((doc) => {
+    if (doc) doc._showSensitive = true;
+    return doc;
+  });
+};
+
 // ==================== POST-FIND MIDDLEWARE ====================
 
-/**
- * Remove sensitive data from query results (unless explicitly requested)
- */
 SettingsSchema.post('find', function(docs) {
-  // This runs after find queries
   if (Array.isArray(docs)) {
     docs.forEach(doc => {
       if (doc && !doc._showSensitive) {
@@ -1190,11 +1226,7 @@ SettingsSchema.post('findOne', function(doc) {
   }
 });
 
-/**
- * Helper to sanitize sensitive data
- */
 function sanitizeSensitiveData(doc) {
-  // Hide encrypted values (show only [ENCRYPTED] placeholder)
   if (doc.payment?.stripe?.secretKey) {
     doc.payment.stripe.secretKey = '[ENCRYPTED]';
   }
@@ -1224,207 +1256,18 @@ function sanitizeSensitiveData(doc) {
   }
 }
 
-// ==================== VALIDATION METHODS ====================
+// ==================== CACHE INVALIDATION HOOKS ====================
 
-/**
- * Validate email configuration
- */
-SettingsSchema.methods.validateEmailConfig = function() {
-  const errors = [];
-  
-  if (this.email?.smtp) {
-    if (!this.email.smtp.host) errors.push('SMTP host is required');
-    if (!this.email.smtp.port) errors.push('SMTP port is required');
-    if (!this.email.smtp.username) errors.push('SMTP username is required');
-    if (!this.email.smtp.password) errors.push('SMTP password is required');
-    if (!this.email.smtp.fromEmail) errors.push('From email is required');
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-};
-
-/**
- * Validate payment configuration
- */
-SettingsSchema.methods.validatePaymentConfig = function() {
-  const errors = [];
-  
-  if (this.payment?.bankTransfer?.enabled) {
-    if (!this.payment.bankTransfer.accounts || this.payment.bankTransfer.accounts.length === 0) {
-      errors.push('At least one bank account is required for bank transfer');
-    }
-  }
-  
-  if (this.payment?.cashOnDelivery?.enabled) {
-    if (!this.payment.cashOnDelivery.availableCities || 
-        this.payment.cashOnDelivery.availableCities.length === 0) {
-      errors.push('COD cities must be specified');
-    }
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-};
-
-/**
- * Validate shipping configuration
- */
-SettingsSchema.methods.validateShippingConfig = function() {
-  const errors = [];
-  
-  if (!this.shipping?.zones || this.shipping.zones.length === 0) {
-    errors.push('At least one shipping zone is required');
-  }
-  
-  this.shipping?.zones?.forEach((zone, index) => {
-    if (!zone.name) errors.push(`Zone ${index + 1}: Name is required`);
-    if (zone.cities.length === 0) errors.push(`Zone ${index + 1}: At least one city is required`);
-    if (zone.baseCharge < 0) errors.push(`Zone ${index + 1}: Base charge cannot be negative`);
-    if (zone.estimatedDays.min > zone.estimatedDays.max) {
-      errors.push(`Zone ${index + 1}: Min days cannot exceed max days`);
-    }
-  });
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-};
-
-// ==================== UTILITY METHODS ====================
-
-/**
- * Export settings as JSON (for backup)
- */
-SettingsSchema.methods.exportSettings = function(includeSensitive = false) {
-  const obj = this.toObject();
-  
-  // Remove MongoDB specific fields
-  delete obj._id;
-  delete obj.__v;
-  delete obj.createdAt;
-  delete obj.updatedAt;
-  delete obj.changeLog;
-  
-  if (!includeSensitive) {
-    sanitizeSensitiveData(obj);
-  }
-  
-  return obj;
-};
-
-/**
- * Import settings from JSON
- */
-SettingsSchema.statics.importSettings = async function(data, userId, ipAddress) {
-  const { type } = data;
-  if (!type) throw new Error('Settings type is required');
-  
-  let settings = await this.findOne({ type });
-  
-  if (settings) {
-    // Update existing
-    Object.assign(settings, data);
-    settings.lastModifiedBy = userId;
-    settings.logChange('import', 'full_import', 'imported', userId, ipAddress);
-  } else {
-    // Create new
-    settings = new this(data);
-    settings.lastModifiedBy = userId;
-  }
-  
-  await settings.save();
-  return settings;
-};
-
-/**
- * Reset settings to defaults
- */
-SettingsSchema.statics.resetToDefaults = async function(type) {
-  const settings = await this.findOne({ type });
-  if (settings) {
-    await settings.deleteOne();
-  }
-  
-  // Create new with defaults
-  return await this.getOrCreate(type);
-};
-
-/**
- * Clone settings to a new type
- */
-SettingsSchema.methods.cloneToType = async function(newType) {
-  const cloned = this.toObject();
-  delete cloned._id;
-  delete cloned.createdAt;
-  delete cloned.updatedAt;
-  delete cloned.changeLog;
-  
-  cloned.type = newType;
-  cloned.version = 1;
-  
-  const newSettings = new this.constructor(cloned);
-  await newSettings.save();
-  return newSettings;
-};
-
-// ==================== QUERY HELPERS ====================
-
-/**
- * Find active settings
- */
-SettingsSchema.query.active = function() {
-  return this.where({ isActive: true });
-};
-
-/**
- * Find by type
- */
-SettingsSchema.query.byType = function(type) {
-  return this.where({ type });
-};
-
-/**
- * Include sensitive data in results
- */
-SettingsSchema.query.withSensitive = function() {
-  // Set flag to prevent sanitization
-  return this.transform((doc) => {
-    if (doc) doc._showSensitive = true;
-    return doc;
-  });
-};
-
-// ==================== HOOKS FOR CACHE INVALIDATION ====================
-
-/**
- * After save, invalidate cache (if using Redis/cache)
- */
 SettingsSchema.post('save', async function(doc) {
-  // Emit event for cache invalidation
   this.constructor.emit('settingsUpdated', { type: doc.type, id: doc._id });
-  
-  // If you're using Redis:
-  // await redisClient.del(`settings:${doc.type}`);
 });
 
-/**
- * After delete, invalidate cache
- */
 SettingsSchema.post('deleteOne', { document: true, query: false }, async function(doc) {
   this.constructor.emit('settingsDeleted', { type: doc.type, id: doc._id });
 });
 
 // ==================== DEFAULT SETTINGS SEEDS ====================
 
-/**
- * Create default settings for all types
- */
 SettingsSchema.statics.seedDefaults = async function() {
   const defaultSettings = [
     {
@@ -1558,9 +1401,6 @@ SettingsSchema.statics.seedDefaults = async function() {
 
 // ==================== ERROR HANDLING ====================
 
-/**
- * Handle validation errors
- */
 SettingsSchema.post('save', function(error, doc, next) {
   if (error.name === 'ValidationError') {
     const errors = Object.values(error.errors).map(err => err.message);
@@ -1575,53 +1415,3 @@ SettingsSchema.post('save', function(error, doc, next) {
 const Settings = mongoose.model('Settings', SettingsSchema);
 
 module.exports = Settings;
-
-/**
- * USAGE EXAMPLES:
- * 
- * // Get general settings
- * const generalSettings = await Settings.getByType('general');
- * 
- * // Get payment methods
- * const paymentSettings = await Settings.getByType('payment');
- * const activeMethods = paymentSettings.getActivePaymentMethods();
- * 
- * // Calculate shipping
- * const shippingSettings = await Settings.getByType('shipping');
- * const shippingCost = shippingSettings.calculateShipping('Lahore', 4500);
- * 
- * // Get email template
- * const emailSettings = await Settings.getByType('email');
- * const template = emailSettings.getEmailTemplate('orderConfirmation', {
- *   customerName: 'Ayesha',
- *   orderNumber: 'LC-2025-0001',
- *   totalAmount: 'Rs. 4500'
- * });
- * 
- * // Update specific setting
- * await Settings.updateField(
- *   'general',
- *   'general.siteName',
- *   'LaraibCreative - New Name',
- *   adminUserId,
- *   req.ip
- * );
- * 
- * // Export settings for backup
- * const backup = generalSettings.exportSettings(true);
- * 
- * // Import settings from backup
- * await Settings.importSettings(backupData, adminUserId, req.ip);
- * 
- * // Seed default settings
- * await Settings.seedDefaults();
- * 
- * // Check maintenance mode
- * const isDown = generalSettings.isInMaintenanceMode(req.ip);
- * 
- * // Validate configurations
- * const emailValidation = emailSettings.validateEmailConfig();
- * if (!emailValidation.isValid) {
- *   console.error(emailValidation.errors);
- * }
- */
