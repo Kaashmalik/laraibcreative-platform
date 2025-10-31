@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,28 +15,43 @@ import {
   Info,
   Mail,
   User,
-  LogIn
+  LogIn,
+  Package,
+  Heart,
+  MapPin,
+  MessageCircle
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 /**
- * Mobile Menu Component
+ * MobileMenu Component - Production Ready
  * 
  * Features:
- * - Slide-in drawer animation from left
- * - Collapsible category sections
+ * - SEO optimized with semantic HTML
+ * - Fully accessible (keyboard navigation, ARIA labels)
+ * - Smooth slide-in animation from left
+ * - Collapsible category sections with smooth transitions
  * - Active link highlighting
- * - User account section
- * - Smooth animations
+ * - User account section with avatar
  * - Touch-friendly targets (min 44x44px)
- * - Backdrop overlay
+ * - Backdrop overlay with blur effect
+ * - Focus trap when open
+ * - Escape key to close
+ * - Performance optimized with memoization
+ * 
+ * @component
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls visibility of menu
+ * @param {Function} props.onClose - Callback when menu should close
+ * @param {Array} props.navLinks - Navigation links array
  */
 export default function MobileMenu({ isOpen, onClose, navLinks }) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const [expandedMenu, setExpandedMenu] = useState(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  // Icons mapping for navigation
+  // Icons mapping for navigation with better organization
   const iconMap = {
     'Home': Home,
     'Products': ShoppingBag,
@@ -46,80 +61,162 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
     'Contact': Mail,
   }
 
-  // Toggle category expansion
-  const toggleMenu = (menuName) => {
-    setExpandedMenu(expandedMenu === menuName ? null : menuName)
-  }
+  // Close menu on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, onClose])
+
+  // Focus trap - keep focus within menu when open
+  useEffect(() => {
+    if (!isOpen) return
+
+    const menuElement = document.getElementById('mobile-menu')
+    if (!menuElement) return
+
+    const focusableElements = menuElement.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    const handleTabKey = (e) => {
+      if (e.key !== 'Tab') return
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement.focus()
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement.focus()
+        }
+      }
+    }
+
+    menuElement.addEventListener('keydown', handleTabKey)
+    firstElement?.focus()
+
+    return () => menuElement.removeEventListener('keydown', handleTabKey)
+  }, [isOpen])
+
+  // Toggle category expansion with memoization
+  const toggleMenu = useCallback((menuName) => {
+    setExpandedMenu(prev => prev === menuName ? null : menuName)
+  }, [])
+
+  // Handle logout with loading state
+  const handleLogout = useCallback(async () => {
+    if (isLoggingOut) return
+    
+    setIsLoggingOut(true)
+    try {
+      await logout()
+      onClose()
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Optional: Show error toast
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }, [logout, onClose, isLoggingOut])
+
+  // Memoized link click handler
+  const handleLinkClick = useCallback(() => {
+    onClose()
+  }, [onClose])
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop with blur effect */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black/50 z-50 lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
             onClick={onClose}
             aria-hidden="true"
           />
 
-          {/* Drawer */}
-          <motion.div
+          {/* Drawer with optimized animations */}
+          <motion.aside
+            id="mobile-menu"
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-white z-50 shadow-2xl overflow-y-auto lg:hidden"
             role="dialog"
+            aria-modal="true"
             aria-label="Mobile navigation menu"
           >
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h2 className="font-playfair text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
+            {/* Header with gradient */}
+            <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-purple-600 px-6 py-4 flex items-center justify-between z-10 shadow-md">
+              <h2 className="font-playfair text-xl font-bold text-white">
                 LaraibCreative
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 -mr-2 text-gray-500 hover:text-gray-700 transition-colors"
-                aria-label="Close menu"
+                className="p-2 -mr-2 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                aria-label="Close navigation menu"
               >
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6" aria-hidden="true" />
               </button>
             </div>
 
-            {/* User Section */}
-            <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-purple-50 border-b border-gray-200">
+            {/* User Section with enhanced design */}
+            <div className="px-6 py-4 bg-gradient-to-br from-primary-50 via-purple-50 to-pink-50 border-b border-gray-200">
               {user ? (
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                    {user.name?.charAt(0).toUpperCase()}
+                  <div className="relative">
+                    <div className="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl shadow-lg">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full" 
+                         aria-label="Online status" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {user.name}
+                    <p className="font-semibold text-gray-900 truncate text-base">
+                      {user.name || 'User'}
                     </p>
                     <p className="text-sm text-gray-600 truncate">
-                      {user.email}
+                      {user.email || ''}
                     </p>
                   </div>
                 </div>
               ) : (
                 <Link
                   href="/auth/login"
-                  onClick={onClose}
-                  className="flex items-center space-x-3 px-4 py-3 bg-white rounded-lg hover:bg-primary-50 transition-colors"
+                  onClick={handleLinkClick}
+                  className="flex items-center space-x-3 px-4 py-3 bg-white rounded-xl hover:bg-primary-50 transition-all shadow-sm hover:shadow group focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
-                  <LogIn className="w-5 h-5 text-primary-600" />
-                  <span className="font-medium text-gray-900">Login / Register</span>
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                    <LogIn className="w-5 h-5 text-primary-600" aria-hidden="true" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-semibold text-gray-900 block">Login / Register</span>
+                    <span className="text-xs text-gray-600">Access your account</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" aria-hidden="true" />
                 </Link>
               )}
             </div>
 
-            {/* Navigation Links */}
-            <nav className="px-4 py-4 space-y-1" role="navigation">
+            {/* Navigation Links with improved UX */}
+            <nav className="px-4 py-4 space-y-1" role="navigation" aria-label="Mobile navigation">
               {navLinks.map((link) => {
                 const Icon = iconMap[link.name] || Home
                 const isActive = pathname === link.href
@@ -132,61 +229,73 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
                     {hasSubMenu ? (
                       <button
                         onClick={() => toggleMenu(link.name)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                           isActive
-                            ? 'bg-primary-50 text-primary-600'
-                            : 'text-gray-700 hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-md'
+                            : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         }`}
+                        aria-expanded={isExpanded}
+                        aria-controls={`submenu-${link.name}`}
                       >
                         <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-5 h-5" aria-hidden="true" />
                           <span className="font-medium">{link.name}</span>
                         </div>
                         <motion.div
                           animate={{ rotate: isExpanded ? 180 : 0 }}
                           transition={{ duration: 0.2 }}
                         >
-                          <ChevronDown className="w-5 h-5" />
+                          <ChevronDown className="w-5 h-5" aria-hidden="true" />
                         </motion.div>
                       </button>
                     ) : (
                       <Link
                         href={link.href}
-                        onClick={onClose}
-                        className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+                        onClick={handleLinkClick}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                           isActive
-                            ? 'bg-primary-50 text-primary-600'
-                            : 'text-gray-700 hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-md'
+                            : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                         }`}
+                        aria-current={isActive ? 'page' : undefined}
                       >
                         <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-5 h-5" aria-hidden="true" />
                           <span className="font-medium">{link.name}</span>
                         </div>
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-5 h-5" aria-hidden="true" />
                       </Link>
                     )}
 
-                    {/* Sub Menu */}
+                    {/* Sub Menu with smooth animation */}
                     {hasSubMenu && (
                       <AnimatePresence>
                         {isExpanded && (
                           <motion.div
+                            id={`submenu-${link.name}`}
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
                             className="overflow-hidden"
+                            role="menu"
+                            aria-label={`${link.name} submenu`}
                           >
-                            <div className="ml-8 mt-1 space-y-1">
+                            <div className="ml-8 mt-1 space-y-1 pb-2">
                               {link.categories.map((category) => (
                                 <Link
                                   key={category.name}
                                   href={category.href}
-                                  onClick={onClose}
-                                  className="block px-4 py-2 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                                  onClick={handleLinkClick}
+                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                  role="menuitem"
                                 >
-                                  {category.name}
+                                  <div className="font-medium">{category.name}</div>
+                                  {category.description && (
+                                    <div className="text-xs text-gray-500 mt-0.5">
+                                      {category.description}
+                                    </div>
+                                  )}
                                 </Link>
                               ))}
                             </div>
@@ -201,70 +310,74 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
 
             {/* User Account Links (if logged in) */}
             {user && (
-              <div className="px-4 py-4 border-t border-gray-200">
-                <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Account
+              <div className="px-4 py-4 border-t border-gray-200 bg-gray-50">
+                <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  My Account
                 </p>
                 <div className="space-y-1">
                   <Link
                     href="/account/profile"
-                    onClick={onClose}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={handleLinkClick}
+                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-primary-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    My Profile
+                    <User className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium">My Profile</span>
                   </Link>
                   <Link
                     href="/account/orders"
-                    onClick={onClose}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={handleLinkClick}
+                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-primary-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    My Orders
+                    <Package className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium">My Orders</span>
                   </Link>
                   <Link
                     href="/account/measurements"
-                    onClick={onClose}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={handleLinkClick}
+                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-primary-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    Saved Measurements
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium">Saved Measurements</span>
                   </Link>
                   <Link
                     href="/account/wishlist"
-                    onClick={onClose}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={handleLinkClick}
+                    className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-white hover:text-primary-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    Wishlist
+                    <Heart className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium">Wishlist</span>
                   </Link>
                   <button
-                    onClick={() => {
-                      logout()
-                      onClose()
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="flex items-center space-x-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Logout
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
+                    <span className="font-medium">
+                      {isLoggingOut ? 'Logging out...' : 'Logout'}
+                    </span>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Footer Section */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            {/* Footer Section with CTA */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 mt-auto">
               <a
-                href="https://wa.me/923001234567"
+                href="https://wa.me/923001234567?text=Hi%2C%20I%27m%20interested%20in%20LaraibCreative%20products"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 active:scale-95 transition-all font-medium shadow-lg shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                aria-label="Contact us on WhatsApp"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
+                <MessageCircle className="w-5 h-5" aria-hidden="true" />
                 <span>Contact on WhatsApp</span>
               </a>
-              <p className="text-xs text-gray-500 text-center mt-3">
-                © 2025 LaraibCreative. All rights reserved.
+              <p className="text-xs text-gray-500 text-center mt-4">
+                © {new Date().getFullYear()} LaraibCreative. All rights reserved.
               </p>
             </div>
-          </motion.div>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

@@ -96,14 +96,23 @@ const Accordion = ({
               />
             </button>
 
-            {isOpen && (
-              <div
-                id={`content-${item.id}`}
-                className={`${currentVariant.content} text-gray-600 animate-accordion-down`}
-              >
-                {item.content}
-              </div>
-            )}
+            {/* Use Framer Motion's AnimatePresence */}
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  key={`content-${item.id}`}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className={`${currentVariant.content} text-gray-600`}>
+                    {item.content}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>}
           </div>
         );
       })}

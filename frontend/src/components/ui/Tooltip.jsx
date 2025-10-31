@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Info, HelpCircle, AlertCircle, CheckCircle, X } from 'lucide-react';
 
 /**
@@ -89,4 +90,20 @@ const Tooltip = ({
       )}
     </div>
   );
+};
+
+export default Tooltip;
+
+Tooltip.propTypes = {
+  children: PropTypes.node.isRequired,
+  content: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+  position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
+  delay: PropTypes.number,
+  className: PropTypes.string
+};
+
+Tooltip.defaultProps = {
+  position: 'top',
+  delay: 200,
+  className: ''
 };

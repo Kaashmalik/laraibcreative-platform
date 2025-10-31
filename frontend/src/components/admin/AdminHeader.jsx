@@ -31,7 +31,6 @@ import {
   Settings,
   Plus,
   Package,
-  ShoppingCart,
   X
 } from 'lucide-react';
 
@@ -51,7 +50,6 @@ export default function AdminHeader({
   const profileRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Mock notifications data
   const notifications = [
     {
       id: 1,
@@ -97,7 +95,6 @@ export default function AdminHeader({
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
@@ -115,18 +112,15 @@ export default function AdminHeader({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle search submit
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Implement search functionality
       console.log('Searching for:', searchQuery);
       setIsSearchOpen(false);
       setSearchQuery('');
     }
   };
 
-  // Get notification icon color based on type
   const getNotificationColor = (type) => {
     const colors = {
       order: 'text-blue-500',
@@ -141,9 +135,7 @@ export default function AdminHeader({
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-        {/* Left Section */}
         <div className="flex items-center gap-4">
-          {/* Hamburger Menu Button */}
           <button
             onClick={onToggleSidebar}
             className="p-2 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -152,7 +144,6 @@ export default function AdminHeader({
             <Menu className="w-6 h-6" />
           </button>
 
-          {/* Search Bar - Desktop */}
           <div className="relative hidden md:block" ref={searchRef}>
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
@@ -166,7 +157,6 @@ export default function AdminHeader({
             </form>
           </div>
 
-          {/* Search Button - Mobile */}
           <button
             onClick={() => setIsSearchOpen(!isSearchOpen)}
             className="p-2 text-gray-500 transition-colors rounded-lg md:hidden hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -176,9 +166,7 @@ export default function AdminHeader({
           </button>
         </div>
 
-        {/* Right Section */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick Action: Add New Order */}
           <Link
             href="/admin/orders/new"
             className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-white transition-all bg-indigo-600 rounded-lg hover:bg-indigo-700 hover:shadow-lg"
@@ -187,7 +175,6 @@ export default function AdminHeader({
             <span className="hidden lg:inline">New Order</span>
           </Link>
 
-          {/* Dark Mode Toggle */}
           <button
             onClick={onToggleDarkMode}
             className="p-2 text-gray-500 transition-colors rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -196,7 +183,6 @@ export default function AdminHeader({
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
 
-          {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setIsNotificationOpen(!isNotificationOpen)}
@@ -211,10 +197,8 @@ export default function AdminHeader({
               )}
             </button>
 
-            {/* Notifications Dropdown */}
             {isNotificationOpen && (
               <div className="absolute right-0 w-80 mt-2 bg-white rounded-lg shadow-lg dark:bg-gray-800 border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto">
-                {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="font-semibold text-gray-900 dark:text-white">
                     Notifications ({unreadCount})
@@ -224,7 +208,6 @@ export default function AdminHeader({
                   </button>
                 </div>
 
-                {/* Notification List */}
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {notifications.map((notification) => (
                     <div
@@ -254,7 +237,6 @@ export default function AdminHeader({
                   ))}
                 </div>
 
-                {/* Footer */}
                 <div className="p-3 border-t border-gray-200 dark:border-gray-700">
                   <Link
                     href="/admin/communications/notifications"
@@ -267,7 +249,6 @@ export default function AdminHeader({
             )}
           </div>
 
-          {/* User Profile Dropdown */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -282,10 +263,8 @@ export default function AdminHeader({
               </span>
             </button>
 
-            {/* Profile Dropdown */}
             {isProfileOpen && (
               <div className="absolute right-0 w-56 mt-2 bg-white rounded-lg shadow-lg dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                {/* User Info */}
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {user?.fullName || 'Admin User'}
@@ -298,7 +277,6 @@ export default function AdminHeader({
                   </span>
                 </div>
 
-                {/* Menu Items */}
                 <div className="p-2">
                   <Link
                     href="/admin/settings/profile"
@@ -324,7 +302,6 @@ export default function AdminHeader({
                   </Link>
                 </div>
 
-                {/* Logout */}
                 <div className="p-2 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={onLogout}
@@ -340,7 +317,6 @@ export default function AdminHeader({
         </div>
       </div>
 
-      {/* Mobile Search Overlay */}
       {isSearchOpen && (
         <div className="px-4 pb-4 border-t border-gray-200 md:hidden dark:border-gray-700">
           <form onSubmit={handleSearch} className="relative">

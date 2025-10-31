@@ -1,0 +1,89 @@
+// backend/src/routes/index.js
+const express = require('express');
+const router = express.Router();
+
+// Import route modules
+const authRoutes = require('./auth.routes');
+const productRoutes = require('./product.routes');
+const categoryRoutes = require('./category.routes');
+const orderRoutes = require('./order.routes');
+const customerRoutes = require('./customer.routes');
+const reviewRoutes = require('./review.routes');
+const blogRoutes = require('./blog.routes');
+const measurementRoutes = require('./measurement.routes');
+const uploadRoutes = require('./upload.routes');
+const analyticsRoutes = require('./analytics.routes');
+const settingsRoutes = require('./settings.routes');
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// API version prefix
+const API_VERSION = '/v1';
+
+// Mount routes with API version
+router.use(`${API_VERSION}/auth`, authRoutes);
+router.use(`${API_VERSION}/products`, productRoutes);
+router.use(`${API_VERSION}/categories`, categoryRoutes);
+router.use(`${API_VERSION}/orders`, orderRoutes);
+router.use(`${API_VERSION}/customers`, customerRoutes);
+router.use(`${API_VERSION}/reviews`, reviewRoutes);
+router.use(`${API_VERSION}/blog`, blogRoutes);
+router.use(`${API_VERSION}/measurements`, measurementRoutes);
+router.use(`${API_VERSION}/upload`, uploadRoutes);
+router.use(`${API_VERSION}/analytics`, analyticsRoutes);
+router.use(`${API_VERSION}/settings`, settingsRoutes);
+
+// Root endpoint
+router.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Welcome to LaraibCreative API',
+    version: 'v1',
+    documentation: '/api/v1/docs',
+    endpoints: {
+      auth: '/api/v1/auth',
+      products: '/api/v1/products',
+      categories: '/api/v1/categories',
+      orders: '/api/v1/orders',
+      customers: '/api/v1/customers',
+      reviews: '/api/v1/reviews',
+      blog: '/api/v1/blog',
+      measurements: '/api/v1/measurements',
+      upload: '/api/v1/upload',
+      analytics: '/api/v1/analytics',
+      settings: '/api/v1/settings'
+    }
+  });
+});
+
+// 404 handler for undefined API routes
+router.use('*', (req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Route ${req.originalUrl} not found`,
+    availableRoutes: [
+      '/api/v1/auth',
+      '/api/v1/products',
+      '/api/v1/categories',
+      '/api/v1/orders',
+      '/api/v1/customers',
+      '/api/v1/reviews',
+      '/api/v1/blog',
+      '/api/v1/measurements',
+      '/api/v1/upload',
+      '/api/v1/analytics',
+      '/api/v1/settings'
+    ]
+  });
+});
+
+module.exports = router;

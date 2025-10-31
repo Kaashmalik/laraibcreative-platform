@@ -40,19 +40,15 @@ export default function StatsCard({
   const [displayValue, setDisplayValue] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Animate counter on mount
   useEffect(() => {
     setIsAnimating(true);
     
-    // Extract numeric value if it's a formatted string
     let numericValue = value;
     if (typeof value === 'string') {
-      // Remove currency symbols and commas
       const cleanValue = value.replace(/[^0-9.-]+/g, '');
       numericValue = parseFloat(cleanValue) || 0;
     }
 
-    // Animation duration in ms
     const duration = 1000;
     const steps = 60;
     const stepDuration = duration / steps;
@@ -77,10 +73,8 @@ export default function StatsCard({
     return () => clearInterval(timer);
   }, [value]);
 
-  // Format display value
   const formatDisplayValue = () => {
     if (typeof value === 'string' && value.includes('PKR')) {
-      // Format as currency
       return new Intl.NumberFormat('en-PK', {
         style: 'currency',
         currency: 'PKR',
@@ -89,7 +83,6 @@ export default function StatsCard({
       }).format(displayValue);
     }
     
-    // Format as number
     return Math.round(displayValue).toLocaleString();
   };
 
@@ -105,14 +98,11 @@ export default function StatsCard({
         }
       `}
     >
-      {/* Background Gradient Effect */}
       <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8 opacity-10">
         <div className={`w-full h-full rounded-full ${iconBgColor}`}></div>
       </div>
 
-      {/* Content */}
       <div className="relative">
-        {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -130,7 +120,6 @@ export default function StatsCard({
             </h3>
           </div>
 
-          {/* Icon */}
           <div className={`
             flex items-center justify-center w-12 h-12 rounded-lg
             ${iconBgColor} transition-transform duration-300 hover:scale-110
@@ -143,9 +132,7 @@ export default function StatsCard({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between">
-          {/* Change Indicator */}
           {change !== undefined && !alert && (
             <div className={`
               flex items-center gap-1 text-sm font-medium
@@ -163,14 +150,12 @@ export default function StatsCard({
             </div>
           )}
 
-          {/* Subtitle */}
           {subtitle && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {subtitle}
             </p>
           )}
 
-          {/* Alert Message */}
           {alert && (
             <p className="text-sm font-medium text-red-600 dark:text-red-400">
               Requires attention
