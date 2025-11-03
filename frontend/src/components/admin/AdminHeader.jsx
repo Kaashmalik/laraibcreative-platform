@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Admin Header Component
  * 
@@ -15,8 +17,6 @@
  * @param {object} user - Current user data
  * @param {function} onLogout - Callback to handle logout
  */
-
-'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';

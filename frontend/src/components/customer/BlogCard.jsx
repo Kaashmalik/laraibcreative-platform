@@ -1,3 +1,5 @@
+'use client';
+
 import { Calendar, Clock, User, Eye, ChevronRight } from 'lucide-react';
 
 export default function BlogCard({ post }) {

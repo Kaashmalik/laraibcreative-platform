@@ -1,0 +1,471 @@
+{
+    "rules": [
+      {
+        "name": "General Coding Standards",
+        "description": "Follow consistent conventions and project structure for LaraibCreative (Next.js + Node.js + MongoDB)",
+        "priority": "high",
+        "appliesTo": ["*.js", "*.jsx", "*.ts", "*.tsx"],
+        "settings": {
+          "enforceStyleGuide": true,
+          "preferredStyle": "modern-react",
+          "comments": "Use ES6+ syntax. Prefer functional components and hooks. Maintain clear and consistent file naming and folder hierarchy."
+        }
+      },
+      {
+        "name": "Web Structure and UI",
+        "description": "Ensure a clean, SEO-friendly, and responsive layout for all pages",
+        "priority": "high",
+        "appliesTo": ["frontend/src/pages/**/*", "frontend/src/components/**/*"],
+        "settings": {
+          "rules": [
+            "All main pages (Home, About, Services, Contact) must exist and be linked in the navbar and footer.",
+            "Ensure responsive design using Tailwind CSS breakpoints (sm, md, lg, xl).",
+            "Maintain consistent layout structure using reusable Layout components.",
+            "Use semantic HTML (header, main, section, article, footer) for better accessibility and SEO.",
+            "Avoid deeply nested elements that may break responsiveness."
+          ]
+        }
+      },
+      {
+        "name": "Ad Posting and Dynamic Listings",
+        "description": "Rules for ad or listing functionality similar to OLX/Marketplace",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/ads/**/*", "backend/controllers/adController.js"],
+        "settings": {
+          "rules": [
+            "Allow users to create ads with title, description, category, price, and image upload.",
+            "Validate ad content and sanitize all inputs to prevent XSS.",
+            "Store ad images in Cloudinary or local uploads folder.",
+            "Display ads in grid layout with pagination or infinite scroll.",
+            "Fresh user-generated ads improve content freshness and SEO ranking."
+          ]
+        }
+      },
+      {
+        "name": "On-Page SEO Optimization",
+        "description": "Rules for optimizing individual pages for search engines",
+        "priority": "high",
+        "appliesTo": ["frontend/src/pages/**/*", "frontend/src/components/**/*"],
+        "settings": {
+          "rules": [
+            "Use <Head> from next/head for meta titles, descriptions, and canonical tags.",
+            "Include main keywords in page title, meta description, and first paragraph.",
+            "Use proper heading hierarchy (H1 > H2 > H3).",
+            "Add image alt text with relevant keywords.",
+            "Use clean, readable, and keyword-based URLs.",
+            "Ensure internal linking between relevant pages."
+          ]
+        }
+      },
+      {
+        "name": "Dashboard / CMS Management",
+        "description": "Content Management System rules for LaraibCreative and general web projects",
+        "priority": "high",
+        "appliesTo": ["frontend/src/pages/admin/**/*", "frontend/src/components/admin/**/*"],
+        "settings": {
+          "rules": [
+            "Admin panel should allow editing of text, images, and blogs.",
+            "CMS should store SEO fields (meta title, meta keywords, meta description) for each page.",
+            "Provide live preview of edits before publishing.",
+            "Allow admins to update content dynamically without code changes.",
+            "Changes in CMS should immediately reflect on frontend via API or revalidation."
+          ]
+        }
+      },
+      {
+        "name": "Content Presentation Control",
+        "description": "Allows flexible control of how content appears for SEO and readability",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/**/*", "frontend/src/components/**/*"],
+        "settings": {
+          "rules": [
+            "Allow dynamic heading or section title updates from CMS.",
+            "Ensure headings contain target keywords where possible.",
+            "Optimize readability with proper spacing, short paragraphs, and bullet lists.",
+            "Maintain user engagement through consistent visual hierarchy.",
+            "Support layout adjustments for featured content, image captions, and highlights."
+          ]
+        }
+      },
+      {
+        "name": "Backend Structure",
+        "description": "Express + MongoDB backend standards for LC",
+        "priority": "high",
+        "appliesTo": ["backend/**/*", "server/**/*"],
+        "settings": {
+          "folders": {
+            "controllers": "Business logic and route handling",
+            "models": "Mongoose schemas and models",
+            "routes": "Route definitions per module",
+            "services": "Helper or external service layers",
+            "utils": "Utility and common functions",
+            "config": "Environment, DB, and app-level configs"
+          },
+          "rules": [
+            "Keep controllers lean — move logic into services.",
+            "Validate all user input using Joi or express-validator.",
+            "Follow async/await conventions with proper error handling middleware.",
+            "Use environment variables for secrets and keys."
+          ]
+        }
+      },
+      {
+        "name": "SEO and Performance",
+        "description": "Ensure SEO optimization and performance best practices",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/**/*", "frontend/src/components/**/*"],
+        "settings": {
+          "rules": [
+            "Use next/head for meta tags and structured data.",
+            "All pages should define a dynamic <title> and <meta description>.",
+            "Optimize images using Next.js Image component.",
+            "Use lazy loading for below-the-fold sections.",
+            "Avoid render-blocking scripts."
+          ]
+        }
+      },
+      {
+        "name": "Manual Payment System",
+        "description": "Rules for manual bank/JazzCash/Easypaisa receipt upload flow",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/orders/**/*", "backend/controllers/orderController.js"],
+        "settings": {
+          "rules": [
+            "Payment method field must be 'manual'.",
+            "Receipts should be stored in Cloudinary or local /uploads directory.",
+            "Order status should change to 'Pending Verification' after receipt upload.",
+            "Admin panel should include verification toggle."
+          ]
+        }
+      },
+      {
+        "name": "Admin Panel Modules",
+        "description": "Consistency for Admin dashboard components and pages",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/admin/**/*", "frontend/src/components/admin/**/*"],
+        "settings": {
+          "rules": [
+            "Each module (Product, Orders, Customers, Inventory, Blog, Analytics) should have its own folder.",
+            "Admin routes should be protected using middleware or role-based access.",
+            "Use charts for analytics via Chart.js or Recharts.",
+            "Use consistent UI (Cards, Tables, Modals) for all modules."
+          ]
+        }
+      },
+      {
+        "name": "Custom Order and Measurement",
+        "description": "Rules for the custom stitching order process",
+        "priority": "high",
+        "appliesTo": ["frontend/src/pages/custom-order/**/*", "backend/controllers/customOrderController.js"],
+        "settings": {
+          "rules": [
+            "Measurements form must validate all body fields before submission.",
+            "Each order should link to a user and optional product reference.",
+            "Upload reference images via Cloudinary.",
+            "Store measurement data in separate Measurement model for reusability."
+          ]
+        }
+      },
+      {
+        "name": "Database and Models",
+        "description": "MongoDB schema consistency",
+        "priority": "medium",
+        "appliesTo": ["backend/models/**/*"],
+        "settings": {
+          "rules": [
+            "Use timestamps: true in all schemas.",
+            "Field naming: camelCase only.",
+            "Define indexes for searchable fields (productName, category, userId).",
+            "Use enum for status fields (Pending, Approved, Rejected, Completed)."
+          ]
+        }
+      },
+      {
+        "name": "Code Quality and Formatting",
+        "description": "Ensure code cleanliness and readability",
+        "priority": "high",
+        "appliesTo": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+        "settings": {
+          "rules": [
+            "Use Prettier + ESLint with standard settings.",
+            "Indent with 2 spaces, no semicolons, single quotes.",
+            "Add JSDoc-style comments for complex functions.",
+            "Avoid magic numbers and inline styles."
+          ]
+        }
+      },
+      {
+        "name": "Version Control and Commit Messages",
+        "description": "Git and commit message discipline for LC",
+        "priority": "low",
+        "appliesTo": ["**/*"],
+        "settings": {
+          "rules": [
+            "Use conventional commits format: feat:, fix:, refactor:, chore:, docs:, style:, test:.",
+            "Commit small, logical chunks of work.",
+            "Push main/stable branches only after testing locally."
+          ]
+        }
+      },
+      {
+        "name": "Next.js App Router SEO",
+        "description": "Prefer App Router metadata APIs over legacy next/head when using /app",
+        "priority": "high",
+        "appliesTo": ["frontend/app/**/*", "frontend/src/app/**/*"],
+        "settings": {
+          "rules": [
+            "Use generateMetadata and Metadata object for titles, descriptions, and canonical URLs.",
+            "Implement dynamic metadata in route segments via generateMetadata(params, parent).",
+            "Define viewport and alternates (canonical, languages) in metadata.",
+            "Provide segment-level openGraph and twitter metadata blocks.",
+            "Leverage route segment config for revalidate and dynamic rendering." 
+          ]
+        }
+      },
+      {
+        "name": "Sitemap and Robots",
+        "description": "Search engine crawl control and discovery",
+        "priority": "high",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Expose /sitemap.xml and keep it up to date (static or generated).",
+            "Add /robots.txt allowing production crawl, disallowing non-prod.",
+            "Include image and lastmod fields where applicable.",
+            "Ping search engines on major content changes when appropriate."
+          ]
+        }
+      },
+      {
+        "name": "OpenGraph and Social Cards",
+        "description": "Consistent social sharing previews",
+        "priority": "medium",
+        "appliesTo": ["frontend/src/pages/**/*", "frontend/src/components/**/*", "frontend/app/**/*", "frontend/src/app/**/*"],
+        "settings": {
+          "rules": [
+            "Set openGraph:title, description, url, siteName, and type per page.",
+            "Provide twitter:card, twitter:title, and twitter:description.",
+            "Generate social preview images per page (OG image).",
+            "Use absolute URLs for images and canonical links."
+          ]
+        }
+      },
+      {
+        "name": "Structured Data (JSON-LD)",
+        "description": "Add schema.org JSON-LD for rich results",
+        "priority": "medium",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Add WebSite and Organization JSON-LD on root pages.",
+            "Use BreadcrumbList where applicable.",
+            "Add Product, Article, or FAQPage schemas on relevant pages.",
+            "Validate with Rich Results Test before deploy."
+          ]
+        }
+      },
+      {
+        "name": "Security Headers",
+        "description": "Harden HTTP responses",
+        "priority": "high",
+        "appliesTo": ["frontend/**/*", "backend/**/*"],
+        "settings": {
+          "rules": [
+            "Enable helmet on the backend with sensible defaults.",
+            "Set Content-Security-Policy with strict script-src and img-src.",
+            "Add X-Frame-Options, X-Content-Type-Options, Referrer-Policy.",
+            "Use HTTPS and HSTS on production."
+          ]
+        }
+      },
+      {
+        "name": "Performance and CWV",
+        "description": "Core Web Vitals and rendering optimization",
+        "priority": "high",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Use Next.js Image for responsive, optimized images.",
+            "Defer non-critical scripts and lazy-load heavy components.",
+            "Prefetch critical routes and use dynamic import with suspense where helpful.",
+            "Audit LCP/CLS/INP via Lighthouse and fix regressions before release."
+          ]
+        }
+      },
+      {
+        "name": "Accessibility",
+        "description": "WCAG-focused accessibility standards",
+        "priority": "high",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Provide text alternatives for images and icons.",
+            "Ensure keyboard navigability and visible focus states.",
+            "Use semantic landmarks and proper heading order.",
+            "Run automated checks (axe) and resolve critical issues."
+          ]
+        }
+      },
+      {
+        "name": "Caching and Revalidation",
+        "description": "HTTP, CDN, and Next.js data caching",
+        "priority": "medium",
+        "appliesTo": ["frontend/**/*", "backend/**/*"],
+        "settings": {
+          "rules": [
+            "Set Cache-Control headers for static assets.",
+            "Use incremental static regeneration or route segment revalidate where applicable.",
+            "Implement server-side caching for expensive queries.",
+            "Bust caches on admin content updates via revalidation hooks."
+          ]
+        }
+      },
+      {
+        "name": "API Design and Versioning",
+        "description": "REST conventions and stability",
+        "priority": "high",
+        "appliesTo": ["backend/routes/**/*", "backend/controllers/**/*", "backend/services/**/*"],
+        "settings": {
+          "rules": [
+            "Version endpoints (e.g., /api/v1).",
+            "Use consistent response envelope with clear error formats.",
+            "Validate inputs and sanitize outputs.",
+            "Document APIs with OpenAPI/Swagger where feasible."
+          ]
+        }
+      },
+      {
+        "name": "Authentication and Authorization",
+        "description": "Secure user access patterns",
+        "priority": "high",
+        "appliesTo": ["backend/**/*", "frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Use JWT or session-based auth with secure cookie settings.",
+            "Protect admin routes via role-based middleware.",
+            "Rate-limit auth endpoints and log suspicious activity.",
+            "Never store plaintext passwords; use bcrypt with strong salt rounds."
+          ]
+        }
+      },
+      {
+        "name": "Rate Limiting and Throttling",
+        "description": "Abuse prevention for APIs",
+        "priority": "medium",
+        "appliesTo": ["backend/**/*"],
+        "settings": {
+          "rules": [
+            "Add per-IP and per-user limits on sensitive routes.",
+            "Backoff on repeated failures and return standard 429 responses.",
+            "Separate stricter limits for auth and file upload endpoints."
+          ]
+        }
+      },
+      {
+        "name": "Internationalization (i18n)",
+        "description": "Locale routing and translations",
+        "priority": "low",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Provide locale-aware routes and metadata alternates.languages when needed.",
+            "Externalize copy into translation files.",
+            "Avoid hard-coded dates/numbers; use Intl APIs."
+          ]
+        }
+      },
+      {
+        "name": "Analytics and Consent",
+        "description": "Privacy-aware analytics setup",
+        "priority": "medium",
+        "appliesTo": ["frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Load analytics after consent where required.",
+            "Respect Do Not Track and anonymize IPs when supported.",
+            "Track essential events: page views, conversions, and errors."
+          ]
+        }
+      },
+      {
+        "name": "Error Handling and Logging",
+        "description": "Consistent error surfaces and logs",
+        "priority": "high",
+        "appliesTo": ["backend/**/*", "frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Centralize API error handling middleware with standardized error shapes.",
+            "Log errors with correlation IDs and omit sensitive data.",
+            "Surface friendly error UI and fallback boundaries on the frontend.",
+            "Capture client and server errors to a monitoring tool."
+          ]
+        }
+      },
+      {
+        "name": "Testing and Quality Gates",
+        "description": "Automated assurances before deploy",
+        "priority": "medium",
+        "appliesTo": ["**/*"],
+        "settings": {
+          "rules": [
+            "Add unit tests for services and utils; integration tests for APIs.",
+            "Run lint and type checks in CI with zero warnings policy.",
+            "Block merges on failing checks."
+          ]
+        }
+      },
+      {
+        "name": "CI/CD",
+        "description": "Reliable builds and deployments",
+        "priority": "low",
+        "appliesTo": ["**/*"],
+        "settings": {
+          "rules": [
+            "Use environment-specific configs and secrets.",
+            "Cache dependencies and build outputs where possible.",
+            "Run database migrations before app rollout."
+          ]
+        }
+      },
+      {
+        "name": "Environment Configuration",
+        "description": "Safe handling of environment variables",
+        "priority": "high",
+        "appliesTo": ["backend/**/*", "frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Load env via dotenv or platform secrets; never commit .env files.",
+            "Validate required env vars at startup.",
+            "Separate dev, staging, and prod configurations."
+          ]
+        }
+      },
+      {
+        "name": "Monitoring and Alerts",
+        "description": "Observability standards",
+        "priority": "low",
+        "appliesTo": ["backend/**/*", "frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Collect basic metrics (latency, error rate, throughput).",
+            "Set alerts for elevated error rates and slow responses.",
+            "Track deployment versions in logs and errors."
+          ]
+        }
+      },
+      {
+        "name": "File Uploads and Media",
+        "description": "Consistent media handling",
+        "priority": "medium",
+        "appliesTo": ["backend/**/*", "frontend/**/*"],
+        "settings": {
+          "rules": [
+            "Use Cloudinary or S3-compatible storage for uploads.",
+            "Validate mime types and file sizes; strip metadata when needed.",
+            "Serve optimized, cached renditions for thumbnails and OG images."
+          ]
+        }
+      }
+    ]
+  }
+  

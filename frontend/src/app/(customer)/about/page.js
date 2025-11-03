@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Award, Users, Heart, Sparkles, Clock, CheckCircle } from 'lucide-react';
 
@@ -17,20 +19,6 @@ import { Award, Users, Heart, Sparkles, Clock, CheckCircle } from 'lucide-react'
  */
 
 // Metadata for SEO (in actual Next.js app, export this)
-export const metadata = {
-  title: 'About Us - LaraibCreative | Custom Ladies Suits & Stitching Services',
-  description:
-    'Learn about LaraibCreative - We turn your thoughts & emotions into beautiful reality. Expert custom stitching services for ladies suits across Pakistan since 2020.',
-  keywords:
-    'about laraibcreative, custom tailoring pakistan, ladies suit stitching, our story, fashion designers lahore',
-  openGraph: {
-    title: 'About LaraibCreative - Custom Stitching Experts',
-    description:
-      'Expert custom stitching services transforming your fashion dreams into reality',
-    type: 'website',
-  },
-};
-
 const AboutPage = () => {
   // Stats data
   const stats = [

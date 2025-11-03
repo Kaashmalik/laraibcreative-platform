@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, Download, RefreshCw, Calendar } from 'lucide-react';
 import OrderCard from '@/components/admin/OrderCard';

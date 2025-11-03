@@ -503,7 +503,7 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ customer: 1, createdAt: -1 });
-orderSchema.index({ orderNumber: 1 });
+// Note: orderNumber index is created automatically by unique: true, so we don't need to declare it again
 orderSchema.index({ 'payment.status': 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ isDeleted: 1, createdAt: -1 });

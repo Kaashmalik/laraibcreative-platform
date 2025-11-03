@@ -1,3 +1,5 @@
+'use client';
+
 // components/customer/RatingStars.jsx
 'use client';
 
@@ -10,7 +12,7 @@
  * @param {number} reviewCount - Number of reviews
  * @param {string} size - Size variant ('sm', 'md', 'lg')
  */
-export function RatingStars({ rating = 0, reviewCount = 0, size = 'md' }) {
+export default function RatingStars({ rating = 0, reviewCount = 0, size = 'md' }) {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',

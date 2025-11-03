@@ -1,3 +1,7 @@
+'use client';
+
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Dashboard Page
  * 
@@ -19,8 +23,6 @@
  * - Empty states
  * - Error handling
  */
-
-'use client';
 
 import { useState, useEffect } from 'react';
 import RevenueChart from './components/RevenueChart';

@@ -191,7 +191,7 @@ const userSchema = new mongoose.Schema({
 // INDEXES
 // ============================================
 
-userSchema.index({ email: 1 });
+// Note: email index is created automatically by unique: true, so we don't need to declare it again
 userSchema.index({ phone: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ customerType: 1 });

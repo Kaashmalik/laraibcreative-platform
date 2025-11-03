@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Eye, Copy } from 'lucide-react';
+import { ArrowLeft, Trash2, Eye, Copy } from 'lucide-react';
 import Link from 'next/link';
 import ProductForm from '@/components/admin/ProductForm';
 import Button from '@/components/ui/Button';
@@ -266,7 +266,7 @@ export default function EditProductPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Product Not Found</h2>
-        <p className="text-gray-600 mb-6">The product you're looking for doesn't exist or has been deleted.</p>
+        <p className="text-gray-600 mb-6">The product you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
         <Link href="/admin/products">
           <Button>Back to Products</Button>
         </Link>

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Clock, User, ChevronRight, Tag } from 'lucide-react';
 import BlogCard from '@/components/customer/BlogCard';

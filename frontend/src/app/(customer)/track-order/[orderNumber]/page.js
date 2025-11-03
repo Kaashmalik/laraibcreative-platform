@@ -1,3 +1,5 @@
+"use client";
+
 // app/(customer)/track-order/[orderNumber]/page.js
 'use client';
 

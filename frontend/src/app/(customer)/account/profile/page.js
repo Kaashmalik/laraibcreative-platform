@@ -1,6 +1,8 @@
-// app/(customer)/account/profile/page.js
-'use client';
+"use client";
 
+export const dynamic = 'force-dynamic';
+
+// app/(customer)/account/profile/page.js
 import { useState, useRef } from 'react';
 import { 
   User, 

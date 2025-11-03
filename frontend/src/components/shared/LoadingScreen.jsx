@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import { Spinner } from '@/components/ui/spinner';
+import { Spinner } from '@/components/ui/Spinner';
 
 /**
  * Full-screen loading overlay with blur, centered spinner, and optional message

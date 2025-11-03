@@ -1,3 +1,5 @@
+'use client';
+
 // components/customer/OrderTimeline.jsx
 'use client';
 

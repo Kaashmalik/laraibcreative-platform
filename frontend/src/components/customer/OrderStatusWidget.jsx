@@ -1,3 +1,5 @@
+'use client';
+
 // components/customer/OrderStatusWidget.jsx
 'use client';
 

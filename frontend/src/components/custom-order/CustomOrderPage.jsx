@@ -1,3 +1,7 @@
+'use client';
+
+'use client';
+
 import React, { useState } from 'react';
 import { ChevronRight, ChevronLeft, Send, CheckCircle } from 'lucide-react';
 import StepIndicator from './StepIndicator';

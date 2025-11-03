@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ChevronDown, Package, User, Settings, CreditCard, MapPin, Heart } from 'lucide-react';
 

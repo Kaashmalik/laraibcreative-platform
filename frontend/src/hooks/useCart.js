@@ -1,36 +1,77 @@
-/**
- * Custom hook for cart management
- * Re-exports useCart from CartContext for centralized cart state management
- * 
- * @module hooks/useCart
- * @returns {Object} Cart context with items, addToCart, removeFromCart, updateQuantity, clearCart
- * 
- * @example
- * import useCart from '@/hooks/useCart'
- * 
- * function ProductCard({ product }) {
- *   const { addToCart, items } = useCart()
- *   
- *   const handleAddToCart = () => {
- *     addToCart({
- *       id: product.id,
- *       name: product.name,
- *       price: product.price,
- *       quantity: 1,
- *       image: product.image
- *     })
- *   }
- *   
- *   return (
- *     <div>
- *       <h3>{product.name}</h3>
- *       <button onClick={handleAddToCart}>Add to Cart</button>
- *       <span>Cart Items: {items.length}</span>
- *     </div>
- *   )
- * }
- */
+"use client";
 
-import { useCart } from '@/context/CartContext'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export default useCart
+const useCartStore = create(
+  persist(
+    (set, get) => ({
+      cart: [],
+      
+      addToCart: (product) => {
+        const cart = get().cart;
+        const existingItem = cart.find(item => item.id === product.id);
+        
+        if (existingItem) {
+          set({
+            cart: cart.map(item =>
+              item.id === product.id
+                ? { ...item, quantity: item.quantity + (product.quantity || 1) }
+                : item
+            )
+          });
+        } else {
+          set({ cart: [...cart, { ...product, quantity: product.quantity || 1 }] });
+        }
+      },
+      
+      removeFromCart: (productId) => {
+        set({ cart: get().cart.filter(item => item.id !== productId) });
+      },
+      
+      updateQuantity: (productId, quantity) => {
+        if (quantity < 1) return;
+        set({
+          cart: get().cart.map(item =>
+            item.id === productId ? { ...item, quantity } : item
+          )
+        });
+      },
+      
+      clearCart: () => {
+        set({ cart: [] });
+      },
+      
+      getCartTotal: () => {
+        return get().cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+      },
+      
+      getCartCount: () => {
+        return get().cart.reduce((count, item) => count + item.quantity, 0);
+      }
+    }),
+    {
+      name: 'cart-storage'
+    }
+  )
+);
+
+export const useCart = () => {
+  const cart = useCartStore(state => state.cart);
+  const addToCart = useCartStore(state => state.addToCart);
+  const removeFromCart = useCartStore(state => state.removeFromCart);
+  const updateQuantity = useCartStore(state => state.updateQuantity);
+  const clearCart = useCartStore(state => state.clearCart);
+  const getCartTotal = useCartStore(state => state.getCartTotal);
+  const getCartCount = useCartStore(state => state.getCartCount);
+  
+  return {
+    cart,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getCartCount
+  };
+};

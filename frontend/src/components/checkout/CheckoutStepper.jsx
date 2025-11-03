@@ -1,3 +1,5 @@
+'use client';
+
 'use client'
 
 import { Check } from 'lucide-react'
