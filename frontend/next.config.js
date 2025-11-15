@@ -119,7 +119,7 @@ const nextConfig = {
   // WEBPACK OPTIMIZATION
   // ==================================================
   webpack: (config, { isServer }) => {
-    // Optimize chunk splitting
+    // Simplify chunk splitting to avoid conflicts
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
@@ -129,16 +129,12 @@ const nextConfig = {
           cacheGroups: {
             default: false,
             vendors: false,
-            // Vendor chunk
+            // Vendor chunk for node_modules
             vendor: {
-              filename: 'chunks/vendor.js',
               test: /node_modules/,
               priority: 10,
               reuseExistingChunk: true,
-              name(module) {
-                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
-                return `npm.${packageName.replace('@', '')}`;
-              },
+              enforce: true,
             },
           },
         },
