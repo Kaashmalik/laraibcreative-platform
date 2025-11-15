@@ -159,8 +159,4 @@ Button.propTypes = {
 };
 
 export default Button;
-
-// ---
-// NOTE: I've removed ButtonDemo from this file. 
-// If ButtonDemo was in a separate file (e.g., Button.stories.js or ButtonDemo.jsx), it should also have 'use client'.
-// The 'use client' directive at the top is sufficient for the Button component itself.
+export { Button };
