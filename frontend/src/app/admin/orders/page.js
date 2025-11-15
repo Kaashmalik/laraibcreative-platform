@@ -1,13 +1,14 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useState, useEffect } from 'react';
-import { Search, Filter, Download, RefreshCw, Calendar } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Download, RefreshCw } from 'lucide-react';
 import OrderCard from '@/components/admin/OrderCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
 
 /**
  * Admin Orders Dashboard
@@ -26,11 +27,7 @@ export default function AdminOrdersPage() {
   const [sortBy, setSortBy] = useState('newest');
 
   // Fetch orders from API
-  useEffect(() => {
-    fetchOrders();
-  }, [activeTab, filterStatus, filterPayment, dateRange, sortBy]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       // Build query parameters
@@ -59,9 +56,13 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, filterStatus, filterPayment, dateRange, sortBy, searchQuery]);
 
-  // Search handler with debouncing
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // Handle search with debounce
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
     // Debounce search - implement useDebounce hook

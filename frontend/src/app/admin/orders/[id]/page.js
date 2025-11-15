@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   ArrowLeft, Phone, MessageCircle, Mail, MapPin, 
   Download, Printer, Ban, CheckCircle, Clock,
-  Package, User, CreditCard, FileText, Image as ImageIcon
-} from 'lucide-react';
+  Package, User, CreditCard, FileText} from 'lucide-react';
 import OrderDetailView from '@/components/admin/OrderDetailView';
 import PaymentVerification from '@/components/admin/PaymentVerification';
 import StatusUpdateModal from '@/components/admin/StatusUpdateModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Tabs } from '@/components/ui/Tabs';
+
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
 
 /**
  * Admin Order Detail Page
@@ -38,13 +40,7 @@ export default function AdminOrderDetailPage() {
   });
 
   // Fetch order details
-  useEffect(() => {
-    if (orderId) {
-      fetchOrderDetails();
-    }
-  }, [orderId]);
-
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/admin/orders/${orderId}`, {
@@ -63,7 +59,13 @@ export default function AdminOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderDetails();
+    }
+  }, [orderId, fetchOrderDetails]);
 
   // Status configuration
   const statusConfig = {
@@ -222,7 +224,7 @@ export default function AdminOrderDetailPage() {
       <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h2>
-          <p className="text-gray-600 mb-6">The order you're looking for doesn't exist.</p>
+          <p className="text-gray-600 mb-6">The order you&apos;re looking for doesn&apos;t exist.</p>
           <Button onClick={() => router.push('/admin/orders')}>
             Back to Orders
           </Button>
@@ -482,14 +484,14 @@ export default function AdminOrderDetailPage() {
                     {order.payment.receiptImage && (
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Receipt</h3>
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
-                          <img
-                            src={order.payment.receiptImage}
-                            alt="Payment Receipt"
-                            className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => window.open(order.payment.receiptImage, '_blank')}
-                          />
-                        </div>
+                        <Image
+                          src={order.payment.receiptImage}
+                          alt="Payment Receipt"
+                          width={500}
+                          height={700}
+                          className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(order.payment.receiptImage, '_blank')}
+                        />
                         {order.payment.status === 'pending' && (
                           <Button
                             onClick={() => setShowPaymentModal(true)}
@@ -557,7 +559,7 @@ export default function AdminOrderDetailPage() {
                 <Button
                   onClick={() => setShowStatusModal(true)}
                   className="w-full flex items-center justify-center gap-2"
-                  disabled={order.status === 'delivered' || order.status === 'cancelled'}
+                  disabled={order.status === 'delivered' || order.status === 'cancelled' || updating}
                 >
                   <CheckCircle className="w-4 h-4" />
                   Update Status
