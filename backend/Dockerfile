@@ -20,7 +20,7 @@ RUN npm ci --omit=dev --legacy-peer-deps
 # =================================================================
 FROM base AS builder
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # =================================================================
 # Production stage
