@@ -8,10 +8,6 @@
     "NEXT_PUBLIC_SITE_URL": "https://laraibcreative.studio",
     "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "dkzqbo109"
   },
-  "domains": [
-    "laraibcreative.studio",
-    "www.laraibcreative.studio"
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
