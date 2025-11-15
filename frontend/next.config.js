@@ -27,10 +27,12 @@ const nextConfig = {
     // Add Cloudinary and other CDN domains
     domains: [
       'localhost',
+      'laraibcreative.studio',
+      'www.laraibcreative.studio',
       'res.cloudinary.com',
       'laraibcreative.com',
       'www.laraibcreative.com',
-      'laraibcreative.studio',
+      'laraibcreative-backend.onrender.com',
       'api.laraibcreative.com',
     ],
     // Optimize images on-demand (ISR)

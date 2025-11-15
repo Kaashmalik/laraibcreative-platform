@@ -26,9 +26,9 @@ RUN npm ci --legacy-peer-deps
 COPY . .
 
 # Build arguments for environment variables
-ARG NEXT_PUBLIC_API_URL=http://localhost:5000/api
-ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
-ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ARG NEXT_PUBLIC_API_URL=https://laraibcreative-backend.onrender.com
+ARG NEXT_PUBLIC_APP_URL=https://laraibcreative.studio
+ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dkzqbo109
 
 # Set build-time environment variables
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

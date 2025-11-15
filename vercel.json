@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "https://laraibcreative.studio",
+    "NEXT_PUBLIC_API_URL": "https://laraibcreative-backend.onrender.com",
+    "NEXT_PUBLIC_API_BASE_URL": "https://laraibcreative-backend.onrender.com/api/v1",
+    "NEXT_PUBLIC_SOCKET_URL": "https://laraibcreative-backend.onrender.com",
+    "NEXT_PUBLIC_SITE_URL": "https://laraibcreative.studio",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "dkzqbo109"
+  },
+  "domains": [
+    "laraibcreative.studio",
+    "www.laraibcreative.studio"
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://laraibcreative-backend.onrender.com/api/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/shop",
+      "destination": "/products",
+      "permanent": true
+    },
+    {
+      "source": "/services",
+      "destination": "/custom-order",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "https://laraibcreative.studio" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
+      ]
+    }
+  ]
+}
