@@ -7,9 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 
-// Disable static generation for this page
-export const dynamic = 'force-dynamic';
-
 /**
  * Admin Orders Dashboard
  * Main orders management page with filtering, search, and tabs

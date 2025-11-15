@@ -13,9 +13,6 @@ import StatusUpdateModal from '@/components/admin/StatusUpdateModal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
-// Disable static generation for this page
-export const dynamic = 'force-dynamic';
-
 /**
  * Admin Order Detail Page
  * Complete order management interface with all order information

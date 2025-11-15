@@ -1,28 +1,13 @@
 'use client';
 
-/**
- * Admin Layout Component
- * 
- * Root layout for all admin pages featuring:
- * - Sidebar navigation with collapsible menu
- * - Top header with user profile and notifications
- * - Protected route with admin role check
- * - Responsive design for mobile/tablet/desktop
- * - Dark theme support
- * 
- * @requires AdminSidebar - Left navigation panel
- * @requires AdminHeader - Top navigation bar
- * @requires useAuth - Authentication hook for role verification
- * 
- * Note: Metadata removed as it cannot be exported from client components.
- * To add metadata, create a separate server component wrapper or use next/head
- */
-
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import LoadingScreen from '@/components/shared/LoadingScreen';
+
+// Disable static generation for all admin pages
+export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
