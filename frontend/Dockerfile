@@ -13,14 +13,14 @@ RUN apk add --no-cache curl
 # =================================================================
 FROM base AS dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev --legacy-peer-deps
 
 # =================================================================
 # Build stage
 # =================================================================
 FROM base AS builder
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
