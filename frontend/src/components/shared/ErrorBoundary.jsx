@@ -1,10 +1,13 @@
+'use client';
+
 import { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 /**
  * Error boundary component that catches JavaScript errors in child components
+ * Includes error reporting and user-friendly fallback UI
+ * 
  * @component
  * @example
  * // Basic usage
@@ -13,14 +16,25 @@ import { AlertTriangle } from 'lucide-react';
  * </ErrorBoundary>
  * 
  * // With custom fallback UI
- * <ErrorBoundary
- *   fallback={<CustomError />}
- * >
+ * <ErrorBoundary fallback={CustomError}>
+ *   <MyComponent />
+ * </ErrorBoundary>
+ * 
+ * // With error reporting callback
+ * <ErrorBoundary onError={(error, errorInfo) => logToService(error)}>
  *   <MyComponent />
  * </ErrorBoundary>
  */
 class ErrorBoundary extends Component {
-  state = { hasError: false, error: null };
+  constructor(props) {
+    super(props);
+    this.state = { 
+      hasError: false, 
+      error: null,
+      errorInfo: null,
+      errorCount: 0
+    };
+  }
 
   static getDerivedStateFromError(error) {
     // Update state so the next render will show the fallback UI
@@ -28,48 +42,183 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error to an error reporting service
-    console.error('Error caught by error boundary:', error, errorInfo);
+    // Increment error count
+    this.setState(prev => ({
+      errorInfo,
+      errorCount: prev.errorCount + 1
+    }));
+
+    // Log the error to console in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('🚨 Error caught by ErrorBoundary:', error);
+      console.error('Component Stack:', errorInfo.componentStack);
+    }
+
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    // Log to error reporting service (e.g., Sentry, LogRocket)
+    if (typeof window !== 'undefined' && window.errorReporter) {
+      window.errorReporter.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+      });
+    }
   }
 
   resetError = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ 
+      hasError: false, 
+      error: null,
+      errorInfo: null
+    });
+  };
+
+  reloadPage = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
+  goHome = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   /**
    * Default fallback UI when an error occurs
    */
-  DefaultFallback = () => (
-    <div
-      role="alert"
-      className="flex min-h-[400px] flex-col items-center justify-center space-y-4 p-8 text-center"
-    >
-      <AlertTriangle className="h-16 w-16 text-red-500" aria-hidden="true" />
-      <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
-      <p className="max-w-md text-gray-600">
-        {this.state.error?.message || 'An unexpected error occurred.'}
-      </p>
-      <Button 
-        onClick={this.resetError}
-        variant="primary"
-        className="mt-4"
+  DefaultFallback = () => {
+    const { error, errorInfo, errorCount } = this.state;
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    return (
+      <div
+        role="alert"
+        className="flex min-h-screen items-center justify-center bg-gray-50 p-4"
       >
-        Try Again
-      </Button>
-    </div>
-  );
+        <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg">
+          {/* Error Icon */}
+          <div className="flex justify-center">
+            <div className="rounded-full bg-red-100 p-3">
+              <AlertTriangle 
+                className="h-12 w-12 text-red-600" 
+                aria-hidden="true" 
+              />
+            </div>
+          </div>
+
+          {/* Error Title */}
+          <h1 className="mt-6 text-center text-2xl font-bold text-gray-900">
+            Oops! Something went wrong
+          </h1>
+
+          {/* Error Message */}
+          <p className="mt-4 text-center text-gray-600">
+            {isDevelopment && error?.message
+              ? error.message
+              : 'We encountered an unexpected error. Please try again.'}
+          </p>
+
+          {/* Error Count Warning */}
+          {errorCount > 2 && (
+            <div className="mt-4 rounded-md bg-yellow-50 border border-yellow-200 p-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Multiple errors detected.</strong> If this issue persists, 
+                please try refreshing the page or contact support.
+              </p>
+            </div>
+          )}
+
+          {/* Development Error Details */}
+          {isDevelopment && (
+            <details className="mt-6 rounded-md bg-gray-50 p-4">
+              <summary className="cursor-pointer font-medium text-gray-700">
+                Error Details (Development Only)
+              </summary>
+              <div className="mt-2 space-y-2">
+                <div>
+                  <h3 className="font-semibold text-sm text-gray-700">Error:</h3>
+                  <pre className="mt-1 overflow-auto rounded bg-red-50 p-2 text-xs text-red-900">
+                    {error?.toString()}
+                  </pre>
+                </div>
+                {errorInfo?.componentStack && (
+                  <div>
+                    <h3 className="font-semibold text-sm text-gray-700">
+                      Component Stack:
+                    </h3>
+                    <pre className="mt-1 overflow-auto rounded bg-gray-100 p-2 text-xs text-gray-800">
+                      {errorInfo.componentStack}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </details>
+          )}
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <button 
+              onClick={this.resetError}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </button>
+            
+            <button 
+              onClick={this.reloadPage}
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Reload Page
+            </button>
+
+            <button 
+              onClick={this.goHome}
+              className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center gap-2"
+            >
+              <Home className="h-4 w-4" />
+              Go Home
+            </button>
+          </div>
+
+          {/* Support Link */}
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Need help?{' '}
+            <a 
+              href="/contact" 
+              className="font-medium text-blue-600 hover:underline"
+            >
+              Contact Support
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   render() {
     if (this.state.hasError) {
       // If a custom fallback is provided, use it; otherwise use default
-      return this.props.fallback ? (
-        <this.props.fallback 
-          error={this.state.error}
-          resetError={this.resetError}
-        />
-      ) : (
-        <this.DefaultFallback />
-      );
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return (
+          <FallbackComponent 
+            error={this.state.error}
+            errorInfo={this.state.errorInfo}
+            resetError={this.resetError}
+          />
+        );
+      }
+      
+      return <this.DefaultFallback />;
     }
 
     return this.props.children;
@@ -80,10 +229,9 @@ ErrorBoundary.propTypes = {
   /** Content to be rendered */
   children: PropTypes.node.isRequired,
   /** Optional custom fallback component to render when an error occurs */
-  fallback: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.element
-  ])
+  fallback: PropTypes.elementType,
+  /** Optional callback function called when an error is caught */
+  onError: PropTypes.func
 };
 
 export default ErrorBoundary;

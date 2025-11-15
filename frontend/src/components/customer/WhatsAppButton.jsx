@@ -21,7 +21,7 @@ export default function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(false);
 
   // WhatsApp business number (replace with actual number)
-  const whatsappNumber = '923001234567'; // Format: country code + number (no + or spaces)
+  const whatsappNumber = '923038111297'; // Format: country code + number (no + or spaces)
   const defaultMessage = 'Hi! I would like to know more about your custom stitching services.';
 
   // Show button after page loads

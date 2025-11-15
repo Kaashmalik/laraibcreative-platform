@@ -558,10 +558,10 @@ export const SEO_DEFAULTS = {
  * Contact information
  */
 export const CONTACT_INFO = {
-  phone: '+92-300-1234567',
-  whatsapp: '+92-300-1234567',
-  email: 'info@laraibcreative.com',
-  supportEmail: 'support@laraibcreative.com',
+  phone: '03038111297',
+  whatsapp: '03038111297',
+  email: 'info@laraibcreative.business',
+  supportEmail: 'support@laraibcreative.business',
   address: 'Your Address, Lahore, Punjab, Pakistan',
   businessHours: 'Mon-Sat: 10:00 AM - 8:00 PM'
 };
@@ -575,7 +575,7 @@ export const SOCIAL_LINKS = {
   twitter: 'https://twitter.com/laraibcreative',
   pinterest: 'https://pinterest.com/laraibcreative',
   youtube: 'https://youtube.com/@laraibcreative',
-  whatsapp: 'https://wa.me/923001234567'
+  whatsapp: 'https://wa.me/923038111297'
 };
 
 // ============================================================================
@@ -752,7 +752,7 @@ export const ROUTES = {
 // EXPORT DEFAULT
 // ============================================================================
 
-export default {
+const constants = {
   IS_PRODUCTION,
   IS_DEVELOPMENT,
   API_BASE_URL,
@@ -797,3 +797,5 @@ export default {
   SIZES,
   SORT_OPTIONS
 };
+
+export default constants;
