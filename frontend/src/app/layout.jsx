@@ -1,5 +1,8 @@
 import "./globals.css"
 
+// Disable static generation for pages with interactive content
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: {
     default: 'LaraibCreative - Custom Ladies Suits Stitching Online | Designer Wear Pakistan',
