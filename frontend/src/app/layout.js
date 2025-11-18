@@ -2,7 +2,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
-import { ToastProvider } from '@/context/ToastContext'
+import { Toaster } from 'react-hot-toast'
 
 // Font configurations
 const inter = Inter({
@@ -186,59 +186,82 @@ export default function RootLayout({ children }) {
         {/* Context Providers */}
         <AuthProvider>
           <CartProvider>
-            <ToastProvider>
-              {/* Skip to main content for accessibility */}
-              <a 
-                href="#main-content" 
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg"
-              >
-                Skip to main content
-              </a>
+            {/* Skip to main content for accessibility */}
+            <a 
+              href="#main-content" 
+              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg"
+            >
+              Skip to main content
+            </a>
 
-              {/* Main application content */}
-              {children}
+            {/* Main application content */}
+            {children}
 
-              {/* Global scripts */}
-              {process.env.NEXT_PUBLIC_GA_ID && (
-                <>
-                  <script
-                    async
-                    src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                  />
-                  <script
-                    dangerouslySetInnerHTML={{
-                      __html: `
-                        window.dataLayer = window.dataLayer || [];
-                        function gtag(){dataLayer.push(arguments);}
-                        gtag('js', new Date());
-                        gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                          page_path: window.location.pathname,
-                        });
-                      `,
-                    }}
-                  />
-                </>
-              )}
+            {/* Toast Notifications */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                  borderRadius: '8px',
+                },
+                success: {
+                  iconTheme: {
+                    primary: '#10B981',
+                    secondary: '#fff',
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: '#EF4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
 
-              {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+            {/* Global scripts */}
+            {process.env.NEXT_PUBLIC_GA_ID && (
+              <>
+                <script
+                  async
+                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+                />
                 <script
                   dangerouslySetInnerHTML={{
                     __html: `
-                      !function(f,b,e,v,n,t,s)
-                      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                      n.queue=[];t=b.createElement(e);t.async=!0;
-                      t.src=v;s=b.getElementsByTagName(e)[0];
-                      s.parentNode.insertBefore(t,s)}(window, document,'script',
-                      'https://connect.facebook.net/en_US/fbevents.js');
-                      fbq('init', '${process.env.NEXT_PUBLIC_FB_PIXEL_ID}');
-                      fbq('track', 'PageView');
+                      window.dataLayer = window.dataLayer || [];
+                      function gtag(){dataLayer.push(arguments);}
+                      gtag('js', new Date());
+                      gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
+                        page_path: window.location.pathname,
+                      });
                     `,
                   }}
                 />
-              )}
-            </ToastProvider>
+              </>
+            )}
+
+            {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    !function(f,b,e,v,n,t,s)
+                    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                    n.queue=[];t=b.createElement(e);t.async=!0;
+                    t.src=v;s=b.getElementsByTagName(e)[0];
+                    s.parentNode.insertBefore(t,s)}(window, document,'script',
+                    'https://connect.facebook.net/en_US/fbevents.js');
+                    fbq('init', '${process.env.NEXT_PUBLIC_FB_PIXEL_ID}');
+                    fbq('track', 'PageView');
+                  `,
+                }}
+              />
+            )}
           </CartProvider>
         </AuthProvider>
       </body>

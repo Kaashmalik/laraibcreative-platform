@@ -2,50 +2,51 @@
 
 import { createContext, useContext, useState, useCallback } from 'react';
 
-const ToastContext = createContext();
+const ToastContext = createContext(undefined);
 
-export const useToast = () => {
+export function useToast() {
   const context = useContext(ToastContext);
-  if (!context) throw new Error('useToast must be used within a ToastProvider');
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
   return context;
-};
+}
 
-const ToastProvider = ({ children }) => {
+function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
+      setToasts(prev => prev.filter(toast => toast.id !== id));
     }, 3000);
   }, []);
 
-  const removeToast = useCallback(id => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
   return (
     <ToastContext.Provider value={{ addToast, removeToast }}>
       {children}
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
-        {toasts.map(t => (
+        {toasts.map(toast => (
           <div
-            key={t.id}
-            className={`px-4 py-2 rounded shadow-lg text-white ${
-              t.type === 'error'
-                ? 'bg-red-500'
-                : t.type === 'success'
-                ? 'bg-green-500'
-                : 'bg-blue-500'
-            }`}
+            key={toast.id}
+            className={`px-4 py-2 rounded shadow-lg ${
+              toast.type === 'error' ? 'bg-red-500' :
+              toast.type === 'success' ? 'bg-green-500' :
+              'bg-blue-500'
+            } text-white`}
           >
-            {t.message}
+            {toast.message}
           </div>
         ))}
       </div>
     </ToastContext.Provider>
   );
-};
+}
 
-export default ToastProvider; // <—— THIS is the critical line
+export default ToastProvider;
+export { ToastProvider };
