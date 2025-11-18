@@ -1,8 +1,6 @@
 'use client';
 
-'use client';
-
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Heart, ShoppingCart, Eye } from 'lucide-react';

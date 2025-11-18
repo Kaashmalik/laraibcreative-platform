@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { ShoppingCart, Check } from 'lucide-react';
 import { useState } from 'react';
 

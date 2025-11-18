@@ -1,7 +1,6 @@
 'use client';
 
 // components/customer/SocialShare.jsx
-'use client';
 
 import { useState } from 'react';
 

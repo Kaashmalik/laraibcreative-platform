@@ -93,6 +93,15 @@ export default function CustomOrderPage() {
   // Total steps in the wizard
   const totalSteps = 5;
 
+  // Steps configuration for the indicator
+  const steps = [
+    { id: 1, title: 'Service Type' },
+    { id: 2, title: 'Upload Images' },
+    { id: 3, title: 'Select Fabric' },
+    { id: 4, title: 'Measurements' },
+    { id: 5, title: 'Order Summary' }
+  ];
+
   // Load saved draft from localStorage on mount
   useEffect(() => {
     const savedDraft = localStorage.getItem('customOrderDraft');
@@ -427,7 +436,7 @@ export default function CustomOrderPage() {
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        <StepIndicator currentStep={currentStep} steps={steps} />
 
         {/* Main Form Container */}
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
