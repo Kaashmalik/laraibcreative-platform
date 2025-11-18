@@ -55,12 +55,12 @@ app.use(helmet({
 // =================================================================
 // CORS CONFIGURATION
 // =================================================================
+// Allow-list browser origins, but do not require an Origin header.
+// Many production probes (health checks, webhooks, server-to-server) omit it.
 const corsOptions = {
   origin: function (origin, callback) {
-    // In production, strictly enforce allowed origins
     const isProduction = process.env.NODE_ENV === 'production';
-    
-    // Define allowed origins
+
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
@@ -69,35 +69,34 @@ const corsOptions = {
       'https://www.laraibcreative.com'
     ].filter(Boolean);
 
-    // Allow requests with no origin (mobile apps, Postman, etc.) only in development
+    // If no Origin header (e.g., curl, Postman, uptime checks), allow it.
     if (!origin) {
-      if (isProduction) {
-        return callback(new Error('CORS: Origin header is required in production'));
-      }
       return callback(null, true);
     }
-    
-    // Check if origin is allowed
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      // In production, reject unknown origins
-      if (isProduction) {
-        console.warn(`⚠️  CORS: Blocked request from unauthorized origin: ${origin}`);
-        return callback(new Error(`CORS: Origin ${origin} is not allowed`));
-      }
-      // In development, allow all origins for easier testing
-      callback(null, true);
+
+    // Browser request with Origin header: enforce allow-list in production.
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    if (isProduction) {
+      console.warn(`⚠️  CORS: Blocked request from unauthorized origin: ${origin}`);
+      return callback(new Error(`CORS: Origin ${origin} is not allowed`));
+    }
+
+    // In development allow all origins for easier testing
+    return callback(null, true);
   },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
   maxAge: 86400 // 24 hours - cache preflight requests
 };
 
 app.use(cors(corsOptions));
+// Handle preflight across the board
+app.options('*', cors(corsOptions));
 
 // =================================================================
 // BODY PARSING MIDDLEWARE
