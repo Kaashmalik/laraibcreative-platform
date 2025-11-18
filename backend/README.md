@@ -95,6 +95,8 @@ cd laraibcreative-backend
 npm install
 ```
 
+**Note:** The project uses `.npmrc` to handle peer dependency conflicts. If you encounter installation issues, ensure `.npmrc` is present with `legacy-peer-deps=true`.
+
 ### 3. Set up environment variables
 
 ```bash
