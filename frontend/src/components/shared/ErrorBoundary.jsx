@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
 import { Component } from 'react';
 import PropTypes from 'prop-types';
+import { Button } from '@/components/ui/Button';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 /**
@@ -165,28 +166,31 @@ class ErrorBoundary extends Component {
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <button 
+            <Button 
               onClick={this.resetError}
-              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              variant="primary"
+              className="w-full sm:w-auto"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
-            </button>
+            </Button>
             
-            <button 
+            <Button 
               onClick={this.reloadPage}
-              className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              variant="outline"
+              className="w-full sm:w-auto"
             >
               Reload Page
-            </button>
+            </Button>
 
-            <button 
+            <Button 
               onClick={this.goHome}
-              className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center gap-2"
+              variant="ghost"
+              className="w-full sm:w-auto"
             >
-              <Home className="h-4 w-4" />
+              <Home className="mr-2 h-4 w-4" />
               Go Home
-            </button>
+            </Button>
           </div>
 
           {/* Support Link */}
@@ -194,7 +198,7 @@ class ErrorBoundary extends Component {
             Need help?{' '}
             <a 
               href="/contact" 
-              className="font-medium text-blue-600 hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               Contact Support
             </a>
