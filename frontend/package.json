@@ -60,8 +60,8 @@
     "typescript": "^5.6.3"
   },
   "engines": {
-    "node": "18.20.0",
-    "npm": "10.0.0"
+    "node": "22.x",
+    "npm": ">=10.0.0"
   },
   "keywords": [
     "ecommerce",
