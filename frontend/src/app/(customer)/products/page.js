@@ -1,50 +1,67 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/customer/ProductCard';
 import ProductFilters from '@/components/customer/ProductFilters';
 import Pagination from '@/components/customer/Pagination';
 import { Spinner } from '@/components/ui/Spinner';
+import SEO from '@/components/shared/SEO';
+import api from '@/lib/api';
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    category: 'all',
-    sortBy: 'newest',
+    category: searchParams?.get('category') || 'all',
+    sortBy: searchParams?.get('sortBy') || 'newest',
     priceRange: [0, 50000],
     sizes: [],
-    colors: []
+    colors: [],
+    fabric: searchParams?.get('fabric') || '',
+    search: searchParams?.get('search') || ''
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams?.get('page') || '1', 10));
   const productsPerPage = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // TODO: Replace with actual API call
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(data.products || []);
+        const params = {
+          page: currentPage,
+          limit: productsPerPage,
+          ...(filters.category !== 'all' && { category: filters.category }),
+          ...(filters.fabric && { fabric: filters.fabric }),
+          ...(filters.search && { search: filters.search }),
+          sortBy: filters.sortBy,
+          minPrice: filters.priceRange[0],
+          maxPrice: filters.priceRange[1],
+        };
+
+        const response = await api.products.getAll(params);
+        if (response && response.products) {
+          setProducts(response.products);
+          setTotalProducts(response.total || response.products.length);
+        } else {
+          setProducts([]);
+          setTotalProducts(0);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        // Mock data for development
         setProducts([]);
+        setTotalProducts(0);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [filters]);
+  }, [filters, currentPage]);
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -62,14 +79,47 @@ export default function ProductsPage() {
     );
   }
 
+  // SEO Structured Data
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Products - LaraibCreative',
+    description: 'Browse our complete collection of custom stitched ladies suits, bridal wear, party suits, and designer replicas.',
+    url: typeof window !== 'undefined' ? window.location.href : '',
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: totalProducts,
+      itemListElement: products.slice(0, 10).map((product, index) => ({
+        '@type': 'Product',
+        position: index + 1,
+        name: product.title || product.name,
+        description: product.description,
+        image: product.primaryImage || product.images?.[0],
+        offers: {
+          '@type': 'Offer',
+          price: product.pricing?.basePrice || product.price,
+          priceCurrency: 'PKR',
+          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+        }
+      }))
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Our Products</h1>
-        <p className="text-gray-600">
-          Discover our collection of beautiful Pakistani fashion
-        </p>
-      </div>
+    <>
+      <SEO
+        title="Products - Browse Our Collection"
+        description="Browse our complete collection of custom stitched ladies suits, bridal wear, party suits, and designer replicas. Premium quality fabrics with perfect measurements."
+        keywords={['ladies suits', 'bridal wear', 'party suits', 'custom stitching', 'designer replicas', 'Pakistani fashion']}
+        structuredData={structuredData}
+      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">Our Products</h1>
+          <p className="text-gray-600">
+            Discover our collection of beautiful Pakistani fashion
+          </p>
+        </div>
 
       <div className="grid lg:grid-cols-4 gap-8">
         {/* Filters Sidebar */}
@@ -87,7 +137,7 @@ export default function ProductsPage() {
           {/* Results count and sort */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-gray-600">
-              Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, products.length)} of {products.length} products
+              Showing {products.length > 0 ? ((currentPage - 1) * productsPerPage + 1) : 0}-{Math.min(currentPage * productsPerPage, totalProducts)} of {totalProducts} products
             </p>
             <select
               value={filters.sortBy}
@@ -114,8 +164,8 @@ export default function ProductsPage() {
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {currentProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {products.map((product) => (
+                  <ProductCard key={product._id || product.id} product={product} />
                 ))}
               </div>
 
@@ -133,5 +183,6 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

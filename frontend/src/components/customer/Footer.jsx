@@ -249,14 +249,14 @@ export default function Footer() {
               {/* Contact Info with structured data */}
               <div className="space-y-3">
                 <a 
-                  href="tel:03038111297" 
+                  href="tel:03020718182" 
                   className="flex items-start space-x-3 text-gray-400 hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded p-2 -ml-2"
-                  aria-label="Call us at 03038111297"
+                  aria-label="Call us at 03020718182"
                 >
                   <Phone className="w-5 h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   <div>
                     <p className="text-xs text-gray-500">Call Us</p>
-                    <p className="font-medium text-white">03038111297</p>
+                    <p className="font-medium text-white">03020718182</p>
                   </div>
                 </a>
                 <a 
@@ -294,7 +294,7 @@ export default function Footer() {
                   </a>
                 ))}
                 <a
-                  href="https://wa.me/923038111297?text=Hi%2C%20I%27m%20interested%20in%20LaraibCreative%20products"
+                  href="https://wa.me/923020718182?text=Hello%21%20I%27m%20interested%20in%20learning%20more%20about%20your%20custom%20stitching%20services"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-500 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500"

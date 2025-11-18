@@ -1,0 +1,35 @@
+{
+  "name": "LaraibCreative - Custom Ladies Suits Stitching",
+  "short_name": "LaraibCreative",
+  "description": "Transform your vision into beautiful reality. Expert custom stitched ladies suits, bridal wear, party suits with perfect measurements.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D946A6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["fashion", "shopping", "lifestyle"],
+  "lang": "en-PK",
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "/images/screenshots/homepage.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ]
+}
+

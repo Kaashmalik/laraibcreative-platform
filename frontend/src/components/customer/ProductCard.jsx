@@ -102,7 +102,7 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
         whileHover={{ y: -4 }}
         className="group"
       >
-        <Link href={`/products/${product._id}`} className="block">
+        <Link href={`/products/${product._id || product.id}`} className="block">
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-shadow hover:shadow-lg">
             {/* Image container */}
             <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
@@ -183,7 +183,7 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
             <div className="p-4">
               {/* Title */}
               <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                {product.title}
+                {product.title || product.name}
               </h3>
 
               {/* Fabric type */}
@@ -200,11 +200,11 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-gray-900">
-                    PKR {product.pricing?.basePrice?.toLocaleString()}
+                    PKR {(product.pricing?.basePrice || product.price || 0).toLocaleString()}
                   </span>
-                  {product.pricing?.discount && (
+                  {product.pricing?.discount?.percentage && (
                     <span className="text-sm text-gray-500 line-through">
-                      PKR {(product.pricing.basePrice * (1 + product.pricing.discount / 100)).toLocaleString()}
+                      PKR {((product.pricing.basePrice || product.price || 0) * (1 + product.pricing.discount.percentage / 100)).toLocaleString()}
                     </span>
                   )}
                 </div>

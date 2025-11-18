@@ -1,0 +1,12 @@
+# robots.txt for LaraibCreative
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap
+Sitemap: https://laraibcreative.studio/sitemap.xml
+

@@ -16,7 +16,7 @@ const api = {
      * @returns {Promise<{ token: string, user: Object }>}
      */
     async login(email, password) {
-      return await axios.post('/auth/login', { email, password });
+      return await axios.post('/v1/auth/login', { email, password });
     },
 
     /**
@@ -25,7 +25,7 @@ const api = {
      * @returns {Promise<{ token: string, user: Object }>}
      */
     async register(userData) {
-      return await axios.post('/auth/register', userData);
+      return await axios.post('/v1/auth/register', userData);
     },
 
     /**
@@ -33,7 +33,7 @@ const api = {
      * @returns {Promise<void>}
      */
     async logout() {
-      return await axios.post('/auth/logout');
+      return await axios.post('/v1/auth/logout');
     },
 
     /**
@@ -41,7 +41,7 @@ const api = {
      * @returns {Promise<{ valid: boolean, user?: Object }>}
      */
     async verifyToken() {
-      return await axios.get('/auth/verify-token');
+      return await axios.get('/v1/auth/verify-token');
     },
 
     /**
@@ -50,7 +50,7 @@ const api = {
      * @returns {Promise<{ message: string }>}
      */
     async forgotPassword(email) {
-      return await axios.post('/auth/forgot-password', { email });
+      return await axios.post('/v1/auth/forgot-password', { email });
     },
 
     /**
@@ -60,7 +60,7 @@ const api = {
      * @returns {Promise<{ message: string }>}
      */
     async resetPassword(token, newPassword) {
-      return await axios.post('/auth/reset-password', { token, newPassword });
+      return await axios.post('/v1/auth/reset-password', { token, newPassword });
     }
   },
 
@@ -78,7 +78,7 @@ const api = {
      * @returns {Promise<{ products: Array, total: number }>}
      */
     async getAll(filters = {}) {
-      return await axios.get('/products', { params: filters });
+      return await axios.get('/v1/products', { params: filters });
     },
 
     /**
@@ -87,7 +87,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async getById(id) {
-      return await axios.get(`/products/${id}`);
+      return await axios.get(`/v1/products/${id}`);
     },
 
     /**
@@ -96,7 +96,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async search(query) {
-      return await axios.get('/products/search', { params: { q: query } });
+      return await axios.get('/v1/products/search', { params: { q: query } });
     },
 
     /**
@@ -104,7 +104,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async getFeatured() {
-      return await axios.get('/products/featured');
+      return await axios.get('/v1/products/featured');
     },
 
     /**
@@ -113,7 +113,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async create(productData) {
-      return await axios.post('/products', productData);
+      return await axios.post('/v1/products', productData);
     },
 
     /**
@@ -123,7 +123,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async update(id, productData) {
-      return await axios.put(`/products/${id}`, productData);
+      return await axios.put(`/v1/products/${id}`, productData);
     },
 
     /**
@@ -132,7 +132,7 @@ const api = {
      * @returns {Promise<void>}
      */
     async delete(id) {
-      return await axios.delete(`/products/${id}`);
+      return await axios.delete(`/v1/products/${id}`);
     }
   },
 
@@ -146,7 +146,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async create(orderData) {
-      return await axios.post('/orders', orderData);
+      return await axios.post('/v1/orders', orderData);
     },
 
     /**
@@ -155,7 +155,7 @@ const api = {
      * @returns {Promise<{ orders: Array, total: number }>}
      */
     async getAll(filters = {}) {
-      return await axios.get('/orders', { params: filters });
+      return await axios.get('/v1/orders', { params: filters });
     },
 
     /**
@@ -164,7 +164,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async getById(id) {
-      return await axios.get(`/orders/${id}`);
+      return await axios.get(`/v1/orders/${id}`);
     },
 
     /**
@@ -175,7 +175,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async updateStatus(id, status, note) {
-      return await axios.put(`/orders/${id}/status`, { status, note });
+      return await axios.put(`/v1/orders/${id}/status`, { status, note });
     },
 
     /**
@@ -184,7 +184,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async track(orderNumber) {
-      return await axios.get(`/orders/track/${orderNumber}`);
+      return await axios.get(`/v1/orders/track/${orderNumber}`);
     },
 
     /**
@@ -194,7 +194,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async cancel(id, reason) {
-      return await axios.post(`/orders/${id}/cancel`, { reason });
+      return await axios.post(`/v1/orders/${id}/cancel`, { reason });
     }
   },
 
@@ -207,7 +207,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async getProfile() {
-      return await axios.get('/customers/profile');
+      return await axios.get('/v1/customers/profile');
     },
 
     /**
@@ -216,7 +216,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async updateProfile(data) {
-      return await axios.put('/customers/profile', data);
+      return await axios.put('/v1/customers/profile', data);
     },
 
     /**
@@ -224,7 +224,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async getOrders() {
-      return await axios.get('/customers/orders');
+      return await axios.get('/v1/customers/orders');
     }
   },
 
@@ -237,7 +237,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async getAll() {
-      return await axios.get('/measurements');
+      return await axios.get('/v1/measurements');
     },
 
     /**
@@ -246,7 +246,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async save(data) {
-      return await axios.post('/measurements', data);
+      return await axios.post('/v1/measurements', data);
     },
 
     /**
@@ -256,7 +256,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async update(id, data) {
-      return await axios.put(`/measurements/${id}`, data);
+      return await axios.put(`/v1/measurements/${id}`, data);
     },
 
     /**
@@ -265,7 +265,7 @@ const api = {
      * @returns {Promise<void>}
      */
     async delete(id) {
-      return await axios.delete(`/measurements/${id}`);
+      return await axios.delete(`/v1/measurements/${id}`);
     }
   },
 
@@ -278,7 +278,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async getAll() {
-      return await axios.get('/categories');
+      return await axios.get('/v1/categories');
     }
   },
 
@@ -292,7 +292,7 @@ const api = {
      * @returns {Promise<Array>}
      */
     async getByProduct(productId) {
-      return await axios.get(`/reviews/product/${productId}`);
+      return await axios.get(`/v1/reviews/product/${productId}`);
     },
 
     /**
@@ -301,7 +301,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async create(reviewData) {
-      return await axios.post('/reviews', reviewData);
+      return await axios.post('/v1/reviews', reviewData);
     }
   },
 
@@ -316,7 +316,7 @@ const api = {
      * @returns {Promise<{ posts: Array, total: number }>}
      */
     async getAll(page = 1, limit = 10) {
-      return await axios.get('/blog', { params: { page, limit } });
+      return await axios.get('/v1/blog', { params: { page, limit } });
     },
 
     /**
@@ -325,7 +325,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async getBySlug(slug) {
-      return await axios.get(`/blog/${slug}`);
+      return await axios.get(`/v1/blog/${slug}`);
     },
 
     /**
@@ -334,7 +334,7 @@ const api = {
      * @returns {Promise<void>}
      */
     async incrementView(slug) {
-      return await axios.post(`/blog/${slug}/view`);
+      return await axios.post(`/v1/blog/${slug}/view`);
     }
   },
 
@@ -350,7 +350,7 @@ const api = {
     async image(file) {
       const formData = new FormData();
       formData.append('image', file);
-      return await axios.post('/upload/image', formData, {
+      return await axios.post('/v1/upload/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
     },
@@ -363,7 +363,7 @@ const api = {
     async images(files) {
       const formData = new FormData();
       files.forEach(file => formData.append('images', file));
-      return await axios.post('/upload/images', formData, {
+      return await axios.post('/v1/upload/images', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
     },
@@ -376,7 +376,7 @@ const api = {
     async receipt(file) {
       const formData = new FormData();
       formData.append('receipt', file);
-      return await axios.post('/upload/receipt', formData, {
+      return await axios.post('/v1/upload/receipt', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
     }

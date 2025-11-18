@@ -93,7 +93,7 @@ export default function HomePage() {
                 sameAs: [
                   'https://instagram.com/laraibcreative',
                   'https://facebook.com/laraibcreative',
-                  'https://wa.me/923038111297'
+                  'https://wa.me/923020718182'
                 ],
                 aggregateRating: {
                   '@type': 'AggregateRating',
@@ -634,14 +634,14 @@ export default function HomePage() {
                   <ContactMethod
                     icon={<MessageCircle className="w-5 h-5" />}
                     label="WhatsApp"
-                    value="03038111297"
-                    href="https://wa.me/923038111297"
+                    value="03020718182"
+                    href="https://wa.me/923020718182"
                   />
                   <ContactMethod
                     icon={<Phone className="w-5 h-5" />}
                     label="Call Us"
-                    value="03038111297"
-                    href="tel:03038111297"
+                    value="03020718182"
+                    href="tel:03020718182"
                   />
                   <ContactMethod
                     icon={<Mail className="w-5 h-5" />}
