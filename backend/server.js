@@ -66,7 +66,9 @@ const corsOptions = {
       'http://localhost:3001',
       process.env.FRONTEND_URL,
       'https://laraibcreative.com',
-      'https://www.laraibcreative.com'
+      'https://www.laraibcreative.com',
+      'https://laraibcreative.studio',
+      'https://www.laraibcreative.studio'
     ].filter(Boolean);
 
     // If no Origin header (e.g., curl, Postman, uptime checks), allow it.
