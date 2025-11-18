@@ -24,16 +24,16 @@ const nextConfig = {
   // IMAGE OPTIMIZATION
   // ==================================================
   images: {
-    // Add Cloudinary and other CDN domains
-    domains: [
-      'localhost',
-      'laraibcreative.studio',
-      'www.laraibcreative.studio',
-      'res.cloudinary.com',
-      'laraibcreative.com',
-      'www.laraibcreative.com',
-      'laraibcreative-backend.onrender.com',
-      'api.laraibcreative.com',
+    // Use remotePatterns instead of deprecated domains
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'laraibcreative.studio' },
+      { protocol: 'https', hostname: 'www.laraibcreative.studio' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'laraibcreative.com' },
+      { protocol: 'https', hostname: 'www.laraibcreative.com' },
+      { protocol: 'https', hostname: 'laraibcreative-backend.onrender.com' },
+      { protocol: 'https', hostname: 'api.laraibcreative.com' },
     ],
     // Optimize images on-demand (ISR)
     unoptimized: false,

@@ -1,5 +1,5 @@
-'use client';
 
+'use client';
 
 /**
  * Accordion Component
@@ -114,7 +114,7 @@ const Accordion = ({
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>}
+            </AnimatePresence>
           </div>
         );
       })}
