@@ -1,0 +1,9 @@
+{
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.workspaceSymbols.scope": "currentProject",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.disableLineTextInReferences": false
+}
