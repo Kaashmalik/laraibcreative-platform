@@ -431,12 +431,7 @@ const connectDB = async (retries = 5) => {
         maxPoolSize: 10,
         minPoolSize: 2,
         retryWrites: true,
-        retryReads: true,
-        // Force direct connection to bypass SRV issues
-        directConnection: false,
-        // Additional DNS resolution settings
-        useNewUrlParser: true,
-        useUnifiedTopology: true
+        retryReads: true
       });
       
       console.log('✅ MongoDB connected successfully');
