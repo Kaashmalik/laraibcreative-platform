@@ -1,7 +1,5 @@
 'use client';
 
-'use client'; // <--- ADDED: Explicitly marks this component as a Client Component
-
 import React from 'react';
 import PropTypes from 'prop-types';
 
