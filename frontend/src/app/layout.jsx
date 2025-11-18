@@ -110,16 +110,25 @@ export const metadata = {
   category: 'fashion',
   applicationName: 'LaraibCreative',
   referrer: 'origin-when-cross-origin',
-  colorScheme: 'light',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#D946A6' },
-    { media: '(prefers-color-scheme: dark)', color: '#7C3AED' },
-  ],
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
+};
+
+// ==========================================
+// VIEWPORT CONFIGURATION
+// ==========================================
+export const viewport = {
+  colorScheme: 'light',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#D946A6' },
+    { media: '(prefers-color-scheme: dark)', color: '#7C3AED' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 // ==========================================
