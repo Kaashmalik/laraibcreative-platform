@@ -198,26 +198,34 @@ exports.sendOrderConfirmation = async (phone, order) => {
   const message = `
 🎉 *Order Confirmation - LaraibCreative*
 
-Thank you for your order!
+Dear Valued Customer,
 
-*Order Number:* ${order.orderNumber}
-*Total Amount:* PKR ${total.toLocaleString()}
-*Payment Method:* ${(order.payment?.method || 'cod').toUpperCase()}
+Thank you so much for placing your order with us! We're truly grateful for your trust in our services.
+
+*Order Details:*
+📋 Order Number: ${order.orderNumber}
+💰 Total Amount: PKR ${total.toLocaleString()}
+💳 Payment Method: ${(order.payment?.method || 'cod').toUpperCase()}
 
 ${order.payment?.method === 'cod' ? 
-  `*Advance Paid:* PKR ${(order.payment?.advanceAmount || 0).toLocaleString()}\n*Remaining:* PKR ${(order.payment?.remainingAmount || 0).toLocaleString()}\n` : 
-  '*Status:* Payment verification pending\n'}
-*Estimated Delivery:* ${order.estimatedCompletion ? new Date(order.estimatedCompletion).toLocaleDateString('en-PK', { 
+  `💵 Advance Paid: PKR ${(order.payment?.advanceAmount || 0).toLocaleString()}\n💵 Remaining Amount: PKR ${(order.payment?.remainingAmount || 0).toLocaleString()}\n` : 
+  '⏳ Status: Payment verification pending\n'}
+📅 Estimated Delivery: ${order.estimatedCompletion ? new Date(order.estimatedCompletion).toLocaleDateString('en-PK', { 
   day: 'numeric', 
   month: 'long', 
   year: 'numeric' 
-}) : 'TBD'}
+}) : 'Will be confirmed soon'}
 
-Track your order: ${frontendUrl}/track-order/${order.orderNumber}
+We've received your order and will begin processing it once your payment is verified. You'll receive an update shortly.
 
-We'll keep you updated on your order status! 💕
+🔗 Track your order: ${frontendUrl}/track-order/${order.orderNumber}
 
-_LaraibCreative - Turning emotions into reality_
+We're here to help! If you have any questions or concerns, please don't hesitate to reply to this message. Our team responds promptly to ensure you have the best experience.
+
+Thank you for choosing LaraibCreative! 💕
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return sendWithRetry(phone, message);
@@ -275,23 +283,35 @@ exports.sendPaymentVerified = async (phone, order) => {
   const message = `
 ✅ *Payment Verified - LaraibCreative*
 
-Great news! Your payment has been verified.
+Dear Customer,
 
-*Order Number:* ${order.orderNumber}
-*Amount Verified:* PKR ${total.toLocaleString()}
+Great news! Your payment has been successfully verified and confirmed.
 
-Your order is now being processed! 🎊
+*Order Details:*
+📋 Order Number: ${order.orderNumber}
+💰 Amount Verified: PKR ${total.toLocaleString()}
 
-We'll notify you as it moves through each stage:
-1. ✅ Payment Verified (Current)
-2. ⏳ Fabric Arrangement
+Your order is now being processed with care and attention to detail. We'll keep you updated at every step of the way.
+
+✨ *What's Next?*
+1. ✅ Payment Verified (Completed)
+2. ⏳ Fabric/Material Arrangement
 3. ⏳ Stitching in Progress
 4. ⏳ Quality Check
 5. ⏳ Ready for Dispatch
 6. ⏳ Out for Delivery
 7. ⏳ Delivered
 
-Track: ${frontendUrl}/track-order/${order.orderNumber}
+We appreciate your patience and look forward to delivering your beautiful custom outfit!
+
+If you have any questions, feel free to reach out. We're here to help! 💬
+
+🔗 Track: ${frontendUrl}/track-order/${order.orderNumber}
+
+Thank you for choosing LaraibCreative! 💕
+
+_Best regards,_
+_LaraibCreative Team_
   `.trim();
 
   return sendWithRetry(phone, message);
@@ -313,16 +333,34 @@ exports.sendPaymentRejected = async (phone, order, reason = '') => {
   const businessWhatsApp = process.env.BUSINESS_WHATSAPP || '';
 
   const message = `
-⚠️ *Payment Verification Issue - LaraibCreative*
+⚠️ *Payment Verification - Action Required*
+
+Dear Customer,
+
+We hope this message finds you well. We're having trouble verifying your payment for the following order:
 
 *Order Number:* ${order.orderNumber}
-
-We couldn't verify your payment.
 ${reason ? `\n*Reason:* ${reason}\n` : ''}
-Please re-upload a clear payment receipt or contact us:
 
-${businessPhone ? `📞 Call: ${businessPhone}\n` : ''}${businessWhatsApp ? `💬 WhatsApp: ${businessWhatsApp}\n` : ''}
-We're here to help! 🙏
+We want to ensure your order is processed as quickly as possible. Could you please:
+
+1. Re-upload a clear, high-quality photo of your payment receipt
+2. Ensure the receipt shows:
+   - Transaction ID
+   - Date and time
+   - Amount transferred
+   - Account details
+
+If you've already made the payment, please don't worry - we're here to help resolve this quickly!
+
+${businessPhone ? `📞 Call us: ${businessPhone}\n` : ''}${businessWhatsApp ? `💬 WhatsApp: ${businessWhatsApp}\n` : ''}
+
+Our team is available to assist you. We respond promptly to ensure your order moves forward smoothly.
+
+Thank you for your patience and understanding! 🙏
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return sendWithRetry(phone, message);
@@ -387,16 +425,28 @@ exports.sendOrderCancellation = async (phone, order, reason = '') => {
   const businessWhatsApp = process.env.BUSINESS_WHATSAPP || '';
 
   const message = `
-❌ *Order Cancelled - ${order.orderNumber}*
+❌ *Order Cancellation - ${order.orderNumber}*
 
-Your order has been cancelled.
+Dear Customer,
+
+We're sorry to inform you that your order has been cancelled.
+
+*Order Number:* ${order.orderNumber}
 ${reason ? `\n*Reason:* ${reason}\n` : ''}
-${order.payment?.status === 'verified' ? 
-  `\nRefund will be processed within 3-5 business days.\n` : ''}
 
-If you have any questions, please contact us:
-${businessPhone ? `📞 ${businessPhone}\n` : ''}${businessWhatsApp ? `💬 WhatsApp: ${businessWhatsApp}\n` : ''}
-We hope to serve you again soon! 🙏
+${order.payment?.status === 'verified' ? 
+  `\n💰 *Refund Information:*\nYour refund will be processed within 3-5 business days. You'll receive a confirmation once it's initiated. If you have any questions about the refund process, please don't hesitate to reach out.\n` : ''}
+
+We understand this may be disappointing, and we sincerely apologize for any inconvenience this may have caused.
+
+If you have any questions or concerns, or if you'd like to place a new order, please don't hesitate to contact us. We're here to help!
+
+${businessPhone ? `📞 Call us: ${businessPhone}\n` : ''}${businessWhatsApp ? `💬 WhatsApp: ${businessWhatsApp}\n` : ''}
+
+We hope to have the opportunity to serve you again in the future. Thank you for your understanding! 🙏
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return sendWithRetry(phone, message);
@@ -418,16 +468,26 @@ exports.requestDeliveryConfirmation = async (phone, order) => {
   const message = `
 📦 *Delivery Confirmation Request*
 
-*Order:* ${order.orderNumber}
+Dear Customer,
 
-Has your order been delivered?
+We hope you're doing well! We'd like to confirm the delivery status of your order.
 
-Please confirm by replying:
-✅ "Yes, received"
-❌ "No, not yet"
+*Order Number:* ${order.orderNumber}
 
-${businessPhone ? `Or contact us: 📞 ${businessPhone}\n` : ''}
-Thank you! 🙏
+Has your order been delivered to you?
+
+Please reply with:
+✅ "Yes, received" - if you've received your order
+❌ "No, not yet" - if you haven't received it yet
+
+Your feedback helps us ensure you've received your order safely and on time. If you have any concerns or need assistance, we're here to help!
+
+${businessPhone ? `📞 Contact us: ${businessPhone}\n` : ''}
+
+Thank you for your cooperation! 🙏
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return sendWithRetry(phone, message);

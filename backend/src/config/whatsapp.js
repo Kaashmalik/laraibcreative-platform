@@ -268,18 +268,26 @@ const sendBulkWhatsApp = async (messageList, delay = 2000) => {
  */
 const sendOrderConfirmation = async (to, orderData) => {
   const message = `
-🎉 *Order Confirmed!*
+🎉 *Order Confirmed - LaraibCreative*
 
-Thank you for your order at Laraib Creative!
+Dear Valued Customer,
 
-*Order Number:* ${orderData.orderNumber}
-*Total Amount:* Rs. ${orderData.total}
+Thank you so much for placing your order with us! We're truly grateful for your trust in our services.
 
-We will notify you once your payment is verified.
+*Order Details:*
+📋 Order Number: ${orderData.orderNumber}
+💰 Total Amount: Rs. ${orderData.total}
 
-Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
+We've received your order and will begin processing it once your payment is verified. You'll receive an update shortly.
 
-📞 Need help? Reply to this message!
+🔗 Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
+
+We're here to help! If you have any questions or concerns, please don't hesitate to reply to this message. Our team responds promptly to ensure you have the best experience.
+
+Thank you for choosing LaraibCreative! 💕
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -293,16 +301,34 @@ Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumbe
  */
 const sendPaymentVerification = async (to, orderData) => {
   const message = `
-✅ *Payment Verified!*
+✅ *Payment Verified - LaraibCreative*
 
-Your payment has been confirmed!
+Dear Customer,
 
-*Order Number:* ${orderData.orderNumber}
-*Amount Paid:* Rs. ${orderData.total}
+Great news! Your payment has been successfully verified and confirmed.
 
-We are now processing your order. You will receive updates as we proceed.
+*Order Details:*
+📋 Order Number: ${orderData.orderNumber}
+💰 Amount Paid: Rs. ${orderData.total}
 
-Thank you for choosing Laraib Creative! 💖
+Your order is now being processed with care and attention to detail. We'll keep you updated at every step of the way.
+
+✨ *What's Next?*
+1. ✅ Payment Verified (Completed)
+2. ⏳ Fabric/Material Arrangement
+3. ⏳ Stitching in Progress
+4. ⏳ Quality Check
+5. ⏳ Ready for Dispatch
+6. ⏳ Out for Delivery
+
+We appreciate your patience and look forward to delivering your beautiful custom outfit!
+
+If you have any questions, feel free to reach out. We're here to help! 💬
+
+Thank you for choosing LaraibCreative! 💕
+
+_Best regards,_
+_LaraibCreative Team_
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -317,27 +343,46 @@ Thank you for choosing Laraib Creative! 💖
  */
 const sendStatusUpdate = async (to, orderData, newStatus) => {
   const statusMessages = {
-    'fabric-arranged': '📦 Fabric/materials arranged',
-    'stitching-in-progress': '✂️ Stitching in progress',
-    'quality-check': '🔍 Quality check',
-    'ready-for-dispatch': '📮 Ready for dispatch',
-    'out-for-delivery': '🚚 Out for delivery',
-    'delivered': '✅ Delivered',
+    'fabric-arranged': '📦 Fabric & Materials Arranged',
+    'stitching-in-progress': '✂️ Stitching in Progress',
+    'quality-check': '🔍 Quality Check in Progress',
+    'ready-for-dispatch': '📮 Ready for Dispatch',
+    'out-for-delivery': '🚚 Out for Delivery',
+    'delivered': '✅ Delivered Successfully',
+  };
+
+  const statusDescriptions = {
+    'fabric-arranged': 'We\'ve carefully selected and arranged all the materials for your order.',
+    'stitching-in-progress': 'Our expert tailors are now working on your custom outfit with precision and care.',
+    'quality-check': 'Your order is undergoing our thorough quality inspection to ensure perfection.',
+    'ready-for-dispatch': 'Your order is complete and ready to be dispatched to you!',
+    'out-for-delivery': 'Great news! Your order is on its way to you. You should receive it soon.',
+    'delivered': 'We hope you absolutely love your new outfit! Thank you for choosing LaraibCreative.',
   };
 
   const statusText = statusMessages[newStatus] || newStatus;
+  const statusDesc = statusDescriptions[newStatus] || 'We\'re working on your order and will keep you updated.';
 
   const message = `
-🔔 *Order Update*
+🔔 *Order Status Update - LaraibCreative*
+
+Dear Customer,
+
+We have an update on your order!
 
 *Order Number:* ${orderData.orderNumber}
-*Status:* ${statusText}
+*Current Status:* ${statusText}
+
+${statusDesc}
 
 ${newStatus === 'delivered' ? 
-  'Thank you for your order! We hope you love your outfit! 💕' : 
-  'We will keep you updated on the progress.'}
+  '\n🎉 We hope you love your outfit! If you have any feedback or need alterations, please don\'t hesitate to reach out. We\'re here to ensure your complete satisfaction.\n\nThank you for choosing LaraibCreative! 💕' : 
+  '\nWe\'ll continue to keep you informed as your order progresses. If you have any questions, feel free to reply to this message - we respond promptly!\n\nThank you for your patience! 🙏'}
 
-Track: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
+🔗 Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -377,21 +422,29 @@ Questions? Reply here!
  */
 const sendWelcomeMessage = async (to, name) => {
   const message = `
-👋 *Welcome to Laraib Creative!*
+👋 *Welcome to LaraibCreative!*
 
-Hi ${name}! 
+Dear ${name},
 
-Thank you for joining us! We specialize in custom stitching and premium ladies suits.
+We're absolutely delighted to have you join the LaraibCreative family! Thank you for choosing us for your custom stitching needs.
 
 ✨ *What We Offer:*
-• Custom Stitching
+• Custom Stitching Services
 • Designer Replicas
-• Bridal Collection
-• Party Wear
+• Exclusive Bridal Collection
+• Elegant Party Wear
+• Premium Fabrics & Materials
 
-Visit: ${process.env.FRONTEND_URL}
+At LaraibCreative, we believe in turning your thoughts and emotions into beautiful reality. Every piece is crafted with love, attention to detail, and a commitment to excellence.
 
-Need assistance? Just reply to this message! 💬
+🌐 Visit us: ${process.env.FRONTEND_URL}
+
+We're here to help you create the perfect outfit for any occasion. If you have any questions, need style advice, or want to discuss your custom order, please don't hesitate to reply to this message. Our team responds promptly to ensure you have the best experience!
+
+Thank you for trusting us with your fashion needs! 💕
+
+_Warm regards,_
+_LaraibCreative Team_
   `.trim();
 
   return await sendWhatsAppMessage(to, message);

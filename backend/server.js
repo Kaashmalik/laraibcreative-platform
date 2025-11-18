@@ -5,16 +5,22 @@
 // =================================================================
 
 require('dotenv').config();
+require('express-async-errors'); // Handle async errors automatically
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
+
+// Validate environment variables
+const { validateEnv } = require('./src/config/validateEnv');
+validateEnv();
 
 // =================================================================
 // GLOBAL ERROR HANDLERS
@@ -51,6 +57,10 @@ app.use(helmet({
 // =================================================================
 const corsOptions = {
   origin: function (origin, callback) {
+    // In production, strictly enforce allowed origins
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Define allowed origins
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
@@ -59,19 +69,32 @@ const corsOptions = {
       'https://www.laraibcreative.com'
     ].filter(Boolean);
 
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, etc.) only in development
+    if (!origin) {
+      if (isProduction) {
+        return callback(new Error('CORS: Origin header is required in production'));
+      }
+      return callback(null, true);
+    }
     
+    // Check if origin is allowed
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow all in development
+      // In production, reject unknown origins
+      if (isProduction) {
+        console.warn(`⚠️  CORS: Blocked request from unauthorized origin: ${origin}`);
+        return callback(new Error(`CORS: Origin ${origin} is not allowed`));
+      }
+      // In development, allow all origins for easier testing
+      callback(null, true);
     }
   },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  maxAge: 86400 // 24 hours - cache preflight requests
 };
 
 app.use(cors(corsOptions));
@@ -81,6 +104,7 @@ app.use(cors(corsOptions));
 // =================================================================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser()); // Parse cookies for JWT tokens
 
 // =================================================================
 // SANITIZE DATA
@@ -114,22 +138,75 @@ if (process.env.NODE_ENV === 'development') {
 // =================================================================
 // RATE LIMITING
 // =================================================================
+// Production-optimized rate limits
+const isProduction = process.env.NODE_ENV === 'production';
+
+// General API rate limiter - more lenient in production for legitimate traffic
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.',
+  max: isProduction ? 200 : 100, // Higher limit in production
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === '/health',
+  // Custom handler for rate limit exceeded
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many requests from this IP, please try again later.',
+      retryAfter: '15 minutes',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
+// Strict rate limiter for authentication endpoints
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: 'Too many login attempts, please try again later.',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Strict limit for auth endpoints
+  message: {
+    success: false,
+    error: 'Too many login attempts, please try again later.',
+    retryAfter: '15 minutes'
+  },
   skipSuccessfulRequests: true,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many authentication attempts. Please try again after 15 minutes.',
+      retryAfter: '15 minutes',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
+// Rate limiter for file uploads
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: isProduction ? 20 : 10, // More lenient in production
+  message: {
+    success: false,
+    error: 'Too many file uploads. Please try again later.',
+    retryAfter: '1 hour'
+  },
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Too many file uploads from this IP. Please try again after 1 hour.',
+      retryAfter: '1 hour',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Apply rate limiters
 app.use('/api/', limiter);
+app.use('/api/v1/upload', uploadLimiter);
 
 // =================================================================
 // STATIC FILES
@@ -142,18 +219,49 @@ if (!fs.existsSync(uploadsDir)) {
 app.use('/uploads', express.static(uploadsDir));
 
 // =================================================================
-// HEALTH CHECK ENDPOINT
+// HEALTH CHECK ENDPOINT (Enhanced for Monitoring)
 // =================================================================
-app.get('/health', (req, res) => {
-  res.status(200).json({
+app.get('/health', async (req, res) => {
+  const healthStatus = {
     success: true,
     status: 'OK',
     message: 'LaraibCreative API is running',
     timestamp: new Date().toISOString(),
     uptime: Math.floor(process.uptime()),
-    environment: process.env.NODE_ENV,
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    checks: {
+      database: {
+        status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host || 'N/A',
+        name: mongoose.connection.name || 'N/A'
+      },
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
+        percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100) + '%'
+      },
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        cpuUsage: process.cpuUsage()
+      }
+    }
+  };
+
+  // Check if database is connected
+  const dbConnected = mongoose.connection.readyState === 1;
+  
+  // If database is not connected, return 503 (Service Unavailable)
+  if (!dbConnected) {
+    healthStatus.status = 'DEGRADED';
+    healthStatus.message = 'API is running but database is not connected';
+    return res.status(503).json(healthStatus);
+  }
+
+  // All checks passed
+  res.status(200).json(healthStatus);
 });
 
 app.get('/', (req, res) => {
@@ -189,19 +297,31 @@ const loadRoute = (path, routePath) => {
   }
 };
 
-// Load all routes
+// Load all routes using centralized route index
 console.log('\n📦 Loading routes...');
-loadRoute('./src/routes/auth.routes.js', '/api/auth') && app.use('/api/auth/login', authLimiter) && app.use('/api/auth/register', authLimiter);
-loadRoute('./src/routes/product.routes.js', '/api/products');
-loadRoute('./src/routes/order.routes.js', '/api/orders');
-loadRoute('./src/routes/customer.routes.js', '/api/customers');
-loadRoute('./src/routes/category.routes.js', '/api/categories');
-loadRoute('./src/routes/review.routes.js', '/api/reviews');
-loadRoute('./src/routes/blog.routes.js', '/api/blog');
-loadRoute('./src/routes/upload.routes.js', '/api/upload');
-loadRoute('./src/routes/measurement.routes.js', '/api/measurements');
-loadRoute('./src/routes/analytics.routes.js', '/api/analytics');
-loadRoute('./src/routes/settings.routes.js', '/api/settings');
+try {
+  const apiRoutes = require('./src/routes/index');
+  app.use('/api', apiRoutes);
+  // Apply rate limiting to auth routes
+  app.use('/api/v1/auth/login', authLimiter);
+  app.use('/api/v1/auth/register', authLimiter);
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading routes:', error.message);
+  // Fallback to individual route loading
+  console.log('⚠️  Falling back to individual route loading...');
+  loadRoute('./src/routes/auth.routes.js', '/api/v1/auth') && app.use('/api/v1/auth/login', authLimiter) && app.use('/api/v1/auth/register', authLimiter);
+  loadRoute('./src/routes/product.routes.js', '/api/v1/products');
+  loadRoute('./src/routes/order.routes.js', '/api/v1/orders');
+  loadRoute('./src/routes/customer.routes.js', '/api/v1/customers');
+  loadRoute('./src/routes/category.routes.js', '/api/v1/categories');
+  loadRoute('./src/routes/review.routes.js', '/api/v1/reviews');
+  loadRoute('./src/routes/blog.routes.js', '/api/v1/blog');
+  loadRoute('./src/routes/upload.routes.js', '/api/v1/upload');
+  loadRoute('./src/routes/measurement.routes.js', '/api/v1/measurements');
+  loadRoute('./src/routes/analytics.routes.js', '/api/v1/analytics');
+  loadRoute('./src/routes/settings.routes.js', '/api/v1/settings');
+}
 
 // =================================================================
 // 404 HANDLER

@@ -6,3 +6,6 @@ uploads/
 logs/
 dist/
 .DS_Store
+
+# Sensitive deployment artifact (contains credentials) – never commit
+DEPLOYMENT_IN_PROGRESS.txt

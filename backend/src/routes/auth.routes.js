@@ -1,26 +1,31 @@
 const express = require('express');
 const router = express.Router();
+const {
+  register,
+  login,
+  logout,
+  refreshToken,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+  getCurrentUser,
+  changePassword
+} = require('../controllers/authController');
+const { protect, verifyRefreshToken } = require('../middleware/auth.middleware');
 
-// Placeholder auth routes
-router.post('/register', (req, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Auth controller not implemented yet'
-  });
-});
+// Public routes
+router.post('/register', register);
+router.post('/login', login);
+router.post('/logout', logout);
+router.post('/refresh-token', verifyRefreshToken, refreshToken);
+router.get('/verify-email/:token', verifyEmail);
+router.post('/resend-verification', protect, resendVerification);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
-router.post('/login', (req, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Auth controller not implemented yet'
-  });
-});
-
-router.post('/logout', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Logged out successfully'
-  });
-});
+// Protected routes
+router.get('/me', protect, getCurrentUser);
+router.put('/change-password', protect, changePassword);
 
 module.exports = router;
