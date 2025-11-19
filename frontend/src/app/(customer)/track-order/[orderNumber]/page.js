@@ -465,7 +465,7 @@ export default function OrderTrackingDetailPage() {
               </div>
               <div className="space-y-2">
                 <a
-                  href={`https://wa.me/923001234567?text=Hi, I need help with order ${orderNumber}`}
+                  href={`https://wa.me/923020718182?text=Hi%21%20I%20need%20help%20with%20order%20${orderNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full bg-green-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors"
@@ -476,7 +476,7 @@ export default function OrderTrackingDetailPage() {
                   WhatsApp Support
                 </a>
                 <a
-                  href="mailto:support@laraibcreative.com"
+                  href="mailto:laraibcreative.business@gmail.com"
                   className="flex items-center justify-center gap-2 w-full bg-white text-gray-700 px-4 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors border-2 border-gray-200"
                 >
                   <Mail className="w-5 h-5" />

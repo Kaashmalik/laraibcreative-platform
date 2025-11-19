@@ -1,70 +1,96 @@
-import { useState } from 'react';
-
 /**
- * Hook for managing values in localStorage with state synchronization.
+ * Custom hook for localStorage with state synchronization
+ * Provides a simple API to store and retrieve data from localStorage while keeping React state in sync
  * 
- * @template T
- * @param {string} key - The key to store in localStorage
- * @param {T} initialValue - Initial value if no value exists in localStorage
- * @returns {[T, (value: T | ((val: T) => T)) => void]} A tuple with the stored value and a setter function
- * 
- * @example
- * // Store simple value
- * const [name, setName] = useLocalStorage('user-name', '')
- * setName('John Doe')
+ * @module hooks/useLocalStorage
+ * @param {string} key - The localStorage key
+ * @param {*} initialValue - Initial value if key doesn't exist
+ * @returns {Array} [storedValue, setValue] - Similar to useState API
  * 
  * @example
- * // Store object
- * const [settings, setSettings] = useLocalStorage('app-settings', {
- *   theme: 'light',
- *   notifications: true
- * })
- * setSettings(prev => ({ ...prev, theme: 'dark' }))
+ * import useLocalStorage from '@/hooks/useLocalStorage'
+ * 
+ * function ThemeToggle() {
+ *   const [theme, setTheme] = useLocalStorage('theme', 'light')
+ *   
+ *   const toggleTheme = () => {
+ *     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
+ *   }
+ *   
+ *   return (
+ *     <button onClick={toggleTheme}>
+ *       Current Theme: {theme}
+ *     </button>
+ *   )
+ * }
  * 
  * @example
- * // Store array
- * const [todos, setTodos] = useLocalStorage('todos', [])
- * setTodos(prev => [...prev, newTodo])
+ * // With objects
+ * function UserPreferences() {
+ *   const [preferences, setPreferences] = useLocalStorage('userPrefs', {
+ *     notifications: true,
+ *     emailUpdates: false
+ *   })
+ *   
+ *   const updatePref = (key, value) => {
+ *     setPreferences(prev => ({ ...prev, [key]: value }))
+ *   }
+ *   
+ *   return (
+ *     <div>
+ *       <input 
+ *         type="checkbox" 
+ *         checked={preferences.notifications}
+ *         onChange={(e) => updatePref('notifications', e.target.checked)}
+ *       />
+ *     </div>
+ *   )
+ * }
  */
+
+import { useState } from 'react'
+
 function useLocalStorage(key, initialValue) {
   // State to store our value
   // Pass initial state function to useState so logic is only executed once
   const [storedValue, setStoredValue] = useState(() => {
     if (typeof window === 'undefined') {
-      return initialValue;
+      return initialValue
     }
 
     try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
+      // Get from local storage by key
+      const item = window.localStorage.getItem(key)
+      // Parse stored json or if none return initialValue
+      return item ? JSON.parse(item) : initialValue
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
-      return initialValue;
+      // If error also return initialValue
+      console.error(`Error reading localStorage key "${key}":`, error)
+      return initialValue
     }
-  });
+  })
 
-  /**
-   * Function to update stored value and localStorage
-   * @param {T | ((val: T) => T)} value - New value or update function
-   */
+  // Return a wrapped version of useState's setter function that
+  // persists the new value to localStorage.
   const setValue = (value) => {
     try {
       // Allow value to be a function so we have same API as useState
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      const valueToStore = value instanceof Function ? value(storedValue) : value
       
-      // Save to state
-      setStoredValue(valueToStore);
+      // Save state
+      setStoredValue(valueToStore)
       
-      // Save to localStorage
+      // Save to local storage
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        window.localStorage.setItem(key, JSON.stringify(valueToStore))
       }
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      // A more advanced implementation would handle the error case
+      console.error(`Error setting localStorage key "${key}":`, error)
     }
-  };
+  }
 
-  return [storedValue, setValue];
+  return [storedValue, setValue]
 }
 
-export default useLocalStorage;
+export default useLocalStorage

@@ -61,7 +61,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     const transporter = await createTransporter();
     
     const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME || 'LaraibCreative'}" <${process.env.EMAIL_FROM || 'noreply@laraibcreative.com'}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'LaraibCreative'}" <${process.env.EMAIL_FROM || 'laraibcreative.business@gmail.com'}>`,
       to,
       subject,
       html,

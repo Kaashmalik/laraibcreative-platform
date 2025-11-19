@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Heart, ShoppingCart, Eye } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 /**
  * FeaturedCarousel Component
@@ -229,6 +230,7 @@ export default function FeaturedCarousel() {
  */
 function ProductCard({ product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
@@ -270,13 +272,17 @@ function ProductCard({ product }) {
             />
           </button>
 
-          <Link
-            href={`/products/${product.slug}`}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/products/${product.slug}`);
+            }}
             className="w-12 h-12 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
             aria-label="Quick view"
           >
             <Eye className="w-5 h-5 text-gray-900" />
-          </Link>
+          </button>
 
           <button
             onClick={(e) => {

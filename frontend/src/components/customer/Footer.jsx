@@ -184,7 +184,7 @@ export default function Footer() {
     "logo": "https://www.laraibcreative.com/images/logo.svg",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+92-300-1234567",
+      "telephone": "+92-302-0718182",
       "contactType": "Customer Service",
       "areaServed": "PK",
       "availableLanguage": ["English", "Urdu"]
@@ -232,7 +232,7 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <Link href="/" className="inline-block mb-4 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded">
                 <Image
-                  src="/images/logo.svg"
+                  src="/globe.svg"
                   alt="LaraibCreative Logo"
                   width={48}
                   height={48}
@@ -260,14 +260,14 @@ export default function Footer() {
                   </div>
                 </a>
                 <a 
-                  href="mailto:info@laraibcreative.business" 
+                  href="mailto:laraibcreative.business@gmail.com" 
                   className="flex items-start space-x-3 text-gray-400 hover:text-primary-400 transition-colors group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded p-2 -ml-2"
-                  aria-label="Email us at info@laraibcreative.business"
+                  aria-label="Email us at laraibcreative.business@gmail.com"
                 >
                   <Mail className="w-5 h-5 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   <div>
                     <p className="text-xs text-gray-500">Email</p>
-                    <p className="font-medium text-white">info@laraibcreative.business</p>
+                    <p className="font-medium text-white">laraibcreative.business@gmail.com</p>
                   </div>
                 </a>
                 <div className="flex items-start space-x-3 text-gray-400 p-2 -ml-2">
@@ -294,7 +294,7 @@ export default function Footer() {
                   </a>
                 ))}
                 <a
-                  href="https://wa.me/923020718182?text=Hello%21%20I%27m%20interested%20in%20learning%20more%20about%20your%20custom%20stitching%20services"
+                  href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-green-500 transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-500"

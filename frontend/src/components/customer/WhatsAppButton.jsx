@@ -22,7 +22,7 @@ export default function WhatsAppButton() {
 
   // WhatsApp business number (replace with actual number)
   const whatsappNumber = '923020718182'; // Format: country code + number (no + or spaces)
-  const defaultMessage = 'Hello! I\'m interested in learning more about your custom stitching services. Could you please provide more information?';
+  const defaultMessage = 'Hi! I\'m interested in LaraibCreative products';
 
   // Show button after page loads
   useEffect(() => {

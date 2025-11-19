@@ -336,7 +336,7 @@ export default function OrderConfirmation({ order }) {
               Email Us
             </Link>
             <a
-              href="https://wa.me/923020718182"
+              href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
               target="_blank"
               rel="noopener noreferrer"
               className="text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
@@ -422,7 +422,7 @@ export default function OrderConfirmation({ order }) {
 
           <div className="mt-8 pt-6 border-t text-center text-xs text-gray-500">
             <p>Thank you for your business!</p>
-            <p className="mt-1">For inquiries: contact@laraibcreative.com | +92 302-0718182</p>
+            <p className="mt-1">For inquiries: laraibcreative.business@gmail.com | +92 302 0718182</p>
           </div>
         </div>
       </div>

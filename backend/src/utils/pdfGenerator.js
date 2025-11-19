@@ -44,7 +44,7 @@ exports.generateInvoicePDF = async (order) => {
         .fontSize(10)
         .fillColor(textColor)
         .text('We turn your thoughts & emotions into reality', 50, 80)
-        .text('Email: info@laraibcreative.com', 50, 95)
+        .text('Email: laraibcreative.business@gmail.com', 50, 95)
         .text('Phone: +92-XXX-XXXXXXX', 50, 110)
         .text('WhatsApp: +92-XXX-XXXXXXX', 50, 125);
 
@@ -262,7 +262,7 @@ exports.generateInvoicePDF = async (order) => {
       doc
         .fontSize(8)
         .fillColor(textColor)
-        .text('For queries, contact us at info@laraibcreative.com or +92-XXX-XXXXXXX', 50, footerY + 80, { align: 'center', width: 495 });
+        .text('For queries, contact us at laraibcreative.business@gmail.com or +92-XXX-XXXXXXX', 50, footerY + 80, { align: 'center', width: 495 });
 
       // Finalize PDF
       doc.end();

@@ -1,102 +1,171 @@
-import { useState, useEffect, useCallback } from 'react';
-import api from '@/lib/api';
-
 /**
- * Hook for fetching and managing products with filtering and pagination.
+ * Custom hook to fetch products with filters, pagination, loading and error states
+ * Provides comprehensive product data management with automatic and manual fetching
  * 
- * @typedef {Object} UseProductsOptions
- * @property {boolean} [autoFetch=true] - Whether to fetch products automatically on mount and filters change
- * @property {number} [limit=12] - Number of products per page
- * 
- * @typedef {Object} UseProductsReturn
- * @property {Array} products - List of products
- * @property {boolean} isLoading - Loading state
- * @property {string|null} error - Error message if any
- * @property {boolean} hasMore - Whether more products can be loaded
- * @property {Function} loadMore - Function to load next page
- * @property {Function} refetch - Function to refresh products
- * 
- * @param {Object} [filters={}] - Filters to apply to products query
- * @param {UseProductsOptions} [options={}] - Configuration options
- * @returns {UseProductsReturn} Products data and control functions
+ * @module hooks/useProducts
+ * @param {Object} filters - Filter parameters for products
+ * @param {string} filters.category - Category filter
+ * @param {string} filters.search - Search query
+ * @param {number} filters.minPrice - Minimum price filter
+ * @param {number} filters.maxPrice - Maximum price filter
+ * @param {string} filters.sortBy - Sort field
+ * @param {string} filters.sortOrder - Sort order (asc/desc)
+ * @param {Object} options - Hook configuration options
+ * @param {boolean} options.autoFetch - Whether to fetch automatically (default: true)
+ * @param {number} options.limit - Products per page (default: 12)
+ * @returns {Object} Products state and methods
  * 
  * @example
- * // Basic usage
- * function ProductList() {
- *   const { products, isLoading } = useProducts()
+ * import useProducts from '@/hooks/useProducts'
+ * 
+ * function ProductCatalog() {
+ *   const { products, isLoading, error, hasMore, loadMore, refetch } = useProducts({
+ *     category: 'stitched',
+ *     sortBy: 'price',
+ *     sortOrder: 'asc'
+ *   })
  *   
- *   if (isLoading) return <Spinner />
- *   return products.map(product => (
- *     <ProductCard key={product.id} product={product} />
- *   ))
- * }
- * 
- * @example
- * // With filters and pagination
- * function FilteredProducts() {
- *   const [filters, setFilters] = useState({ category: 'shirts' })
- *   const { products, hasMore, loadMore } = useProducts(filters)
+ *   if (isLoading && products.length === 0) {
+ *     return <LoadingSpinner />
+ *   }
+ *   
+ *   if (error) {
+ *     return <ErrorMessage message={error} onRetry={refetch} />
+ *   }
  *   
  *   return (
  *     <div>
- *       {products.map(product => (
- *         <ProductCard key={product.id} product={product} />
- *       ))}
- *       {hasMore && <button onClick={loadMore}>Load More</button>}
+ *       <ProductGrid products={products} />
+ *       {hasMore && (
+ *         <button onClick={loadMore} disabled={isLoading}>
+ *           {isLoading ? 'Loading...' : 'Load More'}
+ *         </button>
+ *       )}
  *     </div>
  *   )
  * }
+ * 
+ * @example
+ * // With search functionality
+ * function SearchableProducts() {
+ *   const [searchTerm, setSearchTerm] = useState('')
+ *   const debouncedSearch = useDebounce(searchTerm, 300)
+ *   
+ *   const { products, isLoading } = useProducts({
+ *     search: debouncedSearch,
+ *     minPrice: 1000,
+ *     maxPrice: 5000
+ *   })
+ *   
+ *   return (
+ *     <div>
+ *       <input 
+ *         value={searchTerm}
+ *         onChange={(e) => setSearchTerm(e.target.value)}
+ *         placeholder="Search products..."
+ *       />
+ *       <ProductList products={products} loading={isLoading} />
+ *     </div>
+ *   )
+ * }
+ * 
+ * @example
+ * // Manual fetching with custom limit
+ * function FeaturedProducts() {
+ *   const { products, isLoading, refetch } = useProducts(
+ *     { featured: true },
+ *     { autoFetch: false, limit: 6 }
+ *   )
+ *   
+ *   useEffect(() => {
+ *     refetch()
+ *   }, [refetch])
+ *   
+ *   return <ProductCarousel products={products} />
+ * }
  */
-function useProducts(filters = {}, options = {}) {
-  const { autoFetch = true, limit = 12 } = options;
-  
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
 
+import { useState, useEffect, useCallback, useRef } from 'react'
+import api from '@/lib/api'
+
+function useProducts(filters = {}, options = {}) {
+  const { autoFetch = true, limit = 12 } = options
+  
+  // State management
+  const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+
+  // Use refs to store latest values without causing re-renders
+  const filtersRef = useRef(filters)
+  const limitRef = useRef(limit)
+  
+  useEffect(() => {
+    filtersRef.current = filters
+  }, [filters])
+  
+  useEffect(() => {
+    limitRef.current = limit
+  }, [limit])
+
+  /**
+   * Fetch products from API
+   * @param {number} pageNum - Page number to fetch
+   */
   const fetchProducts = useCallback(async (pageNum = 1) => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
+    
     try {
       const response = await api.products.getAll({
-        ...filters,
+        ...filtersRef.current,
         page: pageNum,
-        limit
-      });
+        limit: limitRef.current
+      })
       
+      // Reset products if fetching first page, otherwise append
       if (pageNum === 1) {
-        setProducts(response.products);
+        setProducts(response.products)
       } else {
-        setProducts(prev => [...prev, ...response.products]);
+        setProducts(prev => [...prev, ...response.products])
       }
       
-      setHasMore(response.products.length === limit);
-      setPage(pageNum);
+      // Update pagination state
+      setHasMore(response.products.length === limitRef.current)
+      setPage(pageNum)
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch products')
+      console.error('Error fetching products:', err)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [filters, limit]);
+  }, [])
 
-  // Auto fetch on mount and filters change
-  useEffect(() => {
-    if (autoFetch) {
-      fetchProducts(1);
-    }
-  }, [fetchProducts, autoFetch]);
-
+  /**
+   * Load next page of products
+   */
   const loadMore = useCallback(() => {
     if (!isLoading && hasMore) {
-      fetchProducts(page + 1);
+      fetchProducts(page + 1)
     }
-  }, [fetchProducts, isLoading, hasMore, page]);
+  }, [isLoading, hasMore, page, fetchProducts])
 
+  /**
+   * Refetch products from first page
+   */
   const refetch = useCallback(() => {
-    fetchProducts(1);
-  }, [fetchProducts]);
+    fetchProducts(1)
+  }, [fetchProducts])
+
+  // Auto-fetch products when filters change
+  const stringifiedFilters = JSON.stringify(filters)
+  useEffect(() => {
+    if (autoFetch) {
+      fetchProducts(1)
+    }
+  }, [autoFetch, fetchProducts, stringifiedFilters])
 
   return {
     products,
@@ -104,9 +173,8 @@ function useProducts(filters = {}, options = {}) {
     error,
     hasMore,
     loadMore,
-    refetch,
-    page
-  };
+    refetch
+  }
 }
 
-export default useProducts;
+export default useProducts

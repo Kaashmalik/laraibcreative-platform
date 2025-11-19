@@ -27,8 +27,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState({
     name: 'Ayesha Khan',
     email: 'ayesha@example.com',
-    phone: '+92 300 1234567',
-    whatsapp: '+92 300 1234567',
+    phone: '+92 302 0718182',
+    whatsapp: '+92 302 0718182',
     profileImage: '/images/placeholder.png'
   });
 
@@ -327,7 +327,7 @@ export default function ProfilePage() {
                       focus:outline-none focus:ring-2 focus:ring-pink-500
                       disabled:cursor-not-allowed
                     `}
-                    placeholder="+92 300 1234567"
+                    placeholder="+92 302 0718182"
                   />
                 </div>
                 {errors.phone && (
@@ -354,7 +354,7 @@ export default function ProfilePage() {
                       focus:outline-none focus:ring-2 focus:ring-pink-500
                       disabled:cursor-not-allowed
                     `}
-                    placeholder="+92 300 1234567"
+                    placeholder="+92 302 0718182"
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500">

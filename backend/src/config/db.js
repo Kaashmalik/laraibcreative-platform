@@ -1,3 +1,4 @@
+//D:\Laraib Creative\laraibcreative\backend\src\config\db.js
 // ==========================================
 // MONGODB DATABASE CONNECTION CONFIGURATION
 // ==========================================

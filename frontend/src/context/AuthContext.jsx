@@ -1,155 +1,9 @@
 'use client';
 
-"use client";
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import api from '@/lib/api';
-import { getToken, setToken, removeToken, getUserFromToken } from '@/lib/auth';
-
-const AuthContext = createContext(null);
-
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Auto-load user on mount
-  useEffect(() => {
-    const loadUser = async () => {
-      const token = getToken();
-      if (token) {
-        try {
-          // First try to get user from token
-          const userData = getUserFromToken();
-          // Then verify token with backend
-          const { valid } = await api.auth.verifyToken();
-          if (valid) {
-            setUser(userData);
-          } else {
-            throw new Error('Token invalid');
-          }
-        } catch (err) {
-          console.error('Auth token validation failed:', err);
-          removeToken();
-          setUser(null);
-        }
-      }
-      setIsLoading(false);
-    };
-    loadUser();
-  }, []);
-
-  const login = useCallback(async (email, password) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      const { token, user: userData } = await api.auth.login(email, password);
-      setToken(token);
-      setUser(userData);
-      return userData;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(async (userData) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      const { token, user: newUser } = await api.auth.register(userData);
-      setToken(token);
-      setUser(newUser);
-      return newUser;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const logout = useCallback(async () => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      await api.auth.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      removeToken();
-      setUser(null);
-      setIsLoading(false);
-    }
-  }, []);
-
-  const updateUser = useCallback(async (data) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      const updatedUser = await api.customers.updateProfile(data);
-      setUser(current => ({ ...current, ...updatedUser }));
-      return updatedUser;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const forgotPassword = useCallback(async (email) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      await api.auth.forgotPassword(email);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const resetPassword = useCallback(async (token, newPassword) => {
-    try {
-      setError(null);
-      setIsLoading(true);
-      await api.auth.resetPassword(token, newPassword);
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    error,
-    login,
-    logout,
-    register,
-    updateUser,
-    forgotPassword,
-    resetPassword
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-AuthProvider.propTypes = {
-  children: PropTypes.node.isRequired
-};
+const AuthContext = createContext(undefined);
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -157,4 +11,142 @@ export function useAuth() {
     throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // Check authentication status on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Verify token with backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-token`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      } else {
+        // Token invalid, clear it
+        localStorage.removeItem('auth_token');
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('auth_token');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // Store token
+      localStorage.setItem('auth_token', data.token);
+      setUser(data.user);
+
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Auto login after registration
+      localStorage.setItem('auth_token', data.token);
+      setUser(data.user);
+
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      
+      if (token) {
+        // Notify backend about logout
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local state regardless of backend response
+      localStorage.removeItem('auth_token');
+      setUser(null);
+      router.push('/');
+    }
+  };
+
+  const updateUser = (updatedUser) => {
+    setUser((prev) => ({ ...prev, ...updatedUser }));
+  };
+
+  const value = {
+    user,
+    loading,
+    isAuthenticated: !!user,
+    isAdmin: user?.role === 'admin',
+    login,
+    register,
+    logout,
+    updateUser,
+    checkAuth,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

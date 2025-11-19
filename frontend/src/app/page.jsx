@@ -201,9 +201,9 @@ export default function HomePage() {
       </Suspense>
 
       {/* Trust Indicators Bar */}
-      <section className="py-6 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <section className="py-4 sm:py-6 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
             <TrustIndicator
               icon={<Users className="w-8 h-8 text-pink-600" />}
               stat="500+"
@@ -229,8 +229,8 @@ export default function HomePage() {
       </section>
 
       {/* Featured Collections Carousel */}
-      <section className="py-16 bg-gradient-to-b from-white to-pink-50">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-white to-pink-50">
+        <div className="container mx-auto px-4 sm:px-6">
           <SectionHeader
             title="Featured Collections"
             subtitle="Discover our handpicked selection of stunning designs, crafted with love and attention to detail"
@@ -268,15 +268,15 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-white">
+        <div className="container mx-auto px-4 sm:px-6">
           <SectionHeader
             title="How It Works"
             subtitle="Simple 4-step process to get your dream outfit"
             badge="EASY PROCESS"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mt-8 sm:mt-12">
             <ProcessStep
               step="1"
               icon={<Sparkles className="w-8 h-8" />}
@@ -303,28 +303,28 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 sm:mt-12">
             <Link
               href="/custom-order"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-full hover:from-pink-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-full hover:from-pink-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-base sm:text-lg font-semibold min-h-[48px] sm:min-h-[56px]"
             >
               Start Custom Order
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* Categories Grid */}
-      <section className="py-16 bg-gradient-to-b from-white to-purple-50">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-white to-purple-50">
+        <div className="container mx-auto px-4 sm:px-6">
           <SectionHeader
             title="Shop by Category"
             subtitle="Find the perfect style for every occasion"
             badge="EXPLORE"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <CategoryCard
               title="Bridal Wear"
               image="/images/categories/bridal.jpg"
@@ -355,28 +355,28 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-6 sm:mt-8">
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-pink-600 text-white rounded-full hover:bg-pink-700 transition-all duration-300 hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 bg-pink-600 text-white rounded-full hover:bg-pink-700 transition-all duration-300 hover:scale-105 text-base sm:text-lg font-semibold min-h-[48px]"
             >
               View All Collections
-              <TrendingUp className="w-5 h-5" />
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-16 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
+        <div className="container mx-auto px-4 sm:px-6">
           <SectionHeader
             title="Why Choose LaraibCreative?"
             subtitle="We combine traditional craftsmanship with modern convenience"
             badge="OUR PROMISE"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <FeatureCard
               icon={<Sparkles className="w-10 h-10 text-pink-600" />}
               title="Custom Designs"
@@ -646,8 +646,8 @@ export default function HomePage() {
                   <ContactMethod
                     icon={<Mail className="w-5 h-5" />}
                     label="Email"
-                    value="info@laraibcreative.business"
-                    href="mailto:info@laraibcreative.business"
+                    value="laraibcreative.business@gmail.com"
+                    href="mailto:laraibcreative.business@gmail.com"
                   />
                 </div>
               </div>
@@ -700,16 +700,16 @@ function TrustIndicator({ icon, stat, label }) {
  */
 function SectionHeader({ title, subtitle, badge }) {
   return (
-    <div className="text-center mb-12">
+    <div className="text-center mb-8 sm:mb-10 md:mb-12">
       {badge && (
-        <div className="inline-block px-4 py-1 bg-pink-100 rounded-full text-pink-600 text-sm font-medium mb-4">
+        <div className="inline-block px-3 sm:px-4 py-1 bg-pink-100 rounded-full text-pink-600 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
           {badge}
         </div>
       )}
-      <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
         {title}
       </h2>
-      <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+      <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-4">
         {subtitle}
       </p>
     </div>
@@ -737,19 +737,19 @@ function ProcessStep({ step, icon, title, description }) {
   return (
     <div className="relative">
       <div className="flex flex-col items-center text-center">
-        <div className="relative mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+        <div className="relative mb-4 sm:mb-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
             {icon}
           </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-pink-600 font-bold text-sm shadow-md">
+          <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center text-pink-600 font-bold text-xs sm:text-sm shadow-md">
             {step}
           </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600">{description}</p>
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{title}</h3>
+        <p className="text-sm sm:text-base text-gray-600 px-2">{description}</p>
       </div>
       {step !== "4" && (
-        <div className="hidden lg:block absolute top-10 left-[60%] w-[80%] border-t-2 border-dashed border-pink-300" />
+        <div className="hidden lg:block absolute top-8 sm:top-10 left-[60%] w-[80%] border-t-2 border-dashed border-pink-300" />
       )}
     </div>
   );
@@ -760,27 +760,27 @@ function ProcessStep({ step, icon, title, description }) {
  */
 function FeatureCard({ icon, title, description, stat, statLabel, features }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
+    <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+      <div className="mb-3 sm:mb-4">{icon}</div>
+      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{title}</h3>
+      <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{description}</p>
       
       {features && (
-        <ul className="space-y-2 mb-4">
+        <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
           {features.map((feature, index) => (
-            <li key={index} className="flex items-center text-sm text-gray-600">
-              <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+            <li key={index} className="flex items-center text-xs sm:text-sm text-gray-600">
+              <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 flex-shrink-0" />
               {feature}
             </li>
           ))}
         </ul>
       )}
       
-      <div className="pt-4 border-t border-gray-100">
-        <div className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+      <div className="pt-3 sm:pt-4 border-t border-gray-100">
+        <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
           {stat}
         </div>
-        <div className="text-sm text-gray-500">{statLabel}</div>
+        <div className="text-xs sm:text-sm text-gray-500">{statLabel}</div>
       </div>
     </div>
   );

@@ -560,8 +560,8 @@ export const SEO_DEFAULTS = {
 export const CONTACT_INFO = {
   phone: '03020718182',
   whatsapp: '03020718182',
-  email: 'info@laraibcreative.business',
-  supportEmail: 'support@laraibcreative.business',
+  email: 'laraibcreative.business@gmail.com',
+  supportEmail: 'laraibcreative.business@gmail.com',
   address: 'Your Address, Lahore, Punjab, Pakistan',
   businessHours: 'Mon-Sat: 10:00 AM - 8:00 PM'
 };
@@ -583,7 +583,7 @@ export const SOCIAL_LINKS = {
 // ============================================================================
 
 export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'auth-token',
+  AUTH_TOKEN: 'auth_token',
   USER_DATA: 'user-data',
   CART: 'cart',
   WISHLIST: 'wishlist',

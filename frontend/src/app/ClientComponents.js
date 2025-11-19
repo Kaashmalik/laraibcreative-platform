@@ -68,7 +68,7 @@ function WhatsAppFloat() {
   if (!phoneNumber) return null;
 
   const handleWhatsAppClick = () => {
-    const message = encodeURIComponent('Hi! I am interested in your custom tailoring services.');
+    const message = encodeURIComponent('Hi! I\'m interested in LaraibCreative products');
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
     
     // Track WhatsApp click

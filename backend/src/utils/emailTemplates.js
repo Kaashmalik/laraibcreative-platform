@@ -266,7 +266,7 @@ const passwordResetSuccess = (userName) => {
     
     <div class="warning-box">
       <p><strong>⚠️ Didn't make this change?</strong></p>
-      <p>If you didn't change your password, please contact us immediately at <a href="mailto:support@laraibcreative.com" style="color: #667eea;">support@laraibcreative.com</a></p>
+      <p>If you didn't change your password, please contact us immediately at <a href="mailto:laraibcreative.business@gmail.com" style="color: #667eea;">laraibcreative.business@gmail.com</a></p>
     </div>
     
     <p style="margin-top: 30px;">Best regards,<br><strong>The LaraibCreative Team</strong></p>
@@ -297,7 +297,7 @@ const accountLockedEmail = (userName, unlockTime) => {
     </div>
     
     <p style="margin-top: 30px;"><strong>Think someone else is trying to access your account?</strong></p>
-    <p>Please contact us immediately at <a href="mailto:support@laraibcreative.com" style="color: #667eea;">support@laraibcreative.com</a></p>
+    <p>Please contact us immediately at <a href="mailto:laraibcreative.business@gmail.com" style="color: #667eea;">laraibcreative.business@gmail.com</a></p>
     
     <p style="margin-top: 30px;">Best regards,<br><strong>The LaraibCreative Team</strong></p>
   `;

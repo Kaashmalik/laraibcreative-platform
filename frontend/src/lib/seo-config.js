@@ -299,14 +299,14 @@ export function generateOrganizationStructuredData() {
     contactPoint: [
       {
         '@type': 'ContactPoint',
-        telephone: '+92-300-1234567',
+        telephone: '+92-302-0718182',
         contactType: 'Customer Service',
         availableLanguage: ['English', 'Urdu'],
         areaServed: 'PK'
       },
       {
         '@type': 'ContactPoint',
-        telephone: '+92-300-1234567',
+        telephone: '+92-302-0718182',
         contactType: 'Sales',
         availableLanguage: ['English', 'Urdu'],
         areaServed: 'PK'

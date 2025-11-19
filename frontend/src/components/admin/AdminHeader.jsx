@@ -270,7 +270,7 @@ export default function AdminHeader({
                     {user?.fullName || 'Admin User'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {user?.email || 'admin@laraibcreative.com'}
+                    {user?.email || 'laraibcreative.business@gmail.com'}
                   </p>
                   <span className="inline-block px-2 py-1 mt-2 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full dark:text-indigo-300 dark:bg-indigo-900/30">
                     {user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}

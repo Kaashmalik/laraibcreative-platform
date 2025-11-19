@@ -77,7 +77,7 @@ export default function AddressesPage() {
           id: '1',
           label: 'home',
           fullName: 'Ayesha Khan',
-          phone: '+92 300 1234567',
+          phone: '+92 302 0718182',
           addressLine1: 'House #123, Street 5',
           addressLine2: 'DHA Phase 5',
           landmark: 'Near McDonald\'s',
@@ -90,7 +90,7 @@ export default function AddressesPage() {
           id: '2',
           label: 'work',
           fullName: 'Ayesha Khan',
-          phone: '+92 300 1234567',
+          phone: '+92 302 0718182',
           addressLine1: 'Office #405, 4th Floor',
           addressLine2: 'Packages Mall',
           landmark: 'Near Jalal Sons',
@@ -413,7 +413,7 @@ export default function AddressesPage() {
                     w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500
                     ${errors.phone ? 'border-red-500' : 'border-gray-300'}
                   `}
-                  placeholder="+92 300 1234567"
+                  placeholder="+92 302 0718182"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone}</p>

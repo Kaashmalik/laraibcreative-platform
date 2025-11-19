@@ -96,7 +96,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-gray-600">info@laraibcreative.com</p>
+                <p className="text-gray-600">laraibcreative.business@gmail.com</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Business Hours</h3>

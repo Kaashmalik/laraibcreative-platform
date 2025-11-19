@@ -76,8 +76,12 @@ twilioClient = createTwilioClient();
  * @returns {String} Formatted WhatsApp number
  */
 const formatWhatsAppNumber = (phone) => {
+  if (!phone) {
+    throw new Error('Phone number is required');
+  }
+
   // Remove all non-digit characters
-  let cleaned = phone.replace(/\D/g, '');
+  let cleaned = phone.toString().replace(/\D/g, '');
 
   // If number starts with 0, remove it and add country code
   if (cleaned.startsWith('0')) {
@@ -98,7 +102,9 @@ const formatWhatsAppNumber = (phone) => {
  * @returns {Boolean} Valid or not
  */
 const isValidPakistaniNumber = (phone) => {
-  const cleaned = phone.replace(/\D/g, '');
+  if (!phone) return false;
+
+  const cleaned = phone.toString().replace(/\D/g, '');
   
   // Pakistani mobile numbers: 03XX-XXXXXXX (11 digits with 0, or 10 without)
   return /^(92)?3[0-9]{9}$/.test(cleaned) || /^03[0-9]{9}$/.test(cleaned);
@@ -112,15 +118,21 @@ const isValidPakistaniNumber = (phone) => {
  * Send WhatsApp message
  * @param {String} to - Recipient phone number
  * @param {String} message - Message text
- * @param {String} mediaUrl - Optional media URL (image)
+ * @param {String} [mediaUrl] - Optional media URL (image)
  * @returns {Promise<Object>} Send result
  */
 const sendWhatsAppMessage = async (to, message, mediaUrl = null) => {
+  // Validate inputs
+  if (!to || !message) {
+    throw new Error('Phone number and message are required');
+  }
+
   // Mock mode
   if (process.env.MOCK_WHATSAPP === 'true' || !twilioClient) {
     console.log('💬 MOCK WHATSAPP:');
     console.log('   To:', to);
     console.log('   Message:', message.substring(0, 100));
+    if (mediaUrl) console.log('   Media:', mediaUrl);
     return { success: true, sid: 'mock-whatsapp-id', mocked: true };
   }
 
@@ -176,8 +188,8 @@ const sendWhatsAppMessage = async (to, message, mediaUrl = null) => {
  * Send WhatsApp with retry logic
  * @param {String} to - Recipient phone number
  * @param {String} message - Message text
- * @param {String} mediaUrl - Optional media URL
- * @param {Number} maxRetries - Maximum retry attempts
+ * @param {String} [mediaUrl] - Optional media URL
+ * @param {Number} [maxRetries=3] - Maximum retry attempts
  * @returns {Promise<Object>} Send result
  */
 const sendWhatsAppWithRetry = async (to, message, mediaUrl = null, maxRetries = 3) => {
@@ -220,10 +232,14 @@ const sendWhatsAppWithRetry = async (to, message, mediaUrl = null, maxRetries = 
 /**
  * Send bulk WhatsApp messages (with rate limiting)
  * @param {Array} messageList - Array of {to, message, mediaUrl}
- * @param {Number} delay - Delay between messages (ms)
+ * @param {Number} [delay=2000] - Delay between messages (ms)
  * @returns {Promise<Object>} Results summary
  */
 const sendBulkWhatsApp = async (messageList, delay = 2000) => {
+  if (!Array.isArray(messageList) || messageList.length === 0) {
+    throw new Error('Message list must be a non-empty array');
+  }
+
   const results = {
     total: messageList.length,
     sent: 0,
@@ -233,6 +249,16 @@ const sendBulkWhatsApp = async (messageList, delay = 2000) => {
 
   for (let i = 0; i < messageList.length; i++) {
     const { to, message, mediaUrl } = messageList[i];
+    
+    if (!to || !message) {
+      results.failed++;
+      results.errors.push({
+        to: to || 'unknown',
+        error: 'Missing phone number or message',
+      });
+      continue;
+    }
+
     const result = await sendWhatsAppMessage(to, message, mediaUrl);
 
     if (result.success) {
@@ -267,27 +293,24 @@ const sendBulkWhatsApp = async (messageList, delay = 2000) => {
  * @returns {Promise<Object>}
  */
 const sendOrderConfirmation = async (to, orderData) => {
+  if (!orderData || !orderData.orderNumber || !orderData.total) {
+    throw new Error('Invalid order data');
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || '';
   const message = `
-🎉 *Order Confirmed - LaraibCreative*
+🎉 *Order Confirmed!*
 
-Dear Valued Customer,
+Thank you for your order at LaraibCreative!
 
-Thank you so much for placing your order with us! We're truly grateful for your trust in our services.
+*Order Number:* ${orderData.orderNumber}
+*Total Amount:* Rs. ${orderData.total.toLocaleString()}
 
-*Order Details:*
-📋 Order Number: ${orderData.orderNumber}
-💰 Total Amount: Rs. ${orderData.total}
+We will notify you once your payment is verified.
 
-We've received your order and will begin processing it once your payment is verified. You'll receive an update shortly.
+Track your order: ${frontendUrl}/track-order/${orderData.orderNumber}
 
-🔗 Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
-
-We're here to help! If you have any questions or concerns, please don't hesitate to reply to this message. Our team responds promptly to ensure you have the best experience.
-
-Thank you for choosing LaraibCreative! 💕
-
-_Warm regards,_
-_LaraibCreative Team_
+📞 Need help? Reply to this message!
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -300,35 +323,21 @@ _LaraibCreative Team_
  * @returns {Promise<Object>}
  */
 const sendPaymentVerification = async (to, orderData) => {
+  if (!orderData || !orderData.orderNumber || !orderData.total) {
+    throw new Error('Invalid order data');
+  }
+
   const message = `
-✅ *Payment Verified - LaraibCreative*
+✅ *Payment Verified!*
 
-Dear Customer,
+Your payment has been confirmed!
 
-Great news! Your payment has been successfully verified and confirmed.
+*Order Number:* ${orderData.orderNumber}
+*Amount Paid:* Rs. ${orderData.total.toLocaleString()}
 
-*Order Details:*
-📋 Order Number: ${orderData.orderNumber}
-💰 Amount Paid: Rs. ${orderData.total}
+We are now processing your order. You will receive updates as we proceed.
 
-Your order is now being processed with care and attention to detail. We'll keep you updated at every step of the way.
-
-✨ *What's Next?*
-1. ✅ Payment Verified (Completed)
-2. ⏳ Fabric/Material Arrangement
-3. ⏳ Stitching in Progress
-4. ⏳ Quality Check
-5. ⏳ Ready for Dispatch
-6. ⏳ Out for Delivery
-
-We appreciate your patience and look forward to delivering your beautiful custom outfit!
-
-If you have any questions, feel free to reach out. We're here to help! 💬
-
-Thank you for choosing LaraibCreative! 💕
-
-_Best regards,_
-_LaraibCreative Team_
+Thank you for choosing LaraibCreative! 💖
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -342,47 +351,33 @@ _LaraibCreative Team_
  * @returns {Promise<Object>}
  */
 const sendStatusUpdate = async (to, orderData, newStatus) => {
-  const statusMessages = {
-    'fabric-arranged': '📦 Fabric & Materials Arranged',
-    'stitching-in-progress': '✂️ Stitching in Progress',
-    'quality-check': '🔍 Quality Check in Progress',
-    'ready-for-dispatch': '📮 Ready for Dispatch',
-    'out-for-delivery': '🚚 Out for Delivery',
-    'delivered': '✅ Delivered Successfully',
-  };
+  if (!orderData || !orderData.orderNumber || !newStatus) {
+    throw new Error('Invalid order data or status');
+  }
 
-  const statusDescriptions = {
-    'fabric-arranged': 'We\'ve carefully selected and arranged all the materials for your order.',
-    'stitching-in-progress': 'Our expert tailors are now working on your custom outfit with precision and care.',
-    'quality-check': 'Your order is undergoing our thorough quality inspection to ensure perfection.',
-    'ready-for-dispatch': 'Your order is complete and ready to be dispatched to you!',
-    'out-for-delivery': 'Great news! Your order is on its way to you. You should receive it soon.',
-    'delivered': 'We hope you absolutely love your new outfit! Thank you for choosing LaraibCreative.',
+  const statusMessages = {
+    'fabric-arranged': '📦 Fabric/materials arranged',
+    'stitching-in-progress': '✂️ Stitching in progress',
+    'quality-check': '🔍 Quality check',
+    'ready-for-dispatch': '📮 Ready for dispatch',
+    'out-for-delivery': '🚚 Out for delivery',
+    'delivered': '✅ Delivered',
   };
 
   const statusText = statusMessages[newStatus] || newStatus;
-  const statusDesc = statusDescriptions[newStatus] || 'We\'re working on your order and will keep you updated.';
+  const frontendUrl = process.env.FRONTEND_URL || '';
 
   const message = `
-🔔 *Order Status Update - LaraibCreative*
-
-Dear Customer,
-
-We have an update on your order!
+🔔 *Order Update*
 
 *Order Number:* ${orderData.orderNumber}
-*Current Status:* ${statusText}
-
-${statusDesc}
+*Status:* ${statusText}
 
 ${newStatus === 'delivered' ? 
-  '\n🎉 We hope you love your outfit! If you have any feedback or need alterations, please don\'t hesitate to reach out. We\'re here to ensure your complete satisfaction.\n\nThank you for choosing LaraibCreative! 💕' : 
-  '\nWe\'ll continue to keep you informed as your order progresses. If you have any questions, feel free to reply to this message - we respond promptly!\n\nThank you for your patience! 🙏'}
+  'Thank you for your order! We hope you love your outfit! 💕' : 
+  'We will keep you updated on the progress.'}
 
-🔗 Track your order: ${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}
-
-_Warm regards,_
-_LaraibCreative Team_
+Track: ${frontendUrl}/track-order/${orderData.orderNumber}
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -395,6 +390,10 @@ _LaraibCreative Team_
  * @returns {Promise<Object>}
  */
 const sendOrderReady = async (to, orderData) => {
+  if (!orderData || !orderData.orderNumber) {
+    throw new Error('Invalid order data');
+  }
+
   const message = `
 🎊 *Your Order is Ready!*
 
@@ -421,30 +420,27 @@ Questions? Reply here!
  * @returns {Promise<Object>}
  */
 const sendWelcomeMessage = async (to, name) => {
+  if (!to || !name) {
+    throw new Error('Phone number and name are required');
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || '';
   const message = `
 👋 *Welcome to LaraibCreative!*
 
-Dear ${name},
+Hi ${name}! 
 
-We're absolutely delighted to have you join the LaraibCreative family! Thank you for choosing us for your custom stitching needs.
+Thank you for joining us! We specialize in custom stitching and premium ladies suits.
 
 ✨ *What We Offer:*
-• Custom Stitching Services
+• Custom Stitching
 • Designer Replicas
-• Exclusive Bridal Collection
-• Elegant Party Wear
-• Premium Fabrics & Materials
+• Bridal Collection
+• Party Wear
 
-At LaraibCreative, we believe in turning your thoughts and emotions into beautiful reality. Every piece is crafted with love, attention to detail, and a commitment to excellence.
+Visit: ${frontendUrl}
 
-🌐 Visit us: ${process.env.FRONTEND_URL}
-
-We're here to help you create the perfect outfit for any occasion. If you have any questions, need style advice, or want to discuss your custom order, please don't hesitate to reply to this message. Our team responds promptly to ensure you have the best experience!
-
-Thank you for trusting us with your fashion needs! 💕
-
-_Warm regards,_
-_LaraibCreative Team_
+Need assistance? Just reply to this message! 💬
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -458,13 +454,17 @@ _LaraibCreative Team_
  * @returns {Promise<Object>}
  */
 const sendCustomMessage = async (to, title, body) => {
+  if (!to || !title || !body) {
+    throw new Error('Phone number, title, and body are required');
+  }
+
   const message = `
 *${title}*
 
 ${body}
 
 ---
-Laraib Creative
+LaraibCreative
   `.trim();
 
   return await sendWhatsAppMessage(to, message);
@@ -482,6 +482,10 @@ Laraib Creative
 const getMessageStatus = async (messageSid) => {
   if (!twilioClient) {
     return { success: false, error: 'Twilio client not initialized' };
+  }
+
+  if (!messageSid) {
+    return { success: false, error: 'Message SID is required' };
   }
 
   try {

@@ -53,7 +53,7 @@ const createTransporter = () => {
 
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT),
+      port: parseInt(process.env.EMAIL_PORT, 10),
       secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_USER,
@@ -61,12 +61,16 @@ const createTransporter = () => {
       },
       // Additional security options
       tls: {
-        rejectUnauthorized: false, // For self-signed certificates in development
+        rejectUnauthorized: process.env.NODE_ENV === 'production', // Strict in production
       },
       // Connection pool
       pool: true,
       maxConnections: 5,
       maxMessages: 100,
+      // Timeouts
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 30000, // 30 seconds
     });
 
     console.log('✅ Email: Transporter created successfully');
@@ -111,16 +115,23 @@ const verifyConnection = async () => {
 // ==========================================
 
 /**
- * Send email with retry logic
+ * Send email
  * @param {Object} mailOptions - Email options
  * @param {String} mailOptions.to - Recipient email
  * @param {String} mailOptions.subject - Email subject
- * @param {String} mailOptions.text - Plain text content
- * @param {String} mailOptions.html - HTML content
- * @param {Array} mailOptions.attachments - Attachments
+ * @param {String} [mailOptions.text] - Plain text content
+ * @param {String} [mailOptions.html] - HTML content
+ * @param {Array} [mailOptions.attachments] - Attachments
+ * @param {String} [mailOptions.from] - Sender email
+ * @param {String} [mailOptions.replyTo] - Reply-to email
  * @returns {Promise<Object>} Send result
  */
 const sendEmail = async (mailOptions) => {
+  // Validate required fields
+  if (!mailOptions || !mailOptions.to || !mailOptions.subject) {
+    throw new Error('Missing required email fields: to, subject');
+  }
+
   // Mock mode
   if (process.env.MOCK_EMAIL === 'true' || !transporter) {
     console.log('📧 MOCK EMAIL:');
@@ -171,7 +182,7 @@ const sendEmail = async (mailOptions) => {
 /**
  * Send email with retry logic (up to 3 attempts)
  * @param {Object} mailOptions - Email options
- * @param {Number} maxRetries - Maximum retry attempts
+ * @param {Number} [maxRetries=3] - Maximum retry attempts
  * @returns {Promise<Object>} Send result
  */
 const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
@@ -214,10 +225,14 @@ const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
 /**
  * Send bulk emails (with rate limiting)
  * @param {Array} emailList - Array of email options
- * @param {Number} delay - Delay between emails (ms)
+ * @param {Number} [delay=1000] - Delay between emails (ms)
  * @returns {Promise<Object>} Results summary
  */
 const sendBulkEmails = async (emailList, delay = 1000) => {
+  if (!Array.isArray(emailList) || emailList.length === 0) {
+    throw new Error('Email list must be a non-empty array');
+  }
+
   const results = {
     total: emailList.length,
     sent: 0,
@@ -260,17 +275,23 @@ const sendBulkEmails = async (emailList, delay = 1000) => {
  * @returns {Promise<Object>}
  */
 const sendOrderConfirmation = async (to, orderData) => {
-  // This will use the email template from emailTemplates.js
-  // For now, a simple implementation
+  if (!orderData || !orderData.orderNumber) {
+    throw new Error('Invalid order data');
+  }
+
   return await sendEmail({
     to,
     subject: `Order Confirmation - ${orderData.orderNumber}`,
     text: `Your order ${orderData.orderNumber} has been received successfully.`,
     html: `
-      <h2>Order Confirmation</h2>
-      <p>Thank you for your order!</p>
-      <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
-      <p>We will process your order shortly.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D946A6;">Order Confirmation</h2>
+        <p>Thank you for your order!</p>
+        <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
+        <p>We will process your order shortly.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">LaraibCreative - Turning emotions into reality</p>
+      </div>
     `,
   });
 };
@@ -282,15 +303,23 @@ const sendOrderConfirmation = async (to, orderData) => {
  * @returns {Promise<Object>}
  */
 const sendPaymentVerification = async (to, orderData) => {
+  if (!orderData || !orderData.orderNumber) {
+    throw new Error('Invalid order data');
+  }
+
   return await sendEmail({
     to,
     subject: `Payment Verified - ${orderData.orderNumber}`,
     text: `Your payment for order ${orderData.orderNumber} has been verified.`,
     html: `
-      <h2>Payment Verified</h2>
-      <p>Your payment has been verified successfully!</p>
-      <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
-      <p>We are now processing your order.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #10B981;">Payment Verified</h2>
+        <p>Your payment has been verified successfully!</p>
+        <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
+        <p>We are now processing your order.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">LaraibCreative - Turning emotions into reality</p>
+      </div>
     `,
   });
 };
@@ -303,15 +332,25 @@ const sendPaymentVerification = async (to, orderData) => {
  * @returns {Promise<Object>}
  */
 const sendStatusUpdate = async (to, orderData, newStatus) => {
+  if (!orderData || !orderData.orderNumber || !newStatus) {
+    throw new Error('Invalid order data or status');
+  }
+
+  const trackingUrl = `${process.env.FRONTEND_URL || ''}/track-order/${orderData.orderNumber}`;
+
   return await sendEmail({
     to,
     subject: `Order Update - ${orderData.orderNumber}`,
     text: `Your order ${orderData.orderNumber} status: ${newStatus}`,
     html: `
-      <h2>Order Status Update</h2>
-      <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
-      <p><strong>Status:</strong> ${newStatus}</p>
-      <p>Track your order: <a href="${process.env.FRONTEND_URL}/track-order/${orderData.orderNumber}">Click here</a></p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D946A6;">Order Status Update</h2>
+        <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
+        <p><strong>Status:</strong> ${newStatus}</p>
+        <p>Track your order: <a href="${trackingUrl}" style="color: #D946A6;">Click here</a></p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">LaraibCreative - Turning emotions into reality</p>
+      </div>
     `,
   });
 };
@@ -323,15 +362,25 @@ const sendStatusUpdate = async (to, orderData, newStatus) => {
  * @returns {Promise<Object>}
  */
 const sendWelcomeEmail = async (to, name) => {
+  if (!to || !name) {
+    throw new Error('Missing email or name');
+  }
+
+  const businessName = process.env.BUSINESS_NAME || 'LaraibCreative';
+
   return await sendEmail({
     to,
-    subject: `Welcome to ${process.env.BUSINESS_NAME}!`,
+    subject: `Welcome to ${businessName}!`,
     text: `Welcome ${name}! Thank you for joining us.`,
     html: `
-      <h2>Welcome to Laraib Creative!</h2>
-      <p>Dear ${name},</p>
-      <p>Thank you for joining us. We're excited to have you!</p>
-      <p>Start exploring our collections and custom stitching services.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D946A6;">Welcome to LaraibCreative!</h2>
+        <p>Dear ${name},</p>
+        <p>Thank you for joining us. We're excited to have you!</p>
+        <p>Start exploring our collections and custom stitching services.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">LaraibCreative - Turning emotions into reality</p>
+      </div>
     `,
   });
 };
@@ -343,22 +392,45 @@ const sendWelcomeEmail = async (to, name) => {
  * @returns {Promise<Object>}
  */
 const sendPasswordReset = async (to, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+  if (!to || !resetToken) {
+    throw new Error('Missing email or reset token');
+  }
+
+  const resetUrl = `${process.env.FRONTEND_URL || ''}/auth/reset-password?token=${resetToken}`;
   
   return await sendEmail({
     to,
     subject: 'Password Reset Request',
     text: `Reset your password: ${resetUrl}`,
     html: `
-      <h2>Password Reset Request</h2>
-      <p>You requested a password reset.</p>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background: #D946A6; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
-      <p>This link expires in 1 hour.</p>
-      <p>If you didn't request this, please ignore this email.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #D946A6;">Password Reset Request</h2>
+        <p>You requested a password reset.</p>
+        <p>Click the link below to reset your password:</p>
+        <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background: #D946A6; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">Reset Password</a>
+        <p style="color: #EF4444; font-weight: bold;">This link expires in 1 hour.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">LaraibCreative - Turning emotions into reality</p>
+      </div>
     `,
   });
 };
+
+// ==========================================
+// GRACEFUL SHUTDOWN
+// ==========================================
+
+const closeTransporter = async () => {
+  if (transporter) {
+    transporter.close();
+    console.log('✅ Email: Transporter closed');
+  }
+};
+
+// Handle process termination
+process.on('SIGTERM', closeTransporter);
+process.on('SIGINT', closeTransporter);
 
 // ==========================================
 // EXPORTS
@@ -377,4 +449,7 @@ module.exports = {
   sendStatusUpdate,
   sendWelcomeEmail,
   sendPasswordReset,
+  
+  // Utility
+  closeTransporter,
 };

@@ -22,6 +22,7 @@ import { useCart } from '@/context/CartContext'
 import MobileMenu from './MobileMenu'
 import SearchBar from './SearchBar'
 import MiniCart from './MiniCart'
+import NavLink from './NavLink'
 
 /**
  * Header Component - Production Ready
@@ -292,181 +293,184 @@ export default function Header() {
         Skip to main content
       </a>
 
-      {/* Main Header - Semantic HTML with proper ARIA */}
-      <header
-        ref={headerRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-lg py-3'
-            : 'bg-white py-4'
-        }`}
-        role="banner"
-      >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={handleMobileMenuToggle}
-              className="lg:hidden p-2 -ml-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              aria-label="Open navigation menu"
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              <Menu className="w-6 h-6" aria-hidden="true" />
-            </button>
+      {/* Main Header - Semantic HTML with proper ARIA */}
+      <header
+        ref={headerRef}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+          isScrolled
+            ? 'bg-white/95 backdrop-blur-md shadow-sm'
+            : 'bg-white/80 backdrop-blur-sm'
+        }`}
+        role="banner"
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Logo */}
+          <div className="flex flex-1 items-center gap-4 lg:gap-6">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={handleMobileMenuToggle}
+              className="lg:hidden flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label="Open navigation menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
+            >
+              <Menu className="w-5 h-5" aria-hidden="true" />
+            </button>
 
-            {/* Logo with SEO optimization */}
-            <Link 
-              href="/" 
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg"
-              aria-label="LaraibCreative - Home"
-            >
-              <Image
-                src="/images/logo.svg"
-                alt="LaraibCreative Logo"
-                width={isScrolled ? 40 : 48}
-                height={isScrolled ? 40 : 48}
-                className="transition-all duration-300"
-                priority
-                quality={100}
-              />
-              <span className="font-playfair text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-                LaraibCreative
-              </span>
-            </Link>
+            {/* Logo with SEO optimization */}
+            <Link 
+              href="/" 
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg"
+              aria-label="LaraibCreative - Home"
+            >
+              <Image
+                src="/globe.svg"
+                alt="LaraibCreative Logo"
+                width={32}
+                height={32}
+                className="transition-all duration-300"
+                style={{ 
+                  width: '32px',
+                  height: '32px'
+                }}
+                priority
+                quality={100}
+              />
+              <span className="font-playfair text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="hidden sm:inline">LaraibCreative</span>
+                <span className="sm:hidden">LC</span>
+              </span>
+            </Link>
 
-            {/* Desktop Navigation with proper semantics */}
-            <nav 
-              className="hidden lg:flex items-center space-x-8" 
-              role="navigation"
-              aria-label="Main navigation"
-            >
-              {navLinks.map((link) => (
-                <div
-                  key={link.name}
-                  className="relative"
-                  onMouseEnter={() => link.megaMenu && handleMegaMenuEnter(link.name)}
-                  onMouseLeave={handleMegaMenuLeave}
-                >
-                  <Link
-                    href={link.href}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1 ${
-                      pathname === link.href
-                        ? 'text-primary-600'
-                        : 'text-gray-700'
-                    }`}
-                    aria-label={link.ariaLabel}
-                    aria-current={pathname === link.href ? 'page' : undefined}
-                  >
-                    <span>{link.name}</span>
-                    {link.megaMenu && (
-                      <ChevronDown 
-                        className="w-4 h-4" 
-                        aria-hidden="true"
-                      />
-                    )}
-                  </Link>
+            {/* Center: Desktop Navigation */}
+            <nav 
+              className="hidden lg:flex items-center gap-8" 
+              role="navigation"
+              aria-label="Main navigation"
+            >
+              {navLinks.map((link) => (
+                <div
+                  key={link.name}
+                  className="relative"
+                  onMouseEnter={() => link.megaMenu && handleMegaMenuEnter(link.name)}
+                  onMouseLeave={handleMegaMenuLeave}
+                >
+                  <NavLink
+                    href={link.href}
+                    ariaLabel={link.ariaLabel}
+                  >
+                    <span className="flex items-center gap-1">
+                      {link.name}
+                      {link.megaMenu && (
+                        <ChevronDown 
+                          className="w-3.5 h-3.5" 
+                          aria-hidden="true"
+                        />
+                      )}
+                    </span>
+                  </NavLink>
 
-                  {/* Mega Menu with enhanced accessibility */}
-                  {link.megaMenu && (
-                    <AnimatePresence>
-                      {openMegaMenu === link.name && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
-                          role="menu"
-                          aria-label={`${link.name} categories`}
-                        >
-                          {link.categories.map((category) => (
-                            <Link
-                              key={category.name}
-                              href={category.href}
-                              className="block px-4 py-3 text-sm hover:bg-primary-50 transition-colors group focus:outline-none focus:bg-primary-50"
-                              role="menuitem"
-                              onClick={() => setOpenMegaMenu(null)}
-                            >
-                              <div className="font-medium text-gray-900 group-hover:text-primary-600">
-                                {category.name}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-0.5">
-                                {category.description}
-                              </div>
-                            </Link>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  )}
-                </div>
-              ))}
-            </nav>
+                  {/* Mega Menu with enhanced accessibility */}
+                  {link.megaMenu && (
+                    <AnimatePresence>
+                      {openMegaMenu === link.name && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
+                          role="menu"
+                          aria-label={`${link.name} categories`}
+                        >
+                          {link.categories.map((category) => (
+                            <Link
+                              key={category.name}
+                              href={category.href}
+                              className="block px-4 py-3 text-sm hover:bg-primary-50 transition-colors group focus:outline-none focus:bg-primary-50"
+                              role="menuitem"
+                              onClick={() => setOpenMegaMenu(null)}
+                            >
+                              <div className="font-medium text-gray-900 group-hover:text-primary-600">
+                                {category.name}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5">
+                                {category.description}
+                              </div>
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
 
-            {/* Right Actions with proper spacing and accessibility */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Search Button */}
-              <button
-                onClick={handleSearchToggle}
-                className="p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                aria-label="Open search"
-                aria-expanded={isSearchOpen}
-              >
-                <Search className="w-5 h-5" aria-hidden="true" />
-              </button>
+          {/* Right: Actions */}
+          <div className="flex items-center gap-3 lg:gap-4">
+            {/* Search Button */}
+            <button
+              onClick={handleSearchToggle}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label="Open search"
+              aria-expanded={isSearchOpen}
+            >
+              <Search className="w-4 h-4" aria-hidden="true" />
+            </button>
 
-              {/* WhatsApp Quick Contact - Hidden on mobile */}
-              <a
-                href="https://wa.me/923001234567?text=Hi%2C%20I%27m%20interested%20in%20LaraibCreative%20products"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden lg:flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 active:bg-green-700 transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                aria-label="Contact us on WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4" aria-hidden="true" />
-                <span>WhatsApp</span>
-              </a>
+            {/* WhatsApp Quick Contact - Hidden on mobile */}
+            <a
+              href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-1.5 rounded-full bg-green-500 px-4 py-2 text-xs font-medium text-white hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              aria-label="Contact us on WhatsApp"
+            >
+              <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>WhatsApp</span>
+            </a>
 
-              {/* Cart Button with badge */}
-              <button
-                onClick={handleCartToggle}
-                className="relative p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                aria-label={`Shopping cart with ${cartCount} items`}
-                aria-expanded={isCartOpen}
-              >
-                <ShoppingCart className="w-5 h-5" aria-hidden="true" />
-                {cartCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1 text-xs font-bold text-white bg-primary-600 rounded-full"
-                    aria-live="polite"
-                    aria-atomic="true"
-                  >
-                    {cartCount > 99 ? '99+' : cartCount}
-                  </motion.span>
-                )}
-              </button>
+            {/* Cart Button with badge */}
+            <button
+              onClick={handleCartToggle}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              aria-label={`Shopping cart with ${cartCount} items`}
+              aria-expanded={isCartOpen}
+            >
+              <ShoppingCart className="w-4 h-4" aria-hidden="true" />
+              {cartCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-bold text-white"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </motion.span>
+              )}
+            </button>
 
-              {/* User Account with proper dropdown */}
-              <div className="relative" ref={userMenuRef}>
-                {user ? (
-                  <>
-                    <button
-                      onClick={handleUserMenuToggle}
-                      className="flex items-center space-x-2 p-2 text-gray-700 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                      aria-label="User account menu"
-                      aria-expanded={isUserMenuOpen}
-                      aria-haspopup="true"
-                    >
-                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold text-primary-600">
-                          {user.name?.charAt(0).toUpperCase() || 'U'}
-                        </span>
-                      </div>
-                      <ChevronDown className="w-4 h-4 hidden sm:block" aria-hidden="true" />
-                    </button>
+            {/* User Account with proper dropdown */}
+            <div className="relative" ref={userMenuRef}>
+              {user ? (
+                <>
+                  <button
+                    onClick={handleUserMenuToggle}
+                    className="flex items-center gap-1.5 p-1.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    aria-label="User account menu"
+                    aria-expanded={isUserMenuOpen}
+                    aria-haspopup="true"
+                  >
+                    <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-semibold text-primary-600">
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                    <ChevronDown className="w-3.5 h-3.5 hidden lg:block" aria-hidden="true" />
+                  </button>
 
                     {/* User Dropdown Menu */}
                     <AnimatePresence>
@@ -519,21 +523,20 @@ export default function Header() {
                       )}
                     </AnimatePresence>
                   </>
-                ) : (
-                  <Link
-                    href="/auth/login"
-                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                    aria-label="Login to your account"
-                  >
-                    <User className="w-5 h-5" aria-hidden="true" />
-                    <span className="hidden sm:inline">Login</span>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+                ) : (
+                  <Link
+                    href="/auth/login"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                    aria-label="Login to your account"
+                  >
+                    <User className="w-4 h-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Login</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+      </header>
 
       {/* Mobile Menu Component */}
       <MobileMenu

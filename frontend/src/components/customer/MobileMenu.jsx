@@ -366,7 +366,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
             {/* Footer Section with CTA */}
             <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 mt-auto">
               <a
-                href="https://wa.me/923001234567?text=Hi%2C%20I%27m%20interested%20in%20LaraibCreative%20products"
+                href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 active:scale-95 transition-all font-medium shadow-lg shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"

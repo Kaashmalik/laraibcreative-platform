@@ -23,41 +23,42 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50">
+    <section className="relative min-h-[90vh] sm:min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-rose-50">
       {/* Animated Gradient Background Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-purple-600/20 to-rose-600/20 animate-gradient" />
       
-      {/* Floating Decorative Elements */}
+      {/* Floating Decorative Elements - Reduced size on mobile */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-300/30 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-rose-300/30 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-10 left-5 sm:top-20 sm:left-10 w-32 h-32 sm:w-72 sm:h-72 bg-pink-300/30 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-10 right-5 sm:bottom-20 sm:right-10 w-40 h-40 sm:w-96 sm:h-96 bg-purple-300/30 rounded-full blur-3xl animate-float-delayed" />
+        <div className="absolute top-1/2 left-1/4 sm:left-1/3 w-24 h-24 sm:w-64 sm:h-64 bg-rose-300/30 rounded-full blur-3xl animate-float-slow" />
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 container mx-auto px-4 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
           
           {/* Left Column - Text Content */}
-          <div className={`space-y-8 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className={`space-y-4 sm:space-y-6 md:space-y-8 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-              <Sparkles className="w-5 h-5 text-pink-600" />
-              <span className="text-sm font-medium text-gray-700">
-                Trusted by 500+ Happy Customers
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700">
+                <span className="hidden sm:inline">Trusted by 500+ Happy Customers</span>
+                <span className="sm:hidden">500+ Happy Customers</span>
               </span>
-              <div className="flex -space-x-2">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <div className="flex -space-x-1 sm:-space-x-2">
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
               </div>
             </div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight sm:leading-tight">
               <span className="block text-gray-900">Transform Your</span>
               <span className="block bg-gradient-to-r from-pink-600 via-purple-600 to-rose-600 bg-clip-text text-transparent">
                 Vision Into
@@ -66,103 +67,106 @@ export default function HeroSection() {
             </h1>
 
             {/* Tagline */}
-            <p className="text-xl md:text-2xl text-gray-600 font-light max-w-xl">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-light max-w-xl">
               We turn your thoughts & emotions into reality and happiness through custom stitched designer suits
             </p>
 
             {/* Feature Points */}
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-pink-600 rounded-full" />
+            <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-pink-600 rounded-full flex-shrink-0" />
                 <span className="text-gray-700">Custom Measurements</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-600 rounded-full" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-600 rounded-full flex-shrink-0" />
                 <span className="text-gray-700">7-10 Days Delivery</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-rose-600 rounded-full" />
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-rose-600 rounded-full flex-shrink-0" />
                 <span className="text-gray-700">Premium Fabrics</span>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
               {/* Primary CTA - Start Custom Order */}
               <Link
                 href="/custom-order"
-                className="group inline-flex items-center justify-center gap-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:from-pink-700 hover:to-purple-700"
+                className="group inline-flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:from-pink-700 hover:to-purple-700 min-h-[48px] sm:min-h-[56px]"
               >
-                Start Custom Order
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span>Start Custom Order</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
 
               {/* Secondary CTA - Browse Collections */}
               <Link
                 href="/products"
-                className="group inline-flex items-center justify-center gap-3 bg-white text-gray-900 px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-gray-200 hover:border-pink-300"
+                className="group inline-flex items-center justify-center gap-2 sm:gap-3 bg-white text-gray-900 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-gray-200 hover:border-pink-300 min-h-[48px] sm:min-h-[56px]"
               >
-                Browse Collections
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span>Browse Collections</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center gap-8 pt-8 border-t border-gray-200">
-              <div>
-                <div className="text-3xl font-bold text-gray-900">500+</div>
-                <div className="text-sm text-gray-600">Orders Completed</div>
+            <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-gray-200">
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">500+</div>
+                <div className="text-xs sm:text-sm text-gray-600">Orders Completed</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">98%</div>
-                <div className="text-sm text-gray-600">Happy Customers</div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">98%</div>
+                <div className="text-xs sm:text-sm text-gray-600">Happy Customers</div>
               </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">7-10</div>
-                <div className="text-sm text-gray-600">Days Delivery</div>
+              <div className="text-center sm:text-left">
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">7-10</div>
+                <div className="text-xs sm:text-sm text-gray-600">Days Delivery</div>
               </div>
             </div>
           </div>
 
           {/* Right Column - Hero Image */}
-          <div className={`relative transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
-            <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl">
-              {/* Main Hero Image */}
-              <Image
-                src="/images/hero-banner.jpg"
-                alt="Beautiful custom stitched designer suit"
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
+          <div className={`relative transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'} order-first lg:order-last`}>
+            <div className="relative aspect-[3/4] max-w-md mx-auto lg:max-w-none rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
+              {/* Main Hero Image (placeholder asset to avoid 404) */}
+              <div className="relative w-full h-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+                <Image
+                  src="/globe.svg"
+                  alt="Beautiful custom stitched designer suit"
+                  width={400}
+                  height={400}
+                  className="object-contain w-full h-full p-4 sm:p-8"
+                  priority
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
+                />
+              </div>
               
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               
               {/* Floating Badge on Image */}
-              <div className="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-xl">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-6 h-6 text-white" />
+              <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 bg-white/95 backdrop-blur-md p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-pink-600 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-gray-900">Custom Stitching</div>
-                    <div className="text-sm text-gray-600">Perfect fit guaranteed</div>
+                    <div className="font-bold text-sm sm:text-base text-gray-900">Custom Stitching</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Perfect fit guaranteed</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Decorative Elements Around Image */}
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full blur-2xl opacity-60 animate-pulse" />
-            <div className="absolute -bottom-6 -left-6 w-40 h-40 bg-gradient-to-br from-purple-400 to-rose-400 rounded-full blur-2xl opacity-60 animate-pulse delay-1000" />
+            {/* Decorative Elements Around Image - Hidden on mobile */}
+            <div className="hidden sm:block absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full blur-2xl opacity-60 animate-pulse" />
+            <div className="hidden sm:block absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400 to-rose-400 rounded-full blur-2xl opacity-60 animate-pulse delay-1000" />
           </div>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      {/* Scroll Indicator - Hidden on mobile */}
+      <div className="hidden sm:block absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
         <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex items-start justify-center p-2">
           <div className="w-1 h-3 bg-gray-400 rounded-full animate-scroll" />
         </div>

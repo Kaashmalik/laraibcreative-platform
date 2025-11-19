@@ -31,13 +31,10 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronRight,
-  Image,
-  Shirt,
-  BookOpen,
-  Megaphone
+  Shirt
 } from 'lucide-react';
 
-export default function AdminSidebar({ isOpen, onClose, currentPath }) {
+export default function AdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const [expandedMenus, setExpandedMenus] = useState({});
 
@@ -80,7 +77,7 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
       label: 'Orders',
       icon: ShoppingCart,
       path: '/admin/orders',
-      badge: 5, // Number of pending orders
+      badge: 5,
       subItems: [
         { label: 'All Orders', path: '/admin/orders' },
         { label: 'Pending Payment', path: '/admin/orders?status=pending-payment' },
@@ -135,7 +132,7 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
       label: 'Communications',
       icon: MessageSquare,
       path: '/admin/communications',
-      badge: 3, // Number of unread inquiries
+      badge: 3,
       subItems: [
         { label: 'Inquiries', path: '/admin/communications/inquiries' },
         { label: 'Notifications', path: '/admin/communications/notifications' }
@@ -167,7 +164,6 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
 
     return (
       <div key={item.id} className="mb-1">
-        {/* Main Menu Item */}
         <div
           className={`
             flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg cursor-pointer
@@ -195,21 +191,17 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
           </Link>
 
           <div className="flex items-center gap-2">
-            {/* Badge */}
             {item.badge && item.badge > 0 && (
               <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                 {item.badge > 9 ? '9+' : item.badge}
               </span>
             )}
-
-            {/* Expand Icon */}
             {hasSubItems && (
               isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
             )}
           </div>
         </div>
 
-        {/* Sub Menu Items */}
         {hasSubItems && isExpanded && (
           <div className="mt-1 ml-4 space-y-1">
             {item.subItems.map((subItem, index) => (
@@ -237,7 +229,6 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
 
   return (
     <>
-      {/* Sidebar */}
       <aside
         className={`
           fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
@@ -247,7 +238,6 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
             <Link href="/admin/dashboard" className="flex items-center gap-2">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
@@ -259,7 +249,6 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
               </div>
             </Link>
 
-            {/* Close button for mobile */}
             <button
               onClick={onClose}
               className="p-1 rounded-lg lg:hidden hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -271,12 +260,10 @@ export default function AdminSidebar({ isOpen, onClose, currentPath }) {
             </button>
           </div>
 
-          {/* Navigation Menu */}
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {menuItems.map(renderMenuItem)}
           </nav>
 
-          {/* Quick Stats Footer */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="p-3 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Quick Stats</p>

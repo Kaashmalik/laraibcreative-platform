@@ -4,50 +4,67 @@ import * as storage from './storage';
 import { toast } from 'react-hot-toast';
 
 /**
- * Configured Axios instance for API requests
+ * Configured Axios Instance for API Requests
+ * Production-ready with retry logic, request tracking, and comprehensive error handling
  */
+
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 seconds
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  // Enable credentials for CORS
+  withCredentials: false
 });
 
-// Track ongoing requests for retry logic
+// Track ongoing requests for retry logic and cancellation
 const ongoingRequests = new Map();
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; // 1 second
 
 /**
  * Request Interceptor
- * - Adds auth token
+ * - Adds authentication token
  * - Logs requests in development
+ * - Tracks requests for retry logic
+ * - Adds request timestamp
  */
 axiosInstance.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = storage.getItem('auth-token');
-    if (token) {
+    const token = storage.getItem('auth_token');
+    if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // Add request timestamp for performance tracking
+    config.metadata = { startTime: Date.now() };
+
     // Log requests in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 [API] ${config.method?.toUpperCase()} ${config.url}`, 
-        config.params || config.data
+      console.log(
+        `🚀 [API] ${config.method?.toUpperCase()} ${config.url}`,
+        config.params || config.data || ''
       );
     }
 
-    // Track request for retry logic
-    const requestId = Math.random().toString(36).substring(7);
+    // Generate unique request ID
+    const requestId = `${config.method}_${config.url}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     config.requestId = requestId;
+
+    // Track request for retry logic
     ongoingRequests.set(requestId, {
       retryCount: 0,
-      config: { ...config }
+      config: { ...config },
+      timestamp: Date.now()
     });
 
     return config;
   },
   (error) => {
+    console.error('[API] Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -56,16 +73,25 @@ axiosInstance.interceptors.request.use(
  * Response Interceptor
  * - Returns response.data directly
  * - Handles common error cases
- * - Implements retry logic
+ * - Implements retry logic for failed requests
+ * - Logs response time in development
  */
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Log response time in development
+    if (process.env.NODE_ENV === 'development' && response.config.metadata) {
+      const duration = Date.now() - response.config.metadata.startTime;
+      console.log(
+        `✅ [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
+      );
+    }
+
     // Clear request from tracking
     if (response.config.requestId) {
       ongoingRequests.delete(response.config.requestId);
     }
 
-    // Return data directly
+    // Return data directly for cleaner API usage
     return response.data;
   },
   async (error) => {
@@ -73,51 +99,62 @@ axiosInstance.interceptors.response.use(
     const requestId = originalRequest?.requestId;
     const requestInfo = requestId ? ongoingRequests.get(requestId) : null;
 
+    // Log error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        `❌ [API] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`,
+        error.response?.status,
+        error.response?.data || error.message
+      );
+    }
+
     // Handle network errors
     if (!error.response) {
-      toast.error('Connection failed. Please check your internet connection.');
+      // Retry logic for network errors
+      if (requestInfo && requestInfo.retryCount < MAX_RETRIES) {
+        requestInfo.retryCount++;
+        
+        toast.error(`Connection failed. Retrying... (${requestInfo.retryCount}/${MAX_RETRIES})`);
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * requestInfo.retryCount));
+        
+        return axiosInstance(originalRequest);
+      }
+
+      toast.error('Unable to connect. Please check your internet connection.');
+      ongoingRequests.delete(requestId);
       return Promise.reject(error);
     }
 
     // Get error details
     const { status, data } = error.response;
-    const errorMessage = data?.message || 'Something went wrong';
+    const errorMessage = data?.message || data?.error || 'Something went wrong';
 
-    // Handle retry logic for 5xx errors and network issues
-    if (
-      (status >= 500 || !error.response) && 
-      requestInfo && 
-      requestInfo.retryCount === 0
-    ) {
+    // Implement retry logic for 5xx errors
+    if (status >= 500 && requestInfo && requestInfo.retryCount < MAX_RETRIES) {
       requestInfo.retryCount++;
       
-      // Wait 1 second before retry
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Wait before retry with exponential backoff
+      const delay = RETRY_DELAY * Math.pow(2, requestInfo.retryCount - 1);
+      await new Promise(resolve => setTimeout(resolve, delay));
       
-      // Remove Authorization header if it's a 401 to prevent infinite loops
-      if (status === 401) {
-        delete originalRequest.headers.Authorization;
-      }
-
       return axiosInstance(originalRequest);
     }
 
-    // Clear request from tracking
+    // Clear request from tracking after retry attempts
     if (requestId) {
       ongoingRequests.delete(requestId);
     }
 
-    // Handle specific error cases
+    // Handle specific HTTP status codes
     switch (status) {
+      case 400: // Bad Request
+        toast.error(errorMessage);
+        break;
+
       case 401: // Unauthorized
-        // Clear auth token
-        storage.removeItem('auth-token');
-        
-        // Redirect to login if not already there
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
-          toast.error('Session expired. Please login again.');
-          window.location.href = '/auth/login';
-        }
+        handleUnauthorized(originalRequest);
         break;
 
       case 403: // Forbidden
@@ -125,26 +162,41 @@ axiosInstance.interceptors.response.use(
         break;
 
       case 404: // Not Found
-        toast.error('The requested resource was not found.');
-        break;
-
-      case 422: // Validation Error
-        // Show first validation error
-        if (data.errors && Object.keys(data.errors).length > 0) {
-          const firstError = Object.values(data.errors)[0];
-          toast.error(Array.isArray(firstError) ? firstError[0] : firstError);
-        } else {
-          toast.error(errorMessage);
+        // Only show toast for non-GET requests or if explicitly requested
+        if (originalRequest.method !== 'get' || originalRequest.showNotFoundToast) {
+          toast.error('The requested resource was not found.');
         }
         break;
 
-      case 429: // Too Many Requests
-        toast.error('Too many requests. Please try again later.');
+      case 409: // Conflict
+        toast.error(errorMessage || 'A conflict occurred. Please refresh and try again.');
         break;
 
-      case 500: // Server Error
+      case 422: // Validation Error
+        handleValidationError(data);
+        break;
+
+      case 429: // Too Many Requests
+        const retryAfter = error.response.headers['retry-after'];
+        toast.error(
+          retryAfter 
+            ? `Too many requests. Please try again in ${retryAfter} seconds.`
+            : 'Too many requests. Please try again later.'
+        );
+        break;
+
+      case 500: // Internal Server Error
         toast.error('Server error. Our team has been notified.');
-        // Could add error logging service here
+        // Log to error tracking service in production
+        if (process.env.NODE_ENV === 'production') {
+          logErrorToService(error);
+        }
+        break;
+
+      case 502: // Bad Gateway
+      case 503: // Service Unavailable
+      case 504: // Gateway Timeout
+        toast.error('Service temporarily unavailable. Please try again in a moment.');
         break;
 
       default:
@@ -154,5 +206,191 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Handle unauthorized errors (401)
+ * Clears auth token and redirects to login
+ */
+function handleUnauthorized(originalRequest) {
+  // Clear auth token
+  storage.removeItem('auth_token');
+  storage.removeItem('user-data');
+  
+  // Don't show toast if request was to login/register endpoints
+  const authEndpoints = ['/auth/login', '/auth/register', '/auth/verify-token'];
+  const isAuthEndpoint = authEndpoints.some(endpoint => 
+    originalRequest.url?.includes(endpoint)
+  );
+  
+  if (!isAuthEndpoint) {
+    toast.error('Session expired. Please login again.');
+  }
+  
+  // Redirect to login if not already there
+  if (typeof window !== 'undefined') {
+    const currentPath = window.location.pathname;
+    
+    if (!currentPath.includes('/auth/')) {
+      // Save current path to return after login
+      const returnUrl = currentPath !== '/' ? currentPath : '';
+      setTimeout(() => {
+        window.location.href = `/auth/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`;
+      }, 1000);
+    }
+  }
+}
+
+/**
+ * Handle validation errors (422)
+ * Shows specific field errors
+ */
+function handleValidationError(data) {
+  if (data?.errors && typeof data.errors === 'object') {
+    // Get first error message
+    const errors = Object.values(data.errors);
+    if (errors.length > 0) {
+      const firstError = errors[0];
+      const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+      toast.error(errorMessage);
+      
+      // Log all errors in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Validation errors:', data.errors);
+      }
+    }
+  } else {
+    toast.error(data?.message || 'Validation failed. Please check your input.');
+  }
+}
+
+/**
+ * Log error to external service
+ * Replace with your error tracking service (Sentry, LogRocket, etc.)
+ */
+function logErrorToService(error) {
+  // Example: Sentry.captureException(error);
+  console.error('[Error Service] Logging error:', {
+    message: error.message,
+    status: error.response?.status,
+    url: error.config?.url,
+    method: error.config?.method,
+    data: error.response?.data
+  });
+}
+
+/**
+ * Cancel all pending requests
+ * Useful for cleanup on component unmount or route change
+ */
+export function cancelAllRequests() {
+  ongoingRequests.forEach((_, requestId) => {
+    ongoingRequests.delete(requestId);
+  });
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🚫 [API] All requests cancelled');
+  }
+}
+
+/**
+ * Get number of pending requests
+ * Useful for loading indicators
+ */
+export function getPendingRequestsCount() {
+  return ongoingRequests.size;
+}
+
+/**
+ * Create a cancellable request
+ * Returns [promise, cancel function]
+ */
+export function createCancellableRequest(config) {
+  const source = axios.CancelToken.source();
+  
+  const request = axiosInstance({
+    ...config,
+    cancelToken: source.token
+  });
+
+  return [request, () => source.cancel('Request cancelled by user')];
+}
+
+/**
+ * Batch multiple requests
+ * Executes requests in parallel and returns all results
+ */
+export async function batchRequests(requests) {
+  try {
+    const results = await Promise.allSettled(
+      requests.map(req => axiosInstance(req))
+    );
+    
+    return results.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return { success: true, data: result.value };
+      } else {
+        return { 
+          success: false, 
+          error: result.reason,
+          request: requests[index]
+        };
+      }
+    });
+  } catch (error) {
+    console.error('[API] Batch request error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Helper to check if error is from axios
+ */
+export function isAxiosError(error) {
+  return axios.isAxiosError(error);
+}
+
+/**
+ * Helper to get error message from axios error
+ */
+export function getErrorMessage(error) {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message 
+      || error.response?.data?.error 
+      || error.message 
+      || 'An error occurred';
+  }
+  
+  return error?.message || 'An unexpected error occurred';
+}
+
+/**
+ * Helper to check if error is network error
+ */
+export function isNetworkError(error) {
+  return axios.isAxiosError(error) && !error.response;
+}
+
+/**
+ * Set authorization token
+ * Useful for setting token after login
+ */
+export function setAuthToken(token) {
+  if (token) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    storage.setItem('auth_token', token);
+  } else {
+    delete axiosInstance.defaults.headers.common['Authorization'];
+    storage.removeItem('auth_token');
+  }
+}
+
+/**
+ * Clear authorization token
+ */
+export function clearAuthToken() {
+  delete axiosInstance.defaults.headers.common['Authorization'];
+  storage.removeItem('auth_token');
+  storage.removeItem('user-data');
+}
 
 export default axiosInstance;

@@ -207,8 +207,8 @@ const generateEmailTemplate = (orderNumber, status, customerName, trackingUrl) =
           
           <p>If you have any questions, feel free to reach out:</p>
           <ul>
-            <li>📱 WhatsApp: <a href="https://wa.me/923001234567">+92 300 1234567</a></li>
-            <li>📧 Email: <a href="mailto:support@laraibcreative.com">support@laraibcreative.com</a></li>
+            <li>📱 WhatsApp: <a href="https://wa.me/923020718182">+92 302 0718182</a></li>
+            <li>📧 Email: <a href="mailto:laraibcreative.business@gmail.com">laraibcreative.business@gmail.com</a></li>
           </ul>
           
           <p style="margin-top: 30px;">

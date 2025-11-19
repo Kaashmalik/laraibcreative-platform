@@ -384,7 +384,7 @@ export function getStorageUsage() {
 }
 
 // Export default object with all functions
-export default {
+const storage = {
   getItem,
   setItem,
   removeItem,
@@ -396,3 +396,5 @@ export default {
   cleanupExpiredItems,
   getStorageUsage
 };
+
+export default storage;

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -18,21 +19,23 @@ import {
 
 export default function AccountLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useRouter(); // reserved for future navigation actions
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
+  const [localUser, setLocalUser] = useState(null); // fallback demo data
 
   // Simulate user data fetch
   useEffect(() => {
-    // Replace with actual API call
-    const userData = {
-      name: 'Ayesha Khan',
-      email: 'ayesha@example.com',
-      phone: '+92 300 1234567',
-      profileImage: '/images/placeholder.png'
-    };
-    setUser(userData);
-  }, []);
+    if (!user) {
+      // Demo placeholder until real profile fetch implemented
+      setLocalUser({
+        name: 'Guest User',
+        email: 'guest@example.com',
+        phone: '',
+        profileImage: '/images/placeholder.png'
+      });
+    }
+  }, [user]);
 
   const navigation = [
     {
@@ -70,11 +73,8 @@ export default function AccountLayout({ children }) {
     }
   ];
 
-  const handleLogout = () => {
-    // Clear auth tokens
-    localStorage.removeItem('authToken');
-    // Redirect to login
-    router.push('/auth/login');
+  const handleLogout = async () => {
+    await logout();
   };
 
   const isActive = (href, exact = false) => {
@@ -155,20 +155,20 @@ export default function AccountLayout({ children }) {
           <aside className="hidden lg:block lg:col-span-3">
             <div className="sticky top-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               {/* User Info */}
-              {user && (
+              {(user || localUser) && (
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center gap-4">
                     <img
-                      src={user.profileImage}
-                      alt={user.name}
+                      src={(user || localUser).profileImage}
+                      alt={(user || localUser).name}
                       className="w-16 h-16 rounded-full object-cover border-2 border-pink-100"
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {user.name}
+                        {(user || localUser).name}
                       </h3>
                       <p className="text-sm text-gray-500 truncate">
-                        {user.email}
+                        {(user || localUser).email}
                       </p>
                     </div>
                   </div>

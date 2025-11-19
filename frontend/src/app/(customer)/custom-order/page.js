@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import StepIndicator from '@/components/custom-order/StepIndicator';
-import ServiceTypeSelection from '@/components/custom-order/ServiceTypeSelection';
-import ImageUpload from '@/components/custom-order/ImageUpload';
-import FabricSelection from '@/components/custom-order/FabricSelection';
-import MeasurementForm from '@/components/custom-order/MeasurementForm';
-import OrderSummary from '@/components/custom-order/OrderSummary';
+import StepIndicator from './components/StepIndicator';
+import ServiceTypeSelection from './components/ServiceTypeSelection';
+import ImageUpload from './components/ImageUpload';
+import FabricSelection from './components/FabricSelection';
+import MeasurementForm from './components/MeasurementForm';
+import OrderSummary from './components/OrderSummary';
 import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
 
 /**
@@ -93,14 +93,7 @@ export default function CustomOrderPage() {
   // Total steps in the wizard
   const totalSteps = 5;
 
-  // Steps configuration for the indicator
-  const steps = [
-    { id: 1, title: 'Service Type' },
-    { id: 2, title: 'Upload Images' },
-    { id: 3, title: 'Select Fabric' },
-    { id: 4, title: 'Measurements' },
-    { id: 5, title: 'Order Summary' }
-  ];
+  // Steps configuration handled inside StepIndicator
 
   // Load saved draft from localStorage on mount
   useEffect(() => {
@@ -295,7 +288,7 @@ export default function CustomOrderPage() {
       orderData.append('customerInfo', JSON.stringify(formData.customerInfo));
       
       // Append reference images
-      formData.referenceImages.forEach((img, index) => {
+      formData.referenceImages.forEach((img) => {
         if (img.file) {
           orderData.append(`referenceImages`, img.file);
         }
@@ -436,7 +429,7 @@ export default function CustomOrderPage() {
         </div>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} steps={steps} />
+        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         {/* Main Form Container */}
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
@@ -500,7 +493,7 @@ export default function CustomOrderPage() {
         {/* Help Text */}
         <div className="text-center mt-6 text-sm text-gray-600">
           Need help? Contact us on{' '}
-          <a href="https://wa.me/923001234567" className="text-purple-600 hover:underline font-medium">
+          <a href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products" className="text-purple-600 hover:underline font-medium">
             WhatsApp
           </a>
         </div>

@@ -3,6 +3,8 @@ import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
 import { Toaster } from 'react-hot-toast'
+import Header from '@/components/customer/Header'
+import Footer from '@/components/customer/Footer'
 
 // Font configurations
 const inter = Inter({
@@ -179,25 +181,18 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body 
+      <body
         className={`${inter.className} antialiased bg-white text-gray-900`}
         suppressHydrationWarning
       >
-        {/* Context Providers */}
         <AuthProvider>
           <CartProvider>
-            {/* Skip to main content for accessibility */}
-            <a 
-              href="#main-content" 
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg"
-            >
-              Skip to main content
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
+              Skip to content
             </a>
-
-            {/* Main application content */}
-            {children}
-
-            {/* Toast Notifications */}
+            <Header />
+            <main id="main-content" className="pt-16">{children}</main>
+            <Footer />
             <Toaster
               position="top-right"
               toastOptions={{
@@ -221,8 +216,6 @@ export default function RootLayout({ children }) {
                 },
               }}
             />
-
-            {/* Global scripts */}
             {process.env.NEXT_PUBLIC_GA_ID && (
               <>
                 <script
@@ -243,7 +236,6 @@ export default function RootLayout({ children }) {
                 />
               </>
             )}
-
             {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
               <script
                 dangerouslySetInnerHTML={{

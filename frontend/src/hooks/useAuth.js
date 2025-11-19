@@ -1,16 +1,30 @@
 /**
- * Hook for authentication management.
+ * Custom hook for authentication
+ * Re-exports useAuth from AuthContext for centralized auth state management
+ * 
+ * @module hooks/useAuth
+ * @returns {Object} Authentication context with user, login, logout, and loading state
+ * 
  * @example
- * const { user, login, logout } = useAuth()
+ * import useAuth from '@/hooks/useAuth'
  * 
- * // Login
- * await login('user@example.com', 'password')
- * 
- * // Access user data
- * console.log(user?.name)
- * 
- * // Logout
- * await logout()
+ * function MyComponent() {
+ *   const { user, login, logout, isLoading } = useAuth()
+ *   
+ *   if (isLoading) return <Spinner />
+ *   
+ *   return (
+ *     <div>
+ *       {user ? (
+ *         <button onClick={logout}>Logout {user.name}</button>
+ *       ) : (
+ *         <button onClick={() => login(credentials)}>Login</button>
+ *       )}
+ *     </div>
+ *   )
+ * }
  */
-import { useAuth } from '@/context/AuthContext';
-export default useAuth;
+
+import { useAuth } from '@/context/AuthContext'
+
+export default useAuth

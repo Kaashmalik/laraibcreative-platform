@@ -1,399 +1,582 @@
 // backend/src/services/notificationService.js
+// ==========================================
+// UNIFIED NOTIFICATION SERVICE
+// ==========================================
+// Orchestrates email and WhatsApp notifications
+// Handles all customer and admin notifications
+// ==========================================
 
-const nodemailer = require('nodemailer');
-const whatsappService = require('../utils/whatsappService');
-const emailTemplates = require('../utils/emailTemplates');
-const logger = require('../utils/logger');
+const emailConfig = require('../config/email');
+const whatsappConfig = require('../config/whatsapp');
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
 
 /**
- * Email transporter configuration
+ * Extract customer contact info from order
+ * @param {Object} order - Order object
+ * @returns {Object} Contact info
  */
-const createEmailTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
+const getCustomerContact = (order) => {
+  return {
+    email: order.customerInfo?.email || order.customer?.email || null,
+    whatsapp: order.customerInfo?.whatsapp || order.customer?.whatsapp || order.customerInfo?.phone || order.customer?.phone || null,
+    name: order.customerInfo?.name || order.customer?.name || 'Customer',
+  };
 };
 
 /**
- * Send order confirmation notifications
+ * Log notification result
+ * @param {String} type - Notification type
+ * @param {String} recipient - Recipient identifier
+ * @param {Boolean} success - Success status
+ */
+const logNotification = (type, recipient, success) => {
+  const status = success ? '✅' : '❌';
+  console.log(`${status} Notification [${type}] to ${recipient}: ${success ? 'Success' : 'Failed'}`);
+};
+
+// ==========================================
+// ORDER NOTIFICATIONS
+// ==========================================
+
+/**
+ * Send order confirmation notifications (Email + WhatsApp)
+ * @param {Object} order - Order object
+ * @returns {Promise<Object>} Notification results
  */
 exports.sendOrderConfirmation = async (order) => {
   try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
-
-    // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Order Confirmation - ${order.orderNumber}`,
-        html: emailTemplates.orderConfirmation(order)
-      });
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
     }
 
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.sendOrderConfirmation(customerWhatsApp, order);
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
+
+    // Send email if available
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendOrderConfirmation(contact.email, order);
+        results.email = { sent: emailResult.success, messageId: emailResult.messageId };
+        logNotification('Order Confirmation Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Email notification failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
     }
 
-    logger.info(`Order confirmation sent for ${order.orderNumber}`);
-    return true;
+    // Send WhatsApp if available
+    if (contact.whatsapp) {
+      try {
+        const whatsappResult = await whatsappConfig.sendOrderConfirmation(contact.whatsapp, order);
+        results.whatsapp = { sent: whatsappResult.success, sid: whatsappResult.sid };
+        logNotification('Order Confirmation WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('WhatsApp notification failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
+    }
+
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending order confirmation:', error);
-    // Don't throw error - notification failure shouldn't stop order creation
-    return false;
+    console.error('Error in sendOrderConfirmation:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 
 /**
  * Notify admin about new order
+ * @param {Object} order - Order object
+ * @returns {Promise<Object>} Notification results
  */
 exports.notifyAdminNewOrder = async (order) => {
   try {
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
+    }
+
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminWhatsApp = process.env.ADMIN_WHATSAPP;
+    
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
 
+    // Email admin
     if (adminEmail) {
-      await sendEmail({
-        to: adminEmail,
-        subject: `New Order Received - ${order.orderNumber}`,
-        html: emailTemplates.adminNewOrder(order)
-      });
+      try {
+        const emailData = {
+          orderNumber: order.orderNumber,
+          total: order.pricing?.total || order.total || 0,
+        };
+        const emailResult = await emailConfig.sendEmail({
+          to: adminEmail,
+          subject: `🔔 New Order - ${order.orderNumber}`,
+          text: `New order received: ${order.orderNumber}`,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2>New Order Received</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              <p><strong>Customer:</strong> ${order.customerInfo?.name || 'N/A'}</p>
+              <p><strong>Total:</strong> Rs. ${(order.pricing?.total || order.total || 0).toLocaleString()}</p>
+              <p><strong>Items:</strong> ${order.items?.length || 0}</p>
+            </div>
+          `,
+        });
+        results.email = { sent: emailResult.success };
+        logNotification('Admin New Order Email', adminEmail, emailResult.success);
+      } catch (error) {
+        console.error('Admin email notification failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
     }
 
+    // WhatsApp admin
     if (adminWhatsApp) {
-      await whatsappService.notifyAdminNewOrder(adminWhatsApp, order);
+      try {
+        const message = `🔔 *New Order*\n\nOrder: ${order.orderNumber}\nCustomer: ${order.customerInfo?.name || 'N/A'}\nTotal: Rs. ${(order.pricing?.total || order.total || 0).toLocaleString()}`;
+        const whatsappResult = await whatsappConfig.sendWhatsAppMessage(adminWhatsApp, message);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Admin New Order WhatsApp', adminWhatsApp, whatsappResult.success);
+      } catch (error) {
+        console.error('Admin WhatsApp notification failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
     }
 
-    logger.info(`Admin notified of new order ${order.orderNumber}`);
-    return true;
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error notifying admin:', error);
-    return false;
+    console.error('Error in notifyAdminNewOrder:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 
+// ==========================================
+// PAYMENT NOTIFICATIONS
+// ==========================================
+
 /**
  * Send payment verification notification
+ * @param {Object} order - Order object
+ * @returns {Promise<Object>} Notification results
  */
 exports.sendPaymentVerified = async (order) => {
   try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
+    }
+
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
 
     // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Payment Verified - ${order.orderNumber}`,
-        html: emailTemplates.paymentVerified(order)
-      });
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendPaymentVerification(contact.email, order);
+        results.email = { sent: emailResult.success };
+        logNotification('Payment Verified Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Payment email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
     }
 
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.sendPaymentVerified(customerWhatsApp, order);
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const whatsappResult = await whatsappConfig.sendPaymentVerification(contact.whatsapp, order);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Payment Verified WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Payment WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
     }
 
-    logger.info(`Payment verification notification sent for ${order.orderNumber}`);
-    return true;
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending payment verification:', error);
-    return false;
+    console.error('Error in sendPaymentVerified:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 
 /**
  * Send payment rejection notification
+ * @param {Object} order - Order object
+ * @param {String} reason - Rejection reason
+ * @returns {Promise<Object>} Notification results
  */
-exports.sendPaymentRejected = async (order, reason) => {
+exports.sendPaymentRejected = async (order, reason = '') => {
   try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
+    }
+
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
 
     // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Payment Verification Issue - ${order.orderNumber}`,
-        html: emailTemplates.paymentRejected(order, reason)
-      });
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendEmail({
+          to: contact.email,
+          subject: `Payment Issue - ${order.orderNumber}`,
+          text: `Payment verification issue for order ${order.orderNumber}. ${reason}`,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2 style="color: #EF4444;">Payment Verification Issue</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+              <p>Please re-upload a clear payment receipt or contact us.</p>
+            </div>
+          `,
+        });
+        results.email = { sent: emailResult.success };
+        logNotification('Payment Rejected Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Payment rejection email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
     }
 
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.sendPaymentRejected(customerWhatsApp, order, reason);
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const message = `⚠️ *Payment Issue*\n\nOrder: ${order.orderNumber}\n${reason ? `Reason: ${reason}\n` : ''}Please re-upload your payment receipt.`;
+        const whatsappResult = await whatsappConfig.sendWhatsAppMessage(contact.whatsapp, message);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Payment Rejected WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Payment rejection WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
     }
 
-    logger.info(`Payment rejection notification sent for ${order.orderNumber}`);
-    return true;
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending payment rejection:', error);
-    return false;
+    console.error('Error in sendPaymentRejected:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 
+// ==========================================
+// STATUS UPDATE NOTIFICATIONS
+// ==========================================
+
 /**
  * Send order status update notification
+ * @param {Object} order - Order object
+ * @param {String} previousStatus - Previous status (optional)
+ * @returns {Promise<Object>} Notification results
  */
-exports.sendStatusUpdate = async (order, previousStatus) => {
+exports.sendStatusUpdate = async (order, previousStatus = null) => {
   try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
+    if (!order || !order.orderNumber || !order.status) {
+      throw new Error('Invalid order object or status');
+    }
 
-    const statusMessages = {
-      'payment-verified': 'Your payment has been verified successfully!',
-      'fabric-arranged': 'Fabric has been arranged for your order.',
-      'stitching-in-progress': 'Your order is now being stitched by our expert tailors.',
-      'quality-check': 'Your order is in quality check phase.',
-      'ready-for-dispatch': 'Your order is ready and will be dispatched soon.',
-      'out-for-delivery': 'Your order is out for delivery!',
-      'delivered': 'Your order has been delivered. Thank you for choosing LaraibCreative!'
+    // Define which statuses should trigger notifications
+    const notifiableStatuses = [
+      'payment-verified',
+      'fabric-arranged',
+      'stitching-in-progress',
+      'quality-check',
+      'ready-for-dispatch',
+      'out-for-delivery',
+      'delivered',
+    ];
+
+    if (!notifiableStatuses.includes(order.status)) {
+      return { success: false, reason: 'Status not notifiable' };
+    }
+
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
     };
 
-    const message = statusMessages[order.status];
-
-    if (!message) {
-      return false; // No notification for certain statuses
-    }
-
     // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Order Update - ${order.orderNumber}`,
-        html: emailTemplates.statusUpdate(order, message)
-      });
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendStatusUpdate(contact.email, order, order.status);
+        results.email = { sent: emailResult.success };
+        logNotification('Status Update Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Status update email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
     }
 
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.sendStatusUpdate(customerWhatsApp, order, message);
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const whatsappResult = await whatsappConfig.sendStatusUpdate(contact.whatsapp, order, order.status);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Status Update WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Status update WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
     }
 
-    logger.info(`Status update notification sent for ${order.orderNumber}: ${order.status}`);
-    return true;
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending status update:', error);
-    return false;
+    console.error('Error in sendStatusUpdate:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
 
 /**
  * Send order cancellation notification
+ * @param {Object} order - Order object
+ * @param {String} reason - Cancellation reason
+ * @returns {Promise<Object>} Notification results
  */
-exports.sendOrderCancellation = async (order, reason) => {
+exports.sendOrderCancellation = async (order, reason = '') => {
   try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
-
-    // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Order Cancelled - ${order.orderNumber}`,
-        html: emailTemplates.orderCancellation(order, reason)
-      });
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
     }
 
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.sendOrderCancellation(customerWhatsApp, order, reason);
-    }
-
-    logger.info(`Order cancellation notification sent for ${order.orderNumber}`);
-    return true;
-
-  } catch (error) {
-    logger.error('Error sending cancellation notification:', error);
-    return false;
-  }
-};
-
-/**
- * Send delivery confirmation request
- */
-exports.requestDeliveryConfirmation = async (order) => {
-  try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-    const customerWhatsApp = order.customerInfo.whatsapp || order.customer.whatsapp;
-
-    // Send email
-    if (customerEmail) {
-      await sendEmail({
-        to: customerEmail,
-        subject: `Please Confirm Delivery - ${order.orderNumber}`,
-        html: emailTemplates.deliveryConfirmation(order)
-      });
-    }
-
-    // Send WhatsApp notification
-    if (customerWhatsApp) {
-      await whatsappService.requestDeliveryConfirmation(customerWhatsApp, order);
-    }
-
-    logger.info(`Delivery confirmation requested for ${order.orderNumber}`);
-    return true;
-
-  } catch (error) {
-    logger.error('Error requesting delivery confirmation:', error);
-    return false;
-  }
-};
-
-/**
- * Send review request after delivery
- */
-exports.sendReviewRequest = async (order) => {
-  try {
-    const customerEmail = order.customerInfo.email || order.customer.email;
-
-    if (!customerEmail) {
-      return false;
-    }
-
-    // Wait 2 days after delivery before sending review request
-    const deliveryDate = order.actualCompletion || new Date();
-    const daysSinceDelivery = Math.floor((Date.now() - deliveryDate) / (1000 * 60 * 60 * 24));
-
-    if (daysSinceDelivery < 2) {
-      return false; // Too early for review
-    }
-
-    await sendEmail({
-      to: customerEmail,
-      subject: `We'd Love Your Feedback - ${order.orderNumber}`,
-      html: emailTemplates.reviewRequest(order)
-    });
-
-    logger.info(`Review request sent for ${order.orderNumber}`);
-    return true;
-
-  } catch (error) {
-    logger.error('Error sending review request:', error);
-    return false;
-  }
-};
-
-/**
- * Send low stock alert to admin
- */
-exports.sendLowStockAlert = async (fabric, currentStock) => {
-  try {
-    const adminEmail = process.env.ADMIN_EMAIL;
-
-    if (!adminEmail) {
-      return false;
-    }
-
-    await sendEmail({
-      to: adminEmail,
-      subject: `Low Stock Alert - ${fabric.type}`,
-      html: emailTemplates.lowStockAlert(fabric, currentStock)
-    });
-
-    logger.info(`Low stock alert sent for ${fabric.type}`);
-    return true;
-
-  } catch (error) {
-    logger.error('Error sending low stock alert:', error);
-    return false;
-  }
-};
-
-/**
- * Helper function to send email
- */
-async function sendEmail({ to, subject, html, attachments = [] }) {
-  try {
-    const transporter = createEmailTransporter();
-
-    const mailOptions = {
-      from: {
-        name: 'LaraibCreative',
-        address: process.env.EMAIL_USER
-      },
-      to,
-      subject,
-      html,
-      attachments
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    logger.info(`Email sent: ${info.messageId} to ${to}`);
-    return info;
+    // Send email
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendEmail({
+          to: contact.email,
+          subject: `Order Cancelled - ${order.orderNumber}`,
+          text: `Order ${order.orderNumber} has been cancelled. ${reason}`,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2 style="color: #EF4444;">Order Cancelled</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+              <p>If you have any questions, please contact us.</p>
+            </div>
+          `,
+        });
+        results.email = { sent: emailResult.success };
+        logNotification('Cancellation Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Cancellation email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
+    }
+
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const message = `❌ *Order Cancelled*\n\nOrder: ${order.orderNumber}\n${reason ? `Reason: ${reason}\n` : ''}Contact us if you have questions.`;
+        const whatsappResult = await whatsappConfig.sendWhatsAppMessage(contact.whatsapp, message);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Cancellation WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Cancellation WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
+    }
+
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending email:', error);
-    throw error;
+    console.error('Error in sendOrderCancellation:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
-}
+};
+
+// ==========================================
+// CUSTOMER ENGAGEMENT
+// ==========================================
 
 /**
- * Send bulk notification to multiple customers
+ * Send welcome message to new customer
+ * @param {String} email - Customer email
+ * @param {String} phone - Customer phone
+ * @param {String} name - Customer name
+ * @returns {Promise<Object>} Notification results
+ */
+exports.sendWelcome = async (email, phone, name) => {
+  try {
+    if (!email && !phone) {
+      throw new Error('Either email or phone is required');
+    }
+
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
+
+    // Send welcome email
+    if (email) {
+      try {
+        const emailResult = await emailConfig.sendWelcomeEmail(email, name || 'Customer');
+        results.email = { sent: emailResult.success };
+        logNotification('Welcome Email', email, emailResult.success);
+      } catch (error) {
+        console.error('Welcome email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
+    }
+
+    // Send welcome WhatsApp
+    if (phone) {
+      try {
+        const whatsappResult = await whatsappConfig.sendWelcomeMessage(phone, name || 'Customer');
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Welcome WhatsApp', phone, whatsappResult.success);
+      } catch (error) {
+        console.error('Welcome WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
+    }
+
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
+
+  } catch (error) {
+    console.error('Error in sendWelcome:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+// ==========================================
+// BULK NOTIFICATIONS
+// ==========================================
+
+/**
+ * Send bulk notifications to multiple customers
+ * @param {Array} customers - Array of customer objects
+ * @param {String} subject - Email subject
+ * @param {String} message - Message content
+ * @returns {Promise<Object>} Notification results
  */
 exports.sendBulkNotification = async (customers, subject, message) => {
   try {
-    const emailPromises = customers
-      .filter(c => c.email)
-      .map(customer => 
-        sendEmail({
-          to: customer.email,
-          subject,
-          html: emailTemplates.bulkNotification(customer, message)
-        }).catch(err => {
-          logger.error(`Failed to send to ${customer.email}:`, err);
-          return null;
-        })
-      );
-
-    const results = await Promise.allSettled(emailPromises);
-    const successful = results.filter(r => r.status === 'fulfilled').length;
-
-    logger.info(`Bulk notification sent: ${successful}/${customers.length} successful`);
-    return { total: customers.length, successful };
-
-  } catch (error) {
-    logger.error('Error sending bulk notification:', error);
-    throw error;
-  }
-};
-
-/**
- * Send weekly order summary to admin
- */
-exports.sendWeeklySummary = async (stats) => {
-  try {
-    const adminEmail = process.env.ADMIN_EMAIL;
-
-    if (!adminEmail) {
-      return false;
+    if (!Array.isArray(customers) || customers.length === 0) {
+      throw new Error('Customers array is required');
     }
 
-    await sendEmail({
-      to: adminEmail,
-      subject: `Weekly Summary - LaraibCreative`,
-      html: emailTemplates.weeklySummary(stats)
-    });
+    const results = {
+      total: customers.length,
+      email: { sent: 0, failed: 0 },
+      whatsapp: { sent: 0, failed: 0 },
+    };
 
-    logger.info('Weekly summary sent to admin');
-    return true;
+    for (const customer of customers) {
+      // Send email
+      if (customer.email) {
+        try {
+          const emailResult = await emailConfig.sendEmail({
+            to: customer.email,
+            subject,
+            text: message,
+            html: `<div style="font-family: Arial, sans-serif;"><p>${message}</p></div>`,
+          });
+          if (emailResult.success) results.email.sent++;
+          else results.email.failed++;
+        } catch (error) {
+          results.email.failed++;
+        }
+      }
+
+      // Send WhatsApp
+      if (customer.phone || customer.whatsapp) {
+        try {
+          const phone = customer.whatsapp || customer.phone;
+          const whatsappResult = await whatsappConfig.sendWhatsAppMessage(phone, message);
+          if (whatsappResult.success) results.whatsapp.sent++;
+          else results.whatsapp.failed++;
+        } catch (error) {
+          results.whatsapp.failed++;
+        }
+      }
+
+      // Rate limiting: wait 1 second between customers
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    console.log(`📊 Bulk Notification Complete: Email ${results.email.sent}/${customers.length}, WhatsApp ${results.whatsapp.sent}/${customers.length}`);
+
+    return {
+      success: true,
+      results,
+    };
 
   } catch (error) {
-    logger.error('Error sending weekly summary:', error);
-    return false;
+    console.error('Error in sendBulkNotification:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 };
+
+// ==========================================
+// EXPORTS
+// ==========================================
 
 module.exports = exports;

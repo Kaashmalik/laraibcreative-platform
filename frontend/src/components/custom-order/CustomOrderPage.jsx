@@ -315,8 +315,8 @@ const CustomOrderPage = () => {
         <p>© 2025 LaraibCreative. All rights reserved.</p>
         <p className="mt-2">
           Need help? Contact us at{' '}
-          <a href="mailto:support@laraibcreative.com" className="text-pink-600 hover:underline">
-            support@laraibcreative.com
+          <a href="mailto:laraibcreative.business@gmail.com" className="text-pink-600 hover:underline">
+            laraibcreative.business@gmail.com
           </a>
         </p>
       </div>

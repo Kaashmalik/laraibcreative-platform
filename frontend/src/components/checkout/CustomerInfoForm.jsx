@@ -40,7 +40,7 @@ export default function CustomerInfoForm({ data, onUpdate, onNext }) {
         if (!value.trim()) return 'Phone number is required';
         const cleanPhone = value.replace(/[\s-]/g, '');
         if (!/^(03\d{9}|92\d{10})$/.test(cleanPhone)) {
-          return 'Invalid phone number (e.g., 0300-1234567)';
+          return 'Invalid phone number (e.g., 0302-0718182)';
         }
         return '';
 
@@ -211,7 +211,7 @@ export default function CustomerInfoForm({ data, onUpdate, onNext }) {
               value={formData.phone}
               onChange={handleChange}
               onBlur={handleBlur}
-              placeholder="0300-1234567"
+              placeholder="0302-0718182"
               className={`
                 w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 
                 focus:border-transparent transition-all outline-none
@@ -228,7 +228,7 @@ export default function CustomerInfoForm({ data, onUpdate, onNext }) {
             </p>
           )}
           <p className="mt-1 text-xs text-gray-500">
-            Format: 0300-1234567 or 923001234567
+            Format: 0302-0718182 or 923020718182
           </p>
         </div>
 
@@ -250,7 +250,7 @@ export default function CustomerInfoForm({ data, onUpdate, onNext }) {
               value={formData.whatsapp}
               onChange={handleChange}
               onBlur={handleBlur}
-              placeholder="0300-1234567"
+              placeholder="0302-0718182"
               className={`
                 w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 
                 focus:border-transparent transition-all outline-none

@@ -1,3 +1,4 @@
+//frontend/src/app/(customer)/blog/[slug]/page.js
 "use client";
 
 
