@@ -1,7 +1,5 @@
 'use client';
 
-'use client'
-
 import { useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingBag, Plus, Minus, Trash2, AlertCircle } from 'lucide-react'
@@ -36,12 +34,12 @@ import { useCart } from '@/context/CartContext'
  */
 export default function MiniCart({ isOpen, onClose }) {
   const { 
-    cartItems, 
-    cartCount, 
-    cartSubtotal,
+    items: cartItems, 
+    totalItems: cartCount, 
+    totalPrice: cartSubtotal,
     updateQuantity, 
-    removeFromCart,
-    isUpdating 
+    removeItem: removeFromCart,
+    isLoading: isUpdating 
   } = useCart()
 
   const drawerRef = useRef(null)
@@ -95,11 +93,11 @@ export default function MiniCart({ isOpen, onClose }) {
   }, [isOpen, cartItems])
 
   // Handle quantity change with validation
-  const handleQuantityChange = useCallback(async (itemId, newQuantity) => {
+  const handleQuantityChange = useCallback(async (cartItemId, newQuantity) => {
     if (newQuantity < 1 || newQuantity > 99) return
     
     try {
-      await updateQuantity(itemId, newQuantity)
+      await updateQuantity(cartItemId, newQuantity)
     } catch (error) {
       console.error('Failed to update quantity:', error)
       // Optional: Show error toast
@@ -107,14 +105,14 @@ export default function MiniCart({ isOpen, onClose }) {
   }, [updateQuantity])
 
   // Handle remove item with confirmation
-  const handleRemove = useCallback(async (itemId, itemTitle) => {
+  const handleRemove = useCallback(async (cartItemId, itemTitle) => {
     const confirmed = window.confirm(
       `Remove "${itemTitle}" from your cart?`
     )
     
     if (confirmed) {
       try {
-        await removeFromCart(itemId)
+        await removeFromCart(cartItemId)
       } catch (error) {
         console.error('Failed to remove item:', error)
         // Optional: Show error toast
@@ -219,15 +217,15 @@ export default function MiniCart({ isOpen, onClose }) {
                     >
                       {/* Product Image */}
                       <Link
-                        href={`/products/${item.slug || item.productId}`}
+                        href={`/products/${item.product?.slug || item.productId}`}
                         onClick={onClose}
                         className="flex-shrink-0 group focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg"
-                        aria-label={`View ${item.title}`}
+                        aria-label={`View ${item.product?.name || item.productId}`}
                       >
                         <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                           <Image
-                            src={item.image || '/images/placeholder.png'}
-                            alt={item.title}
+                            src={item.product?.image || item.product?.images?.[0] || '/images/placeholder.png'}
+                            alt={item.product?.name || 'Product'}
                             fill
                             sizes="80px"
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
@@ -238,16 +236,16 @@ export default function MiniCart({ isOpen, onClose }) {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/products/${item.slug || item.productId}`}
+                          href={`/products/${item.product?.slug || item.productId}`}
                           onClick={onClose}
                           className="font-medium text-gray-900 hover:text-primary-600 line-clamp-2 text-sm focus:outline-none focus:underline"
                         >
-                          {item.title}
+                          {item.product?.name || 'Product'}
                         </Link>
                         
                         {/* Badges */}
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {item.isCustom && (
+                          {item.customizations && Object.keys(item.customizations).length > 0 && (
                             <span className="inline-flex items-center px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
                               Custom Order
                             </span>
@@ -261,7 +259,7 @@ export default function MiniCart({ isOpen, onClose }) {
 
                         {/* Price */}
                         <p className="text-primary-600 font-bold mt-1.5 text-base">
-                          {formatPrice(item.price)}
+                          {formatPrice(item.product?.price || 0)}
                         </p>
 
                         {/* Quantity Controls & Remove */}
@@ -290,10 +288,10 @@ export default function MiniCart({ isOpen, onClose }) {
 
                           {/* Remove Button */}
                           <button
-                            onClick={() => handleRemove(item.id, item.title)}
+                            onClick={() => handleRemove(item.id, item.product?.name || 'item')}
                             disabled={isUpdating}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500"
-                            aria-label={`Remove ${item.title} from cart`}
+                            aria-label={`Remove ${item.product?.name || 'item'} from cart`}
                           >
                             <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>

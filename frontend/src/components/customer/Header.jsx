@@ -45,8 +45,8 @@ import NavLink from './NavLink'
  */
 export default function Header() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
-  const { cartItems, cartCount } = useCart()
+  const { user, logout } = useAuth()
+  const { items: cartItems, totalItems: cartCount } = useCart()
   
   // Refs
   const headerRef = useRef(null)
