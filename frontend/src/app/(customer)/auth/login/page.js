@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default function LoginPage() {
+function LoginForm() {
   const { login, loading, isAuthenticated } = useAuth();
   const params = useSearchParams();
   const router = useRouter();
@@ -88,5 +88,27 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-white px-4 py-12">
+        <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-12 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
