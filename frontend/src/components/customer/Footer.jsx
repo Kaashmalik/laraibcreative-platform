@@ -398,10 +398,13 @@ export default function Footer() {
         <div className="border-t border-gray-800 bg-gray-950">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-              <p className="text-sm text-gray-400 text-center md:text-left flex items-center">
-                © {currentYear} LaraibCreative. All rights reserved. Made with 
-                <Heart className="w-4 h-4 mx-1 text-red-500 fill-current" aria-hidden="true" />
-                in Pakistan
+              <p className="text-sm text-gray-400 text-center md:text-left flex flex-wrap items-center justify-center md:justify-start gap-1">
+                <span>© {currentYear} LaraibCreative. All rights reserved.</span>
+                <span className="flex items-center whitespace-nowrap">
+                  Made with 
+                  <Heart className="w-4 h-4 mx-1 text-red-500 fill-current" aria-hidden="true" />
+                  in Pakistan
+                </span>
               </p>
               <nav className="flex items-center space-x-6 text-sm text-gray-400" aria-label="Legal links">
                 <Link 
