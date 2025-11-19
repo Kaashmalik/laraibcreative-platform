@@ -18,6 +18,7 @@ import {
   Mail,
   User,
   LogIn,
+  LogOut,
   Package,
   Heart,
   MapPin,
