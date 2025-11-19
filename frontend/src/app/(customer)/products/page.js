@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/customer/ProductCard';
 import ProductFilters from '@/components/customer/ProductFilters';
@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import SEO from '@/components/shared/SEO';
 import api from '@/lib/api';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -184,5 +184,20 @@ export default function ProductsPage() {
       </div>
     </div>
     </>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <Spinner className="w-12 h-12 text-rose-600" />
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }
