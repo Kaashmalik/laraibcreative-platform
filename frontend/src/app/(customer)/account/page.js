@@ -161,7 +161,7 @@ export default function AccountDashboard() {
           Welcome Back! 👋
         </h1>
         <p className="text-gray-600">
-          Here's what's happening with your orders today.
+          Here&apos;s what&apos;s happening with your orders today.
         </p>
       </div>
 

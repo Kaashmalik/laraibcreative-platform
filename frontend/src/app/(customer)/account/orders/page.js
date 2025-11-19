@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 // app/(customer)/account/orders/page.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Search,
@@ -94,9 +94,44 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
+  const filterAndSortOrders = useCallback(() => {
+    let filtered = [...orders];
+
+    // Apply status filter
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(order => order.status === selectedStatus);
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(order =>
+        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.items.some(item => 
+          item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.date) - new Date(a.date);
+      } else if (sortBy === 'oldest') {
+        return new Date(a.date) - new Date(b.date);
+      } else if (sortBy === 'highest') {
+        return b.total - a.total;
+      } else if (sortBy === 'lowest') {
+        return a.total - b.total;
+      }
+      return 0;
+    });
+
+    setFilteredOrders(filtered);
+  }, [orders, searchQuery, selectedStatus, sortBy]);
+
   useEffect(() => {
     filterAndSortOrders();
-  }, [orders, searchQuery, selectedStatus, sortBy]);
+  }, [filterAndSortOrders]);
 
   const fetchOrders = async () => {
     try {
@@ -184,40 +219,6 @@ export default function OrdersPage() {
     }
   };
 
-  const filterAndSortOrders = () => {
-    let filtered = [...orders];
-
-    // Apply status filter
-    if (selectedStatus !== 'all') {
-      filtered = filtered.filter(order => order.status === selectedStatus);
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(order =>
-        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.items.some(item => 
-          item.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      if (sortBy === 'newest') {
-        return new Date(b.date) - new Date(a.date);
-      } else if (sortBy === 'oldest') {
-        return new Date(a.date) - new Date(b.date);
-      } else if (sortBy === 'highest') {
-        return b.total - a.total;
-      } else if (sortBy === 'lowest') {
-        return a.total - b.total;
-      }
-      return 0;
-    });
-
-    setFilteredOrders(filtered);
-  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-PK', {

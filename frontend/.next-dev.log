@@ -1,0 +1,14 @@
+
+> laraibcreative-frontend@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3002
+  - Environments: .env.local, .env
+  - Experiments (use with caution):
+    · optimizeCss
+    · scrollRestoration
+
+ ✓ Starting...
+ ✓ Ready in 9.2s
+   Reload env: .env

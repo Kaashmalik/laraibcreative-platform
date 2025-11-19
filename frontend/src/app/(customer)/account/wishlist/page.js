@@ -11,10 +11,8 @@ import {
   Eye,
   Trash2,
   Share2,
-  Filter,
   Grid,
-  List,
-  X
+  List
 } from 'lucide-react';
 
 export default function WishlistPage() {

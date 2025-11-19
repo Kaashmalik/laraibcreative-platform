@@ -18,13 +18,6 @@ import { Ruler, Video, Download, CheckCircle, AlertCircle } from 'lucide-react';
  * - SEO optimized
  */
 
-// Metadata for SEO
-export const metadata = {
-  title: 'Size Guide - How to Measure for Custom Stitching | LaraibCreative',
-  description: 'Complete size guide for custom ladies suits. Learn how to take accurate measurements at home for perfect fitting. Includes size chart and video tutorial.',
-  keywords: 'size guide, measurement guide, how to measure, custom stitching measurements, perfect fit, size chart',
-};
-
 const SizeGuidePage = () => {
   const [activeTab, setActiveTab] = useState('chart');
 

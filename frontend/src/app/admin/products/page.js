@@ -12,7 +12,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Toast from '@/components/ui/Toast';
-import { useDebounce } from '@/hooks/useDebounce';
+import useDebounce from '@/hooks/useDebounce';
 
 /**
  * Admin Products List Page

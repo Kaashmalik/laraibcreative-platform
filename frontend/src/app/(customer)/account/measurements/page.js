@@ -433,7 +433,7 @@ export default function MeasurementsPage() {
                             {field.label}:
                           </span>
                           <span className="text-sm font-semibold text-gray-900">
-                            {measurement[field.name] || '-'}"
+                            {measurement[field.name] || '-'}&quot;
                           </span>
                         </div>
                       ))}

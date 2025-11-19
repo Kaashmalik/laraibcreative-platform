@@ -19,7 +19,7 @@ import {
 
 export default function AccountLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter(); // reserved for future navigation actions
+  // const router = useRouter(); // reserved for future navigation actions
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const [localUser, setLocalUser] = useState(null); // fallback demo data
