@@ -1,5 +1,6 @@
-import Head from 'next/head';
-import { useRouter } from 'next/router';
+'use client';
+
+import { usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 
 /**
@@ -54,7 +55,7 @@ const SEO = ({
   currency = 'PKR',
   availability = 'in stock'
 }) => {
-  const router = useRouter();
+  const pathname = usePathname();
   
   // Site configuration
   const siteConfig = {
@@ -81,7 +82,7 @@ const SEO = ({
     : siteConfig.defaultTitle;
 
   // Generate canonical URL
-  const canonicalUrl = canonical || `${siteConfig.url}${router.asPath.split('?')[0]}`;
+  const canonicalUrl = canonical || `${siteConfig.url}${pathname}`;
 
   // Generate absolute image URL
   const absoluteImage = image?.startsWith('http') 
@@ -113,7 +114,7 @@ const SEO = ({
   const keywordsString = allKeywords.join(', ');
 
   return (
-    <Head>
+    <>
       {/* ==================== Basic Meta Tags ==================== */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
@@ -302,7 +303,7 @@ const SEO = ({
           }),
         }}
       />
-    </Head>
+    </>
   );
 };
 

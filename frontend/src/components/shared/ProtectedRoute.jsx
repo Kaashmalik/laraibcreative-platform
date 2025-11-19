@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingScreen from './LoadingScreen';
 import { AlertTriangle, Lock } from 'lucide-react';
@@ -44,6 +44,7 @@ function ProtectedRoute({
 }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Check if user has required role
@@ -63,12 +64,9 @@ function ProtectedRoute({
       if (!user) {
         // User not authenticated - redirect to login
         setIsRedirecting(true);
-        const returnUrl = router.asPath !== redirectTo ? router.asPath : '/';
+        const returnUrl = pathname !== redirectTo ? pathname : '/';
         
-        router.push({
-          pathname: redirectTo,
-          query: { returnUrl }
-        });
+        router.push(`${redirectTo}?returnUrl=${encodeURIComponent(returnUrl)}`);
       } else if (!hasRequiredRole(user.role)) {
         // User authenticated but lacks required role
         if (showUnauthorized) {
@@ -81,7 +79,7 @@ function ProtectedRoute({
         }
       }
     }
-  }, [user, isLoading, adminOnly, requiredRoles, router, redirectTo, showUnauthorized]);
+  }, [user, isLoading, adminOnly, requiredRoles, router, pathname, redirectTo, showUnauthorized]);
 
   // Show loading screen while checking auth status
   if (isLoading || isRedirecting) {
