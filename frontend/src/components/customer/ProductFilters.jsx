@@ -141,9 +141,6 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
     if (onFilterChange) {
       onFilterChange(clearedFilters);
     }
-    if (onFilterChange) {
-      onFilterChange(clearedFilters);
-    }
     router.push('/products');
   };
 
