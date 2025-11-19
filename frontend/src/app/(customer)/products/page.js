@@ -37,8 +37,8 @@ function ProductsContent() {
           ...(filters.fabric && { fabric: filters.fabric }),
           ...(filters.search && { search: filters.search }),
           sortBy: filters.sortBy,
-          minPrice: filters.priceRange[0],
-          maxPrice: filters.priceRange[1],
+          minPrice: filters.minPrice || filters.priceRange[0],
+          maxPrice: filters.maxPrice || filters.priceRange[1],
         };
 
         const response = await api.products.getAll(params);
@@ -66,6 +66,25 @@ function ProductsContent() {
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
     setCurrentPage(1);
+    
+    // Update URL with new filters
+    const params = new URLSearchParams();
+    if (newFilters.category && newFilters.category !== 'all') {
+      params.set('category', newFilters.category);
+    }
+    if (newFilters.fabric) {
+      params.set('fabric', newFilters.fabric);
+    }
+    if (newFilters.search) {
+      params.set('search', newFilters.search);
+    }
+    if (newFilters.sortBy) {
+      params.set('sortBy', newFilters.sortBy);
+    }
+    
+    const queryString = params.toString();
+    const newUrl = queryString ? `/products?${queryString}` : '/products';
+    window.history.pushState({}, '', newUrl);
   };
 
   if (loading) {

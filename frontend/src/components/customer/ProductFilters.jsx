@@ -1,9 +1,7 @@
 'use client';
 
-'use client';
-
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -19,21 +17,21 @@ import { motion, AnimatePresence } from 'framer-motion';
  * - Clear all button
  * - Responsive mobile drawer
  * 
- * @param {Object} initialFilters - Initial filter values from URL
+ * @param {Object} filters - Current filter values
+ * @param {Function} onFilterChange - Callback when filters change
  */
-export default function ProductFilters({ initialFilters = {} }) {
+export default function ProductFilters({ filters: propFilters, onFilterChange }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Filter state
-  const [filters, setFilters] = useState({
-    fabric: initialFilters.fabric || [],
-    minPrice: initialFilters.minPrice || 0,
-    maxPrice: initialFilters.maxPrice || 50000,
-    occasion: initialFilters.occasion || [],
-    color: initialFilters.color || [],
-    availability: initialFilters.availability || '',
-  });
+  // Use filters from props or default state with proper defaults
+  const filters = {
+    fabric: propFilters?.fabric || [],
+    minPrice: propFilters?.minPrice ?? 0,
+    maxPrice: propFilters?.maxPrice ?? 50000,
+    occasion: propFilters?.occasion || [],
+    color: propFilters?.color || [],
+    availability: propFilters?.availability || '',
+  };
 
   // Expanded sections state
   const [expanded, setExpanded] = useState({
@@ -77,59 +75,37 @@ export default function ProductFilters({ initialFilters = {} }) {
   ];
 
   /**
-   * Update URL with new filters
-   */
-  const updateFilters = (newFilters) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Update each filter in URL
-    Object.entries(newFilters).forEach(([key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        params.set(key, value.join(','));
-      } else if (value && !Array.isArray(value)) {
-        params.set(key, value.toString());
-      } else {
-        params.delete(key);
-      }
-    });
-
-    // Reset to page 1
-    params.set('page', '1');
-
-    router.push(`/products?${params.toString()}`, { scroll: false });
-  };
-
-  /**
    * Handle checkbox filter change (fabric, occasion)
    */
   const handleCheckboxChange = (filterType, value) => {
-    setFilters(prev => {
-      const currentValues = Array.isArray(prev[filterType]) ? prev[filterType] : [];
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter(v => v !== value)
-        : [...currentValues, value];
+    const currentValues = Array.isArray(filters[filterType]) ? filters[filterType] : [];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(v => v !== value)
+      : [...currentValues, value];
 
-      const newFilters = { ...prev, [filterType]: newValues };
-      updateFilters(newFilters);
-      return newFilters;
-    });
+    const newFilters = { ...filters, [filterType]: newValues };
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    }
   };
 
   /**
    * Handle price range change
    */
   const handlePriceChange = (type, value) => {
-    setFilters(prev => {
-      const newFilters = { ...prev, [type]: parseInt(value) };
-      return newFilters;
-    });
+    const newFilters = { ...filters, [type]: parseInt(value) };
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    }
   };
 
   /**
    * Apply price filter (on mouse up)
    */
   const applyPriceFilter = () => {
-    updateFilters(filters);
+    if (onFilterChange) {
+      onFilterChange(filters);
+    }
   };
 
   /**
@@ -143,11 +119,10 @@ export default function ProductFilters({ initialFilters = {} }) {
    * Handle availability change
    */
   const handleAvailabilityChange = (value) => {
-    setFilters(prev => {
-      const newFilters = { ...prev, availability: prev.availability === value ? '' : value };
-      updateFilters(newFilters);
-      return newFilters;
-    });
+    const newFilters = { ...filters, availability: filters.availability === value ? '' : value };
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    }
   };
 
   /**
@@ -155,6 +130,7 @@ export default function ProductFilters({ initialFilters = {} }) {
    */
   const clearAllFilters = () => {
     const clearedFilters = {
+      ...filters,
       fabric: [],
       minPrice: 0,
       maxPrice: 50000,
@@ -162,7 +138,12 @@ export default function ProductFilters({ initialFilters = {} }) {
       color: [],
       availability: '',
     };
-    setFilters(clearedFilters);
+    if (onFilterChange) {
+      onFilterChange(clearedFilters);
+    }
+    if (onFilterChange) {
+      onFilterChange(clearedFilters);
+    }
     router.push('/products');
   };
 
