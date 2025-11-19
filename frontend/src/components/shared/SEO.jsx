@@ -149,32 +149,31 @@ const SEO = ({
     setMetaTag('robots', robotsContent);
     setLinkTag('canonical', canonicalUrl);
 
-      {/* Viewport & Mobile Optimization */}
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-      <meta name="theme-color" content="#D946A6" />
-      <meta name="mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-      <meta name="apple-mobile-web-app-title" content="LaraibCreative" />
+    // Viewport & Mobile Optimization
+    setMetaTag('theme-color', '#D946A6');
+    setMetaTag('mobile-web-app-capable', 'yes');
+    setMetaTag('apple-mobile-web-app-capable', 'yes');
+    setMetaTag('apple-mobile-web-app-status-bar-style', 'black-translucent');
+    setMetaTag('apple-mobile-web-app-title', 'LaraibCreative');
 
-      {/* Format Detection */}
-      <meta name="format-detection" content="telephone=yes" />
-      <meta name="format-detection" content="email=yes" />
-      <meta name="format-detection" content="address=yes" />
+    // Format Detection
+    setMetaTag('format-detection', 'telephone=yes');
+    setMetaTag('format-detection', 'email=yes');
+    setMetaTag('format-detection', 'address=yes');
 
-      {/* ==================== Open Graph / Facebook ==================== */}
-      <meta property="og:type" content={type} />
-      <meta property="og:site_name" content={siteConfig.name} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:image" content={absoluteImage} />
-      <meta property="og:image:secure_url" content={absoluteImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={title || siteConfig.name} />
-      <meta property="og:locale" content={siteConfig.locale} />
-      <meta property="og:locale:alternate" content={siteConfig.alternateLocale} />
+    // Open Graph / Facebook
+    setMetaTag('og:type', type, true);
+    setMetaTag('og:site_name', siteConfig.name, true);
+    setMetaTag('og:title', fullTitle, true);
+    setMetaTag('og:description', description, true);
+    setMetaTag('og:url', canonicalUrl, true);
+    setMetaTag('og:image', absoluteImage, true);
+    setMetaTag('og:image:secure_url', absoluteImage, true);
+    setMetaTag('og:image:width', '1200', true);
+    setMetaTag('og:image:height', '630', true);
+    setMetaTag('og:image:alt', title || siteConfig.name, true);
+    setMetaTag('og:locale', siteConfig.locale, true);
+    setMetaTag('og:locale:alternate', siteConfig.alternateLocale, true);
 
     // Article-specific OG tags
     if (type === 'article') {
