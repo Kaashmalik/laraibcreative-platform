@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 
@@ -113,15 +114,40 @@ const SEO = ({
   const allKeywords = [...new Set([...keywords, ...defaultKeywords])];
   const keywordsString = allKeywords.join(', ');
 
-  return (
-    <>
-      {/* ==================== Basic Meta Tags ==================== */}
-      <title>{fullTitle}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywordsString} />
-      {author && <meta name="author" content={author} />}
-      <meta name="robots" content={robotsContent} />
-      <link rel="canonical" href={canonicalUrl} />
+  // Update document head with meta tags
+  useEffect(() => {
+    // Update title
+    document.title = fullTitle;
+
+    // Helper function to set or update meta tag
+    const setMetaTag = (name, content, isProperty = false) => {
+      const attribute = isProperty ? 'property' : 'name';
+      let meta = document.querySelector(`meta[${attribute}="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(attribute, name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    // Helper function to set or update link tag
+    const setLinkTag = (rel, href) => {
+      let link = document.querySelector(`link[rel="${rel}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', rel);
+        document.head.appendChild(link);
+      }
+      link.setAttribute('href', href);
+    };
+
+    // Basic meta tags
+    setMetaTag('description', description);
+    setMetaTag('keywords', keywordsString);
+    if (author) setMetaTag('author', author);
+    setMetaTag('robots', robotsContent);
+    setLinkTag('canonical', canonicalUrl);
 
       {/* Viewport & Mobile Optimization */}
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
@@ -150,81 +176,54 @@ const SEO = ({
       <meta property="og:locale" content={siteConfig.locale} />
       <meta property="og:locale:alternate" content={siteConfig.alternateLocale} />
 
-      {/* Article-specific OG tags */}
-      {type === 'article' && (
-        <>
-          {publishedTime && <meta property="article:published_time" content={publishedTime} />}
-          {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
-          {author && <meta property="article:author" content={author} />}
-          {category && <meta property="article:section" content={category} />}
-          {tags.map(tag => (
-            <meta key={tag} property="article:tag" content={tag} />
-          ))}
-        </>
-      )}
+    // Article-specific OG tags
+    if (type === 'article') {
+      if (publishedTime) setMetaTag('article:published_time', publishedTime, true);
+      if (modifiedTime) setMetaTag('article:modified_time', modifiedTime, true);
+      if (author) setMetaTag('article:author', author, true);
+      if (category) setMetaTag('article:section', category, true);
+      tags.forEach(tag => setMetaTag('article:tag', tag, true));
+    }
 
-      {/* Product-specific OG tags */}
-      {type === 'product' && (
-        <>
-          {price && (
-            <>
-              <meta property="product:price:amount" content={price} />
-              <meta property="product:price:currency" content={currency} />
-            </>
-          )}
-          {availability && <meta property="product:availability" content={availability} />}
-          {category && <meta property="product:category" content={category} />}
-        </>
-      )}
+    // Product-specific OG tags
+    if (type === 'product') {
+      if (price) {
+        setMetaTag('product:price:amount', price.toString(), true);
+        setMetaTag('product:price:currency', currency, true);
+      }
+      if (availability) setMetaTag('product:availability', availability, true);
+      if (category) setMetaTag('product:category', category, true);
+    }
 
-      {/* ==================== Twitter Card ==================== */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content={siteConfig.social.twitter} />
-      <meta name="twitter:creator" content={siteConfig.social.twitter} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={absoluteImage} />
-      <meta name="twitter:image:alt" content={title || siteConfig.name} />
+    // Twitter Card
+    setMetaTag('twitter:card', 'summary_large_image');
+    setMetaTag('twitter:site', siteConfig.social.twitter);
+    setMetaTag('twitter:creator', siteConfig.social.twitter);
+    setMetaTag('twitter:title', fullTitle);
+    setMetaTag('twitter:description', description);
+    setMetaTag('twitter:image', absoluteImage);
+    setMetaTag('twitter:image:alt', title || siteConfig.name);
 
-      {/* ==================== Geographic & Language ==================== */}
-      <meta name="geo.region" content="PK" />
-      <meta name="geo.placename" content="Pakistan" />
-      <meta name="geo.position" content="31.5204;74.3587" /> {/* Lahore coords */}
-      <meta name="ICBM" content="31.5204, 74.3587" />
-      <meta name="language" content="English" />
-      <meta httpEquiv="content-language" content="en-PK" />
+    // Geographic & Language
+    setMetaTag('geo.region', 'PK');
+    setMetaTag('geo.placename', 'Pakistan');
+    setMetaTag('geo.position', '31.5204;74.3587');
+    setMetaTag('ICBM', '31.5204, 74.3587');
+    setMetaTag('language', 'English');
 
-      {/* ==================== Additional SEO Meta Tags ==================== */}
-      <meta name="rating" content="General" />
-      <meta name="distribution" content="Global" />
-      <meta name="revisit-after" content="7 days" />
-      <meta name="coverage" content="Worldwide" />
-      <meta name="target" content="all" />
-      <meta name="HandheldFriendly" content="True" />
-      <meta name="MobileOptimized" content="320" />
+    // Additional SEO Meta Tags
+    setMetaTag('rating', 'General');
+    setMetaTag('distribution', 'Global');
+    setMetaTag('revisit-after', '7 days');
+    setMetaTag('coverage', 'Worldwide');
+    setMetaTag('target', 'all');
+    setMetaTag('HandheldFriendly', 'True');
+    setMetaTag('MobileOptimized', '320');
+  }, [fullTitle, description, keywordsString, author, robotsContent, canonicalUrl, type, publishedTime, modifiedTime, tags, category, price, currency, availability, title, siteConfig, absoluteImage, pathname]);
 
-      {/* ==================== Favicon & Icons ==================== */}
-      <link rel="icon" href="/favicon.ico" sizes="any" />
-      <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-      <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-      <link rel="manifest" href="/manifest.json" />
-      <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#D946A6" />
-      <meta name="msapplication-TileColor" content="#D946A6" />
-      <meta name="msapplication-config" content="/browserconfig.xml" />
-
-      {/* ==================== Performance Optimization ==================== */}
-      {/* Preconnect to external domains */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href="https://res.cloudinary.com" />
-      
-      {/* DNS Prefetch for analytics and CDNs */}
-      <link rel="dns-prefetch" href="https://www.google-analytics.com" />
-      <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-      <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+  // Return structured data scripts only (meta tags are set via useEffect)
+  return (
+    <>
 
       {/* ==================== Structured Data (JSON-LD) ==================== */}
       {structuredData && (
