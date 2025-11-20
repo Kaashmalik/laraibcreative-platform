@@ -100,7 +100,7 @@ function ProductsContent() {
       
       let products: any[] = [];
       if (response) {
-        const data = response;
+        const data = response as any;
         // Handle both response structures: { products, total } or { data: products, pagination: { totalProducts } }
         products = data.products || data.data || [];
         const total = data.total || data.pagination?.totalProducts || products.length;
