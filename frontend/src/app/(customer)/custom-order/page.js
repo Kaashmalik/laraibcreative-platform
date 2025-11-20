@@ -1,9 +1,5 @@
 'use client';
 
-import CustomOrderPage from './CustomOrderPage';
-
-'use client';
-
 /**
  * Custom Order Page
  * Wrapper for the custom order wizard
