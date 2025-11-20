@@ -12,7 +12,23 @@ export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // API and Site URLs
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const getApiBaseUrl = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+  
+  // Remove trailing slash
+  url = url.replace(/\/$/, '');
+  
+  // If it already ends with /api/v1, return it
+  if (url.endsWith('/api/v1')) return url;
+  
+  // If it ends with /api, append /v1
+  if (url.endsWith('/api')) return `${url}/v1`;
+  
+  // Otherwise, append /api/v1
+  return `${url}/api/v1`;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const SITE_NAME = 'LaraibCreative';
 
