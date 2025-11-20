@@ -124,3 +124,6 @@ const Dialog = ({
     </div>
   );
 };
+
+export default Dialog;
+export { Dialog };

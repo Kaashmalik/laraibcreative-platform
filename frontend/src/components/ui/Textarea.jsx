@@ -369,4 +369,5 @@ const TextareaDemo = () => {
   );
 };
 
-export default TextareaDemo;
+export default Textarea;
+export { Textarea };

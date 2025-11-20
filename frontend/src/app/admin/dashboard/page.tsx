@@ -106,8 +106,8 @@ export default function AdminDashboardPage() {
         endDate: customEndDate
       });
 
-      // When responseType is 'blob', response.data is already a Blob
-      const blob = response.data as Blob;
+      // When responseType is 'blob', the axios interceptor returns the blob directly
+      const blob = response as Blob;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
