@@ -7,8 +7,14 @@
 require('dotenv').config();
 require('express-async-errors'); // Handle async errors automatically
 
-// DNS Fix for MongoDB Atlas on Windows
-require('./dns-fix');
+// DNS Fix for MongoDB Atlas on Windows (Only use in local development)
+if (process.platform === 'win32') {
+  try {
+    require('./dns-fix');
+  } catch (err) {
+    // Ignore if file doesn't exist
+  }
+}
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -423,16 +429,22 @@ const connectDB = async (retries = 5) => {
   
   for (let i = 0; i < retries; i++) {
     try {
-      await mongoose.connect(process.env.MONGODB_URI, {
+      const connectOptions = {
         serverSelectionTimeoutMS: 60000, // 60 seconds for slow DNS
         socketTimeoutMS: 75000, // 75 seconds
         connectTimeoutMS: 60000, // 60 seconds initial connection
-        family: 4, // Force IPv4
         maxPoolSize: 10,
         minPoolSize: 2,
         retryWrites: true,
         retryReads: true
-      });
+      };
+
+      // Only force IPv4 on Windows to fix local DNS issues
+      if (process.platform === 'win32') {
+        connectOptions.family = 4;
+      }
+
+      await mongoose.connect(process.env.MONGODB_URI, connectOptions);
       
       console.log('✅ MongoDB connected successfully');
       console.log(`📊 Connection state: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'}`);
