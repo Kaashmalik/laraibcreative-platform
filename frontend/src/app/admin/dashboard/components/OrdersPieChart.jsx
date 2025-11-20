@@ -31,7 +31,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
  */
 
 // Color palette for order statuses
-const STATUS_COLORS: Record<string, string> = {
+const STATUS_COLORS = {
   'pending-payment': '#f59e0b', // yellow
   'payment-verified': '#3b82f6', // blue
   'fabric-arranged': '#8b5cf6', // purple
