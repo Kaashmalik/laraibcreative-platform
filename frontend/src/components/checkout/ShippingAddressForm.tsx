@@ -81,7 +81,7 @@ export default function ShippingAddressForm({
     const fetchSavedAddresses = async () => {
       try {
         setIsLoadingAddresses(true);
-        const response = await api.customers?.getAddresses?.();
+        const response = await api.customers?.getAddresses?.() as any;
         if (response?.success) {
           setSavedAddresses(response.data || []);
           

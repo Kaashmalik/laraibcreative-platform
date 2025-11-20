@@ -259,7 +259,7 @@ export const useCartStore = create<CartStore>()(
           try {
             set({ isLoading: true, error: null });
 
-            const response = await api.cart.applyPromoCode(code, get().items);
+            const response = await api.cart.applyPromoCode(code, get().items) as any;
             
             if (response.success) {
               const currentSubtotal = get().subtotal;
@@ -341,7 +341,7 @@ export const useCartStore = create<CartStore>()(
             
             if (!token) return;
 
-            const response = await api.cart.sync(get().items);
+            const response = await api.cart.sync(get().items) as any;
             
             if (response.success) {
               set({
@@ -367,7 +367,7 @@ export const useCartStore = create<CartStore>()(
               return;
             }
 
-            const response = await api.cart.get();
+            const response = await api.cart.get() as any;
             
             if (response.items && response.items.length > 0) {
               const totals = calculateTotals(response.items, 0.05, get().shipping, get().discount);
