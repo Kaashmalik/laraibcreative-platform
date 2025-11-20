@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
+import { setAuthToken, clearAuthToken } from '@/lib/axios';
 
 const AuthContext = createContext(undefined);
 
@@ -32,23 +34,11 @@ export function AuthProvider({ children }) {
       }
 
       // Verify token with backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify-token`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-      } else {
-        // Token invalid, clear it
-        localStorage.removeItem('auth_token');
-        setUser(null);
-      }
+      const response = await api.auth.verifyToken();
+      setUser(response.user);
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('auth_token');
+      clearAuthToken();
       setUser(null);
     } finally {
       setLoading(false);
@@ -57,55 +47,33 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const data = await api.auth.login(email, password);
 
       // Store token
-      localStorage.setItem('auth_token', data.token);
+      setAuthToken(data.token);
       setUser(data.user);
 
       return { success: true, user: data.user };
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: error.message };
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      return { success: false, error: message };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const data = await api.auth.register(userData);
 
       // Auto login after registration
-      localStorage.setItem('auth_token', data.token);
+      setAuthToken(data.token);
       setUser(data.user);
 
       return { success: true, user: data.user };
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, error: error.message };
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      return { success: false, error: message };
     }
   };
 
@@ -115,18 +83,13 @@ export function AuthProvider({ children }) {
       
       if (token) {
         // Notify backend about logout
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.auth.logout();
       }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       // Clear local state regardless of backend response
-      localStorage.removeItem('auth_token');
+      clearAuthToken();
       setUser(null);
       router.push('/');
     }
