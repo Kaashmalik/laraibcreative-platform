@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-          <Button onClick={() => refresh()}>Retry</Button>
+          <Button onClick={() => refresh()} ariaLabel="Retry loading dashboard">Retry</Button>
         </div>
       </div>
     );
@@ -179,6 +179,7 @@ export default function AdminDashboardPage() {
             onClick={refresh}
             disabled={isRefreshing}
             className="flex items-center gap-2"
+            ariaLabel="Refresh dashboard data"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
