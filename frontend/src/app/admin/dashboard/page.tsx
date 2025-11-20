@@ -106,10 +106,8 @@ export default function AdminDashboardPage() {
         endDate: customEndDate
       });
 
-      // Create download link
-      const blob = new Blob([response.data], {
-        type: format === 'csv' ? 'text/csv' : format === 'pdf' ? 'application/pdf' : 'application/json'
-      });
+      // When responseType is 'blob', response.data is already a Blob
+      const blob = response.data as Blob;
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

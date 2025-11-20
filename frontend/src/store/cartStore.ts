@@ -45,8 +45,8 @@ function calculateTotals(items: CartItem[], taxRate: number = 0.05, shipping: nu
  * Cart Store with Persistence and Sync
  */
 export const useCartStore = create<CartStore>()(
-  subscribeWithSelector(
-    persist(
+  persist(
+    subscribeWithSelector(
       (set, get) => ({
         // Initial State
         items: [],
@@ -438,36 +438,20 @@ export const useCartStore = create<CartStore>()(
             };
           }
         },
+      })
+    ),
+    {
+      name: 'laraibcreative-cart',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        items: state.items,
+        promoCode: state.promoCode,
+        discount: state.discount,
       }),
-      {
-        name: 'laraibcreative-cart',
-        storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({
-          items: state.items,
-          promoCode: state.promoCode,
-          discount: state.discount,
-        }),
-      }
-    )
+    }
   )
 );
 
-// Subscribe to cart changes for analytics
-useCartStore.subscribe(
-  (state) => state.items,
-  (items) => {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'cart_updated', {
-        items: items.map(item => ({
-          item_id: item.productId,
-          item_name: item.product.title || item.product.name,
-          quantity: item.quantity,
-          price: item.priceAtAdd || item.product.price,
-        })),
-      });
-    }
-  }
-);
-
+// Export as default
 export default useCartStore;
 

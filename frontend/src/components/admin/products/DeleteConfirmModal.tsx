@@ -7,7 +7,7 @@
 
 import { AlertTriangle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import Dialog from '@/components/ui/Dialog';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -28,32 +28,67 @@ export default function DeleteConfirmModal({
   isBulk = false,
   isLoading = false,
 }: DeleteConfirmModalProps) {
+  const title = isBulk ? 'Delete Multiple Products' : 'Delete Product';
+  const description = isBulk ? (
+    <>
+      Are you sure you want to delete <strong>{productCount}</strong> product{productCount > 1 ? 's' : ''}?
+      This action cannot be undone.
+    </>
+  ) : (
+    <>
+      Are you sure you want to delete <strong>{productNames[0] || 'this product'}</strong>?
+      This action cannot be undone.
+    </>
+  );
+
+  const footer = (
+    <>
+      <Button
+        variant="outline"
+        onClick={onClose}
+        disabled={isLoading}
+        className="min-w-[100px]"
+      >
+        Cancel
+      </Button>
+      <Button
+        variant="destructive"
+        onClick={onConfirm}
+        disabled={isLoading}
+        className="min-w-[100px] flex items-center gap-2"
+      >
+        {isLoading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            Deleting...
+          </>
+        ) : (
+          <>
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </>
+        )}
+      </Button>
+    </>
+  );
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-            </div>
-            <DialogTitle className="text-xl font-bold text-gray-900">
-              {isBulk ? 'Delete Multiple Products' : 'Delete Product'}
-            </DialogTitle>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      title={
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>
-          <DialogDescription className="text-gray-600 pt-2">
-            {isBulk ? (
-              <>
-                Are you sure you want to delete <strong>{productCount}</strong> product{productCount > 1 ? 's' : ''}?
-                This action cannot be undone.
-              </>
-            ) : (
-              <>
-                Are you sure you want to delete <strong>{productNames[0] || 'this product'}</strong>?
-                This action cannot be undone.
-              </>
-            )}
-          </DialogDescription>
-        </DialogHeader>
+          <span>{title}</span>
+        </div>
+      }
+      footer={footer}
+      size="md"
+    >
+      <div className="space-y-4">
+        <p className="text-gray-600">{description}</p>
 
         {productNames.length > 0 && productNames.length <= 5 && (
           <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
@@ -89,36 +124,7 @@ export default function DeleteConfirmModal({
             </div>
           </div>
         </div>
-
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="min-w-[100px]"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="min-w-[100px] flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      </div>
     </Dialog>
   );
 }

@@ -9,13 +9,13 @@
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
 import { useWizard } from '@/hooks/useWizard';
 import { ArrowLeft, ArrowRight, Save, CheckCircle } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import type { OrderSubmissionData, OrderSubmissionResponse } from '@/types/custom-order';
+import type { OrderSubmissionData, OrderSubmissionResponse, ReferenceImage, CustomOrderFormData, PriceBreakdown } from '@/types/custom-order';
 
 // Dynamically import step components for code splitting
 const StepIndicator = dynamic(() => import('./components/StepIndicator'), {
@@ -26,7 +26,12 @@ const StepIndicator = dynamic(() => import('./components/StepIndicator'), {
 const ServiceTypeSelection = dynamic(() => import('./components/ServiceTypeSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
-});
+}) as unknown as React.ComponentType<{
+  serviceType: string;
+  designIdea: string;
+  onChange: (field: string, value: any) => void;
+  errors: Record<string, string>;
+}>;
 
 const ImageUpload = dynamic(() => import('./components/ImageUpload'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
@@ -46,7 +51,13 @@ const MeasurementForm = dynamic(() => import('./components/MeasurementForm'), {
 const OrderSummary = dynamic(() => import('./components/OrderSummary'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
-});
+}) as unknown as React.ComponentType<{
+  formData: CustomOrderFormData;
+  onChange: (field: string, value: any) => void;
+  estimatedPrice: number;
+  priceBreakdown: PriceBreakdown | null;
+  errors: Record<string, string>;
+}>;
 
 const SuccessConfirmation = dynamic(() => import('./components/SuccessConfirmation'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
@@ -145,8 +156,31 @@ function CustomOrderPage() {
         estimatedPrice: priceBreakdown?.total || 0,
       };
 
+      // Convert order data to FormData
+      const formDataToSubmit = new FormData();
+      Object.entries(orderData).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+          return; // Skip undefined/null values
+        }
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          // Handle nested objects (like customerInfo, measurements, selectedFabric)
+          formDataToSubmit.append(key, JSON.stringify(value));
+        } else if (Array.isArray(value)) {
+          // Handle arrays (like referenceImages)
+          if (value.length > 0) {
+            formDataToSubmit.append(key, JSON.stringify(value));
+          }
+        } else if (typeof value === 'boolean') {
+          // Handle boolean values
+          formDataToSubmit.append(key, String(value));
+        } else {
+          // Handle primitive values
+          formDataToSubmit.append(key, String(value));
+        }
+      });
+
       // Submit order
-      const response = await api.customOrders.submit(orderData);
+      const response = await api.customOrders.submit(formDataToSubmit) as OrderSubmissionResponse;
 
       if (response.success) {
         setSubmittedOrder(response);
@@ -199,7 +233,7 @@ function CustomOrderPage() {
           <ServiceTypeSelection
             serviceType={formData.serviceType}
             designIdea={formData.designIdea}
-            onChange={(field, value) => updateFormData(field as any, value)}
+            onChange={(field: string, value: any) => updateFormData(field as any, value)}
             errors={errors}
           />
         );
@@ -208,7 +242,7 @@ function CustomOrderPage() {
         return (
           <ImageUpload
             images={formData.referenceImages}
-            onChange={(images) => updateFormData('referenceImages', images)}
+            onChange={(images: ReferenceImage[]) => updateFormData('referenceImages', images)}
             serviceType={formData.serviceType}
             errors={errors}
           />
@@ -220,7 +254,7 @@ function CustomOrderPage() {
             fabricSource={formData.fabricSource}
             selectedFabric={formData.selectedFabric}
             fabricDetails={formData.fabricDetails}
-            onChange={(field, value) => updateFormData(field as any, value)}
+            onChange={(field: string, value: any) => updateFormData(field as any, value)}
             errors={errors}
           />
         );
@@ -233,11 +267,11 @@ function CustomOrderPage() {
             measurements={formData.measurements}
             saveMeasurements={formData.saveMeasurements}
             measurementLabel={formData.measurementLabel}
-            onToggleStandardSize={(value) => updateFormData('useStandardSize', value)}
-            onStandardSizeChange={(value) => updateFormData('standardSize', value)}
+            onToggleStandardSize={(value: boolean) => updateFormData('useStandardSize', value)}
+            onStandardSizeChange={(value: string) => updateFormData('standardSize', value)}
             onMeasurementChange={updateMeasurements}
-            onSaveMeasurementsChange={(value) => updateFormData('saveMeasurements', value)}
-            onLabelChange={(value) => updateFormData('measurementLabel', value)}
+            onSaveMeasurementsChange={(value: boolean) => updateFormData('saveMeasurements', value)}
+            onLabelChange={(value: string) => updateFormData('measurementLabel', value)}
             errors={errors}
           />
         );
@@ -246,7 +280,7 @@ function CustomOrderPage() {
         return (
           <OrderSummary
             formData={formData}
-            onChange={(field, value) => updateFormData(field as any, value)}
+            onChange={(field: string, value: any) => updateFormData(field as any, value)}
             estimatedPrice={priceBreakdown?.total || 0}
             priceBreakdown={priceBreakdown}
             errors={errors}

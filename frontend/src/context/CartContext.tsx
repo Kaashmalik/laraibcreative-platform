@@ -85,7 +85,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * useCart Hook
+ * useCartContext Hook
  * Access cart context
  * 
  * @throws {Error} If used outside CartProvider
@@ -97,6 +97,14 @@ export function useCartContext() {
   }
   return context;
 }
+
+/**
+ * useCart Hook (alias for useCartContext)
+ * Access cart context - provided for backward compatibility
+ * 
+ * @throws {Error} If used outside CartProvider
+ */
+export const useCart = useCartContext;
 
 export default CartProvider;
 

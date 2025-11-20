@@ -245,56 +245,29 @@ const api = {
     async bulkUpdate(updates) {
       return await axios.post('/products/bulk-update', { updates });
     },
-    /**
-     * Admin Product Management Endpoints
-     */
-    // Get all products for admin (with filters, search, pagination)
-    async getAllAdmin(params = {}) {
-      return await axios.get('/admin/products', { params });
+  },
+
+  /**
+   * Categories endpoints
+   */
+  categories: {
+    async getAll(params = {}) {
+      return await axios.get('/categories', { params });
     },
-    // Create new product (admin only)
-    async createAdmin(productData) {
-      return await axios.post('/admin/products', productData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+    async getById(id) {
+      return await axios.get(`/categories/${id}`);
     },
-    // Update product (admin only)
-    async updateAdmin(id, productData) {
-      return await axios.put(`/admin/products/${id}`, productData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+    async getBySlug(slug) {
+      return await axios.get(`/categories/slug/${slug}`);
     },
-    // Delete product (admin only)
-    async deleteAdmin(id) {
-      return await axios.delete(`/admin/products/${id}`);
+    async create(categoryData) {
+      return await axios.post('/categories', categoryData);
     },
-    // Bulk delete products
-    async bulkDelete(productIds) {
-      return await axios.delete('/admin/products/bulk-delete', {
-        data: { productIds }
-      });
+    async update(id, categoryData) {
+      return await axios.put(`/categories/${id}`, categoryData);
     },
-    // Bulk update products
-    async bulkUpdateAdmin(productIds, updates) {
-      return await axios.patch('/admin/products/bulk-update', {
-        productIds,
-        updates
-      });
-    },
-    // Duplicate product
-    async duplicate(id) {
-      return await axios.post(`/admin/products/${id}/duplicate`);
-    },
-    // Export products to CSV
-    async export(filters = {}) {
-      return await axios.get('/admin/products/export', {
-        params: filters,
-        responseType: 'blob'
-      });
-    },
-    // Get product for edit
-    async getForEdit(id) {
-      return await axios.get(`/admin/products/${id}/edit`);
+    async delete(id) {
+      return await axios.delete(`/categories/${id}`);
     }
   },
 

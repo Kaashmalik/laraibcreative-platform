@@ -98,9 +98,14 @@ function ProductsContent() {
 
       const response = await api.products.getAll(params);
       
-      if (response && response.products) {
-        setProducts(response.products);
-        setTotalProducts(response.total || response.products.length);
+      let products: any[] = [];
+      if (response && response.data) {
+        const data = response.data;
+        // Handle both response structures: { products, total } or { data: products, pagination: { totalProducts } }
+        products = data.products || data.data || [];
+        const total = data.total || data.pagination?.totalProducts || products.length;
+        setProducts(products);
+        setTotalProducts(total);
       } else {
         setProducts([]);
         setTotalProducts(0);
@@ -108,7 +113,7 @@ function ProductsContent() {
 
       // TODO: Fetch filter counts from API
       // For now, calculate from products
-      calculateFilterCounts(response?.products || []);
+      calculateFilterCounts(products);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);

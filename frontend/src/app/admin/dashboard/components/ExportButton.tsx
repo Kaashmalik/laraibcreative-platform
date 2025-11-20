@@ -27,6 +27,7 @@ export default function ExportButton({ onExport }: ExportButtonProps) {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2"
+        ariaLabel="Export dashboard data"
       >
         <Download className="w-4 h-4" />
         Export

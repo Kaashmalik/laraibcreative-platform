@@ -18,12 +18,12 @@ import OrderReview from '@/components/checkout/OrderReview';
 import OrderConfirmation, { type OrderConfirmationData } from '@/components/checkout/OrderConfirmation';
 import OrderSummary from '@/components/checkout/OrderSummary';
 import TrustBadges from '@/components/checkout/TrustBadges';
-import { checkoutFormSchema, type CheckoutFormInput } from '@/lib/validations/checkout-schemas';
+import { checkoutFormSchema, type CheckoutFormInput, type CustomerInfoInput } from '@/lib/validations/checkout-schemas';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import type { OrderSubmissionResponse } from '@/types/checkout';
 
-const CHECKOUT_STEPS = [
+const CHECKOUT_STEPS: Array<{ number: number; title: string }> = [
   { number: 1, title: 'Customer Info' },
   { number: 2, title: 'Shipping' },
   { number: 3, title: 'Payment' },
@@ -359,7 +359,7 @@ export default function CheckoutPage() {
               {currentStep === 1 && (
                 <CustomerInfoForm
                   data={formData.customerInfo}
-                  onUpdate={(data) => {
+                  onUpdate={(data: CustomerInfoInput) => {
                     updateFormData('customerInfo', data);
                     handleNext();
                   }}
