@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { X, CheckCircle, XCircle, AlertCircle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
-import { Input } from '@/components/ui/Input';
+import Input from '@/components/ui/Input';
 import type { Order, PaymentVerificationRequest } from '@/types/order-management';
 
 interface PaymentVerificationProps {

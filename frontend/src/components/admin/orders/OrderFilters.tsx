@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { Search, Filter, X, Calendar } from 'lucide-react';
-import { Input } from '@/components/ui/Input';
+import Input from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import type { OrderFilters as OrderFiltersType } from '@/types/order-management';
