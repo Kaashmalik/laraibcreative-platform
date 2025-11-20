@@ -157,6 +157,7 @@ export default function AdminOrdersPage() {
               onClick={fetchOrders}
               className="flex items-center gap-2"
               disabled={loading}
+              ariaLabel="Refresh orders list"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -165,6 +166,7 @@ export default function AdminOrdersPage() {
               variant="outline"
               onClick={handleExport}
               className="flex items-center gap-2"
+              ariaLabel="Export orders"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -234,7 +236,7 @@ export default function AdminOrdersPage() {
             }
           </p>
           {(filters.search || filters.status !== 'all' || filters.paymentStatus !== 'all') && (
-            <Button onClick={handleClearFilters}>
+            <Button onClick={handleClearFilters} ariaLabel="Clear all filters">
               Clear Filters
             </Button>
           )}
@@ -267,6 +269,7 @@ export default function AdminOrdersPage() {
                   size="sm"
                   onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))}
                   disabled={!pagination.hasPrevPage || loading}
+                  ariaLabel="Go to previous page"
                 >
                   Previous
                 </Button>
@@ -275,6 +278,7 @@ export default function AdminOrdersPage() {
                   size="sm"
                   onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))}
                   disabled={!pagination.hasNextPage || loading}
+                  ariaLabel="Go to next page"
                 >
                   Next
                 </Button>

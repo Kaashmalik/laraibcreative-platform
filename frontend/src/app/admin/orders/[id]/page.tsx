@@ -337,7 +337,7 @@ export default function AdminOrderDetailPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h2>
           <p className="text-gray-600 mb-6">The order you&apos;re looking for doesn&apos;t exist.</p>
-          <Button onClick={() => router.push('/admin/orders')}>
+          <Button onClick={() => router.push('/admin/orders')} ariaLabel="Back to orders list">
             Back to Orders
           </Button>
         </div>
@@ -356,6 +356,7 @@ export default function AdminOrderDetailPage() {
             variant="ghost"
             onClick={() => router.push('/admin/orders')}
             className="mb-4 flex items-center gap-2"
+            ariaLabel="Back to orders list"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Orders
@@ -382,6 +383,7 @@ export default function AdminOrderDetailPage() {
                 variant="outline"
                 onClick={handleWhatsApp}
                 className="flex items-center gap-2"
+                ariaLabel="Contact customer via WhatsApp"
               >
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp
@@ -390,6 +392,7 @@ export default function AdminOrderDetailPage() {
                 variant="outline"
                 onClick={handleCall}
                 className="flex items-center gap-2"
+                ariaLabel="Call customer"
               >
                 <Phone className="w-4 h-4" />
                 Call
@@ -398,6 +401,7 @@ export default function AdminOrderDetailPage() {
                 variant="outline"
                 onClick={handleEmail}
                 className="flex items-center gap-2"
+                ariaLabel="Email customer"
               >
                 <Mail className="w-4 h-4" />
                 Email
@@ -406,6 +410,7 @@ export default function AdminOrderDetailPage() {
                 variant="outline"
                 onClick={() => window.print()}
                 className="flex items-center gap-2"
+                ariaLabel="Print order details"
               >
                 <Printer className="w-4 h-4" />
                 Print
@@ -413,6 +418,7 @@ export default function AdminOrderDetailPage() {
               <Button
                 onClick={handleDownloadInvoice}
                 className="flex items-center gap-2"
+                ariaLabel="Download invoice"
               >
                 <Download className="w-4 h-4" />
                 Invoice
@@ -436,6 +442,7 @@ export default function AdminOrderDetailPage() {
               <Button
                 onClick={() => setShowPaymentModal(true)}
                 className="bg-orange-600 hover:bg-orange-700"
+                ariaLabel="Verify payment"
               >
                 Verify Payment
               </Button>
@@ -524,6 +531,7 @@ export default function AdminOrderDetailPage() {
                             size="sm"
                             onClick={() => setShowEditAddress(!showEditAddress)}
                             className="flex items-center gap-2"
+                            ariaLabel={showEditAddress ? "Cancel editing address" : "Edit shipping address"}
                           >
                             <Edit2 className="w-4 h-4" />
                             {showEditAddress ? 'Cancel' : 'Edit'}
@@ -601,6 +609,7 @@ export default function AdminOrderDetailPage() {
                               onClick={handleUpdateShippingAddress}
                               disabled={updating}
                               className="flex-1"
+                              ariaLabel="Save shipping address"
                             >
                               {updating ? 'Updating...' : 'Save Address'}
                             </Button>
@@ -608,6 +617,7 @@ export default function AdminOrderDetailPage() {
                               variant="outline"
                               onClick={() => setShowEditAddress(false)}
                               disabled={updating}
+                              ariaLabel="Cancel editing address"
                             >
                               Cancel
                             </Button>
@@ -702,6 +712,7 @@ export default function AdminOrderDetailPage() {
                           <Button
                             onClick={() => setShowPaymentModal(true)}
                             className="w-full mt-4"
+                            ariaLabel="Verify this payment"
                           >
                             Verify This Payment
                           </Button>
@@ -731,6 +742,7 @@ export default function AdminOrderDetailPage() {
                           onClick={handleAddNote}
                           disabled={!adminNotes.trim()}
                           className="mt-3"
+                          ariaLabel="Add admin note"
                         >
                           Add Note
                         </Button>
@@ -779,6 +791,7 @@ export default function AdminOrderDetailPage() {
                   onClick={() => setShowStatusModal(true)}
                   className="w-full flex items-center justify-center gap-2"
                   disabled={order.status === 'delivered' || order.status === 'cancelled' || updating}
+                  ariaLabel="Update order status"
                 >
                   <CheckCircle className="w-4 h-4" />
                   Update Status
@@ -789,6 +802,7 @@ export default function AdminOrderDetailPage() {
                     onClick={() => setShowPaymentModal(true)}
                     variant="outline"
                     className="w-full flex items-center justify-center gap-2"
+                    ariaLabel="Verify payment"
                   >
                     <CreditCard className="w-4 h-4" />
                     Verify Payment
@@ -801,6 +815,7 @@ export default function AdminOrderDetailPage() {
                     variant="outline"
                     className="w-full flex items-center justify-center gap-2"
                     disabled={updating}
+                    ariaLabel="Process refund"
                   >
                     <FileText className="w-4 h-4" />
                     Process Refund
@@ -812,6 +827,7 @@ export default function AdminOrderDetailPage() {
                     onClick={() => setShowCancelModal(true)}
                     variant="outline"
                     className="w-full flex items-center justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                    ariaLabel="Cancel order"
                   >
                     <Ban className="w-4 h-4" />
                     Cancel Order
@@ -823,6 +839,7 @@ export default function AdminOrderDetailPage() {
                   variant="outline"
                   size="sm"
                   className="w-full"
+                  ariaLabel="Send email notification"
                 >
                   Send Email
                 </Button>
@@ -832,6 +849,7 @@ export default function AdminOrderDetailPage() {
                   variant="outline"
                   size="sm"
                   className="w-full"
+                  ariaLabel="Send WhatsApp notification"
                 >
                   Send WhatsApp
                 </Button>
@@ -904,6 +922,7 @@ export default function AdminOrderDetailPage() {
                     size="sm"
                     className="w-full"
                     disabled={!trackingInfo.courierService || !trackingInfo.trackingNumber || updating}
+                    ariaLabel="Update tracking information"
                   >
                     {updating ? 'Updating...' : 'Add Tracking'}
                   </Button>
@@ -1015,13 +1034,14 @@ export default function AdminOrderDetailPage() {
                   </div>
                 )}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-                  <Button variant="outline" onClick={() => setShowCancelModal(false)}>
+                  <Button variant="outline" onClick={() => setShowCancelModal(false)} ariaLabel="Cancel order cancellation">
                     Cancel
                   </Button>
                   <Button
                     onClick={handleCancelOrder}
                     disabled={!cancelReason.trim() || updating}
                     className="bg-red-600 hover:bg-red-700"
+                    ariaLabel="Cancel this order"
                   >
                     {updating ? 'Cancelling...' : 'Cancel Order'}
                   </Button>
