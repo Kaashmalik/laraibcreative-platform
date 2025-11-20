@@ -265,8 +265,7 @@ export default function AdminOrderDetailPage() {
   // Download invoice
   const handleDownloadInvoice = async () => {
     try {
-      const response = await api.orders.admin.downloadInvoice(orderId);
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blob = await api.orders.admin.downloadInvoice(orderId) as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
