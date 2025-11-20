@@ -19,7 +19,8 @@ import { ArrowRight } from 'lucide-react';
  * @param {string} slug - URL-friendly category identifier
  * @param {number} count - Number of products in category
  */
-export default function CategoryCard({ title, image, slug, count }) {
+export default function CategoryCard({ category }) {
+  const { name: title, image, slug, productCount: count } = category;
   return (
     <Link
       href={`/products/${slug}`}

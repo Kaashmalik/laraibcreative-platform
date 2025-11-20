@@ -67,7 +67,7 @@ export default function Footer() {
         { label: 'Size Guide', href: '/size-guide', ariaLabel: 'View measurement size guide' },
         { label: 'FAQ', href: '/faq', ariaLabel: 'Frequently asked questions' },
         { label: 'Contact Us', href: '/contact', ariaLabel: 'Get in touch with us' },
-        { label: 'Stitching Policy', href: '/policies/stitching', ariaLabel: 'View stitching policy' },
+        { label: 'Stitching Policy', href: '/stitching-policy', ariaLabel: 'View stitching policy' },
       ]
     },
     company: {
@@ -75,10 +75,10 @@ export default function Footer() {
       links: [
         { label: 'About Us', href: '/about', ariaLabel: 'Learn about LaraibCreative' },
         { label: 'Blog', href: '/blog', ariaLabel: 'Read our fashion blog' },
-        { label: 'Shipping Policy', href: '/policies/shipping', ariaLabel: 'View shipping policy' },
-        { label: 'Return Policy', href: '/policies/returns', ariaLabel: 'View return and exchange policy' },
-        { label: 'Privacy Policy', href: '/policies/privacy', ariaLabel: 'View privacy policy' },
-        { label: 'Terms of Service', href: '/policies/terms', ariaLabel: 'View terms of service' },
+        { label: 'Shipping Policy', href: '/shipping-policy', ariaLabel: 'View shipping policy' },
+        { label: 'Return Policy', href: '/return-policy', ariaLabel: 'View return and exchange policy' },
+        { label: 'Privacy Policy', href: '/privacy-policy', ariaLabel: 'View privacy policy' },
+        { label: 'Terms of Service', href: '/terms-of-service', ariaLabel: 'View terms of service' },
       ]
     }
   }

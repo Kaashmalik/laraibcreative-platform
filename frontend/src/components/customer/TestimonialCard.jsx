@@ -26,15 +26,8 @@ import { Star, BadgeCheck, Quote } from 'lucide-react';
  * @param {boolean} verified - Verified purchase status
  * @param {array} beforeAfterImages - Optional before/after comparison images
  */
-export default function TestimonialCard({ 
-  name, 
-  image, 
-  rating, 
-  comment, 
-  date, 
-  verified = false,
-  beforeAfterImages = null 
-}) {
+export default function TestimonialCard({ testimonial }) {
+  const { name, image, rating, comment, date, verified, beforeAfterImages } = testimonial;
   const [isExpanded, setIsExpanded] = useState(false);
   const [showImages, setShowImages] = useState(false);
 

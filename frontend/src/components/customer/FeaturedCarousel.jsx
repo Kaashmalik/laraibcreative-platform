@@ -17,71 +17,14 @@ import { useRouter } from 'next/navigation';
  * - Responsive grid on mobile
  * - Product quick actions on hover
  */
-export default function FeaturedCarousel() {
+export default function FeaturedCarousel({ products }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const timerRef = useRef(null);
 
-  // Featured products data (in production, fetch from API)
-  const featuredProducts = [
-    {
-      id: 1,
-      title: 'Elegant Bridal Red Velvet',
-      slug: 'elegant-bridal-red-velvet',
-      price: 15999,
-      image: '/images/products/bridal-1.jpg',
-      category: 'Bridal Wear',
-      rating: 5,
-      reviews: 24,
-      badge: 'Bestseller'
-    },
-    {
-      id: 2,
-      title: 'Royal Blue Party Wear',
-      slug: 'royal-blue-party-wear',
-      price: 8999,
-      image: '/images/products/party-1.jpg',
-      category: 'Party Wear',
-      rating: 4.8,
-      reviews: 18,
-      badge: 'New Arrival'
-    },
-    {
-      id: 3,
-      title: 'Designer Chiffon Collection',
-      slug: 'designer-chiffon-collection',
-      price: 12999,
-      image: '/images/products/designer-1.jpg',
-      category: 'Designer Wear',
-      rating: 5,
-      reviews: 31,
-      badge: 'Trending'
-    },
-    {
-      id: 4,
-      title: 'Premium Silk Formal',
-      slug: 'premium-silk-formal',
-      price: 9999,
-      image: '/images/products/formal-1.jpg',
-      category: 'Formal Wear',
-      rating: 4.9,
-      reviews: 15,
-      badge: 'Premium'
-    },
-    {
-      id: 5,
-      title: 'Casual Lawn Summer',
-      slug: 'casual-lawn-summer',
-      price: 5999,
-      image: '/images/products/casual-1.jpg',
-      category: 'Casual Wear',
-      rating: 4.7,
-      reviews: 42,
-      badge: 'Popular'
-    },
-  ];
+  const featuredProducts = products;
 
   const itemsPerView = typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : 
                        typeof window !== 'undefined' && window.innerWidth < 1024 ? 2 : 3;

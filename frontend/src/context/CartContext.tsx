@@ -7,6 +7,8 @@
  * @module context/CartContext
  */
 
+'use client';
+
 import { createContext, useContext, useEffect, useCallback } from 'react';
 import { useCartStore } from '@/store/cartStore';
 import { useCartSync } from '@/hooks/useCartSync';
