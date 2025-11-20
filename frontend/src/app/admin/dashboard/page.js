@@ -25,10 +25,47 @@ export const dynamic = 'force-dynamic';
  */
 
 import { useState, useEffect } from 'react';
-import RevenueChart from './components/RevenueChart';
-import OrdersPieChart from './components/OrdersPieChart';
-import PopularProductsChart from './components/PopularProductsChart';
+import dynamic from 'next/dynamic';
+import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
+import { ChartLoading } from '@/components/shared/LoadingComponents';
 import StatsCard from '@/components/admin/StatsCard';
+
+// Dynamically import chart components (heavy recharts library)
+const RevenueChart = dynamic(
+  () => import('./components/RevenueChart'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="RevenueChart">
+        <ChartLoading height={350} />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false, // Charts require canvas/DOM APIs
+  }
+);
+
+const OrdersPieChart = dynamic(
+  () => import('./components/OrdersPieChart'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="OrdersPieChart">
+        <ChartLoading height={350} />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false,
+  }
+);
+
+const PopularProductsChart = dynamic(
+  () => import('./components/PopularProductsChart'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="PopularProductsChart">
+        <ChartLoading height={350} />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false,
+  }
+);
 import Link from 'next/link';
 import { 
   DollarSign, 

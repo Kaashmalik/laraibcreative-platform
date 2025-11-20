@@ -16,17 +16,46 @@
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import type { OrderDistribution } from '@/types/dashboard';
 
-export default function OrdersPieChart() {
-  // Mock data for order categories
-  // Replace with actual API data
-  const data = [
-    { name: 'Bridal', value: 45, orders: 125, color: '#ec4899' },
-    { name: 'Party Wear', value: 30, orders: 83, color: '#8b5cf6' },
-    { name: 'Casual', value: 15, orders: 42, color: '#10b981' },
-    { name: 'Formal', value: 7, orders: 19, color: '#3b82f6' },
-    { name: 'Designer Replicas', value: 3, orders: 8, color: '#f59e0b' }
-  ];
+interface OrdersPieChartProps {
+  data?: OrderDistribution[];
+}
+
+// Color palette for order statuses
+const STATUS_COLORS: Record<string, string> = {
+  'pending-payment': '#f59e0b', // yellow
+  'payment-verified': '#3b82f6', // blue
+  'fabric-arranged': '#8b5cf6', // purple
+  'stitching-in-progress': '#6366f1', // indigo
+  'quality-check': '#06b6d4', // cyan
+  'ready-for-dispatch': '#10b981', // green
+  'dispatched': '#14b8a6', // teal
+  'delivered': '#22c55e', // green-500
+  'cancelled': '#ef4444' // red
+};
+
+const DEFAULT_COLORS = ['#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#06b6d4', '#6366f1', '#14b8a6'];
+
+export default function OrdersPieChart({ data: propData }: OrdersPieChartProps) {
+  // Transform order distribution data for pie chart
+  const data = propData && propData.length > 0
+    ? propData.map((item, index) => ({
+        name: item.status.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' '),
+        value: item.percentage,
+        orders: item.count,
+        revenue: item.revenue,
+        color: STATUS_COLORS[item.status] || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+      }))
+    : [
+        { name: 'Pending Payment', value: 45, orders: 125, color: '#f59e0b' },
+        { name: 'In Progress', value: 30, orders: 83, color: '#3b82f6' },
+        { name: 'Completed', value: 15, orders: 42, color: '#10b981' },
+        { name: 'Delivered', value: 7, orders: 19, color: '#22c55e' },
+        { name: 'Cancelled', value: 3, orders: 8, color: '#ef4444' }
+      ];
 
   // Custom label to show percentages
   const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {

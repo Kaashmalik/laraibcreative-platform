@@ -20,8 +20,8 @@ import { useState } from 'react';
  * - Place order submission
  */
 
-export default function OrderReview({ formData, updateFormData, onBack, onSubmit, isSubmitting, cartData }) {
-  const [errors, setErrors] = useState({});
+export default function OrderReview({ formData, updateFormData, onBack, onSubmit, isSubmitting, cartData, errors: propErrors = {} }) {
+  const [errors, setErrors] = useState(propErrors);
 
   /**
    * Handle terms checkbox change

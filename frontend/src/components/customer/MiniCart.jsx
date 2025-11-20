@@ -225,10 +225,13 @@ export default function MiniCart({ isOpen, onClose }) {
                         <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
                           <Image
                             src={item.product?.image || item.product?.images?.[0] || '/images/placeholder.png'}
-                            alt={item.product?.name || 'Product'}
+                            alt={item.product?.name ? `${item.product.name} - Product image` : 'Product image in cart'}
                             fill
                             sizes="80px"
                             className="object-cover group-hover:scale-110 transition-transform duration-300"
+                            quality={60}
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
                           />
                         </div>
                       </Link>

@@ -334,7 +334,7 @@ export default function Header() {
                   height: '32px'
                 }}
                 priority
-                quality={100}
+                quality={75}
               />
               <span className="font-playfair text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
                 <span className="hidden sm:inline">LaraibCreative</span>

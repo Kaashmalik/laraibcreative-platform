@@ -112,7 +112,7 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
               {/* Product image with hover zoom */}
               <Image
                 src={product.primaryImage || product.images?.[0] || '/images/placeholder.png'}
-                alt={product.title}
+                alt={`${product.title || product.name} - ${product.fabric?.type || 'Premium fabric'} ladies suit${product.occasion ? ` for ${product.occasion}` : ''}`}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
@@ -120,6 +120,9 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
                 }`}
                 onLoadingComplete={() => setImageLoaded(true)}
                 priority={false}
+                quality={75}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
               />
 
               {/* Wishlist button - Top right */}
@@ -242,13 +245,16 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
 
               <Image
                 src={product.primaryImage || product.images?.[0] || '/images/placeholder.png'}
-                alt={product.title}
+                alt={`${product.title || product.name} - ${product.fabric?.type || 'Premium fabric'} ladies suit${product.occasion ? ` for ${product.occasion}` : ''}`}
                 fill
                 sizes="(max-width: 640px) 100vw, 256px"
                 className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
                   imageLoaded ? 'opacity-100' : 'opacity-0'
                 }`}
                 onLoadingComplete={() => setImageLoaded(true)}
+                quality={75}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
               />
 
               {/* Wishlist button */}

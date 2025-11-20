@@ -18,11 +18,15 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import type { RevenueTrend } from '@/types/dashboard';
 
-export default function RevenueChart() {
-  // Mock data for last 30 days
-  // Replace with actual API data
-  const data = [
+interface RevenueChartProps {
+  data?: RevenueTrend[];
+}
+
+export default function RevenueChart({ data: propData }: RevenueChartProps) {
+  // Fallback mock data if no data provided
+  const defaultData = [
     { date: 'Oct 1', revenue: 12000, orders: 8 },
     { date: 'Oct 2', revenue: 15000, orders: 10 },
     { date: 'Oct 3', revenue: 18000, orders: 12 },
@@ -54,6 +58,15 @@ export default function RevenueChart() {
     { date: 'Oct 29', revenue: 52000, orders: 36 },
     { date: 'Oct 30', revenue: 49000, orders: 34 }
   ];
+
+  // Use provided data or fallback to default
+  const data = propData && propData.length > 0
+    ? propData.map(item => ({
+        date: item.date,
+        revenue: item.revenue,
+        orders: item.orders
+      }))
+    : defaultData;
 
   // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }) => {

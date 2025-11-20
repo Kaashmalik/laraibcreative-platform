@@ -7,6 +7,7 @@ import Link from 'next/link';
 import ProductForm from '@/components/admin/ProductForm';
 import Button from '@/components/ui/Button';
 import Toast from '@/components/ui/Toast';
+import api from '@/lib/api';
 
 /**
  * Admin Add New Product Page
@@ -45,21 +46,27 @@ export default function NewProductPage() {
         status: draft ? 'draft' : 'published'
       };
       
-      const response = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(dataToSubmit)
+      // Create FormData for file uploads
+      const formData = new FormData();
+      Object.keys(dataToSubmit).forEach(key => {
+        if (key === 'images' && Array.isArray(dataToSubmit[key])) {
+          dataToSubmit[key].forEach((img, index) => {
+            if (typeof img === 'object' && img.file) {
+              formData.append(`images[${index}]`, img.file);
+            } else {
+              formData.append(`images[${index}]`, JSON.stringify(img));
+            }
+          });
+        } else if (typeof dataToSubmit[key] === 'object') {
+          formData.append(key, JSON.stringify(dataToSubmit[key]));
+        } else {
+          formData.append(key, dataToSubmit[key]);
+        }
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create product');
-      }
+      const response = await api.products.createAdmin(formData);
       
-      const result = await response.json();
+      const result = response.data;
       
       setToast({
         type: 'success',

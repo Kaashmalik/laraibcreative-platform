@@ -8,10 +8,15 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import type { PopularProduct } from '@/types/dashboard';
 
-export default function PopularProductsChart() {
-  // Mock data - replace with actual API data
-  const data = [
+interface PopularProductsChartProps {
+  data?: PopularProduct[];
+}
+
+export default function PopularProductsChart({ data: propData }: PopularProductsChartProps) {
+  // Fallback mock data if no data provided
+  const defaultData = [
     { name: 'Bridal Lehenga', sales: 45, revenue: 450000 },
     { name: 'Party Wear Suit', sales: 38, revenue: 380000 },
     { name: 'Formal Dress', sales: 32, revenue: 320000 },
@@ -23,6 +28,15 @@ export default function PopularProductsChart() {
     { name: 'Summer Lawn', sales: 15, revenue: 150000 },
     { name: 'Winter Shawl', sales: 12, revenue: 120000 }
   ];
+
+  // Use provided data or fallback to default
+  const data = propData && propData.length > 0
+    ? propData.map(item => ({
+        name: item.title.length > 20 ? item.title.substring(0, 20) + '...' : item.title,
+        sales: item.sales,
+        revenue: item.revenue
+      }))
+    : defaultData;
 
   // Colors for bars
   const COLORS = [

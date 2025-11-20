@@ -7,7 +7,8 @@ import Link from 'next/link';
 import ProductForm from '@/components/admin/ProductForm';
 import Button from '@/components/ui/Button';
 import Toast from '@/components/ui/Toast';
-import Modal from '@/components/ui/Modal';
+import DeleteConfirmModal from '@/components/admin/products/DeleteConfirmModal';
+import api from '@/lib/api';
 import Skeleton from '@/components/ui/Skeleton';
 
 /**
@@ -41,23 +42,13 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/admin/products/${productId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch product');
-        }
-        
-        const data = await response.json();
-        setProduct(data);
+        const response = await api.products.getForEdit(productId);
+        setProduct(response.data);
       } catch (error) {
         console.error('Error fetching product:', error);
         setToast({
           type: 'error',
-          message: 'Failed to load product. Please try again.'
+          message: error.response?.data?.message || 'Failed to load product. Please try again.'
         });
         
         // Redirect to products list after error
@@ -91,21 +82,26 @@ export default function EditProductPage() {
         status: draft ? 'draft' : 'published'
       };
       
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(dataToSubmit)
+      // Create FormData for file uploads
+      const formData = new FormData();
+      Object.keys(dataToSubmit).forEach(key => {
+        if (key === 'images' && Array.isArray(dataToSubmit[key])) {
+          // Handle images separately if needed
+          dataToSubmit[key].forEach((img, index) => {
+            if (typeof img === 'object' && img.file) {
+              formData.append(`images[${index}]`, img.file);
+            } else {
+              formData.append(`images[${index}]`, JSON.stringify(img));
+            }
+          });
+        } else if (typeof dataToSubmit[key] === 'object') {
+          formData.append(key, JSON.stringify(dataToSubmit[key]));
+        } else {
+          formData.append(key, dataToSubmit[key]);
+        }
       });
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update product');
-      }
-      
-      const result = await response.json();
+      const response = await api.products.updateAdmin(productId, formData);
       
       setToast({
         type: 'success',
@@ -113,7 +109,7 @@ export default function EditProductPage() {
       });
       
       // Update local product state
-      setProduct(result);
+      setProduct(response.data);
       
       // Clear form dirty flag
       sessionStorage.removeItem('productFormDirty');
@@ -122,7 +118,7 @@ export default function EditProductPage() {
       console.error('Error updating product:', error);
       setToast({
         type: 'error',
-        message: error.message || 'Failed to update product. Please try again.'
+        message: error.response?.data?.message || 'Failed to update product. Please try again.'
       });
     } finally {
       setSaving(false);
@@ -136,16 +132,7 @@ export default function EditProductPage() {
     setDeleting(true);
     
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
-      }
+      await api.products.deleteAdmin(productId);
       
       setToast({
         type: 'success',
@@ -161,7 +148,7 @@ export default function EditProductPage() {
       console.error('Error deleting product:', error);
       setToast({
         type: 'error',
-        message: 'Failed to delete product. Please try again.'
+        message: error.response?.data?.message || 'Failed to delete product. Please try again.'
       });
       setDeleting(false);
       setShowDeleteModal(false);
@@ -170,35 +157,13 @@ export default function EditProductPage() {
   
   /**
    * Handle product duplication
-   * Creates a copy of current product with " (Copy)" appended to title
+   * Creates a copy of current product
    */
   const handleDuplicate = async () => {
     if (!confirm('Create a duplicate of this product?')) return;
     
     try {
-      const duplicateData = {
-        ...product,
-        _id: undefined,
-        title: `${product.title} (Copy)`,
-        slug: `${product.slug}-copy`,
-        sku: `${product.sku}-COPY`,
-        status: 'draft'
-      };
-      
-      const response = await fetch('/api/admin/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify(duplicateData)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to duplicate product');
-      }
-      
-      const result = await response.json();
+      const response = await api.products.duplicate(productId);
       
       setToast({
         type: 'success',
@@ -207,14 +172,14 @@ export default function EditProductPage() {
       
       // Redirect to edit page of new product
       setTimeout(() => {
-        router.push(`/admin/products/edit/${result._id}`);
+        router.push(`/admin/products/edit/${response.data._id}`);
       }, 1500);
       
     } catch (error) {
       console.error('Error duplicating product:', error);
       setToast({
         type: 'error',
-        message: 'Failed to duplicate product. Please try again.'
+        message: error.response?.data?.message || 'Failed to duplicate product. Please try again.'
       });
     }
   };
@@ -367,40 +332,15 @@ export default function EditProductPage() {
       </div>
       
       {/* Delete Confirmation Modal */}
-      <Modal
+      <DeleteConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="Delete Product"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            Are you sure you want to delete <strong>{product?.title}</strong>? This action cannot be undone.
-          </p>
-          
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-800">
-              <strong>Warning:</strong> All product data, images, and reviews will be permanently deleted.
-            </p>
-          </div>
-          
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => setShowDeleteModal(false)}
-              disabled={deleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              loading={deleting}
-            >
-              Delete Product
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onConfirm={handleDelete}
+        productCount={1}
+        productNames={product ? [product.title] : []}
+        isBulk={false}
+        isLoading={deleting}
+      />
       
       {/* Toast Notifications */}
       {toast && (

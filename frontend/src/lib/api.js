@@ -244,6 +244,57 @@ const api = {
     },
     async bulkUpdate(updates) {
       return await axios.post('/products/bulk-update', { updates });
+    },
+    /**
+     * Admin Product Management Endpoints
+     */
+    // Get all products for admin (with filters, search, pagination)
+    async getAllAdmin(params = {}) {
+      return await axios.get('/admin/products', { params });
+    },
+    // Create new product (admin only)
+    async createAdmin(productData) {
+      return await axios.post('/admin/products', productData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    },
+    // Update product (admin only)
+    async updateAdmin(id, productData) {
+      return await axios.put(`/admin/products/${id}`, productData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    },
+    // Delete product (admin only)
+    async deleteAdmin(id) {
+      return await axios.delete(`/admin/products/${id}`);
+    },
+    // Bulk delete products
+    async bulkDelete(productIds) {
+      return await axios.delete('/admin/products/bulk-delete', {
+        data: { productIds }
+      });
+    },
+    // Bulk update products
+    async bulkUpdateAdmin(productIds, updates) {
+      return await axios.patch('/admin/products/bulk-update', {
+        productIds,
+        updates
+      });
+    },
+    // Duplicate product
+    async duplicate(id) {
+      return await axios.post(`/admin/products/${id}/duplicate`);
+    },
+    // Export products to CSV
+    async export(filters = {}) {
+      return await axios.get('/admin/products/export', {
+        params: filters,
+        responseType: 'blob'
+      });
+    },
+    // Get product for edit
+    async getForEdit(id) {
+      return await axios.get(`/admin/products/${id}/edit`);
     }
   },
 
@@ -518,6 +569,78 @@ const api = {
   //      categories, reviews, blog, upload, contact, analytics remain the same]
 
   /**
+   * Upload endpoints
+   */
+  upload: {
+    /**
+     * Upload single file
+     * @param {FormData} formData - FormData with file
+     * @returns {Promise<{ success: boolean, data: { url: string } }>}
+     */
+    async single(formData) {
+      return await axios.post('/upload/single', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    },
+    /**
+     * Upload multiple files
+     * @param {FormData} formData - FormData with files
+     * @returns {Promise<{ success: boolean, data: Array }>}
+     */
+    async multiple(formData) {
+      return await axios.post('/upload/multiple', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    },
+  },
+
+  /**
+   * Customers endpoints
+   */
+  customers: {
+    /**
+     * Get customer addresses
+     * @returns {Promise<{ success: boolean, data: Array }>}
+     */
+    async getAddresses() {
+      return await axios.get('/customers/addresses');
+    },
+    /**
+     * Add new address
+     * @param {Object} addressData - Address data
+     * @returns {Promise<{ success: boolean, data: Object }>}
+     */
+    async addAddress(addressData) {
+      return await axios.post('/customers/addresses', addressData);
+    },
+    /**
+     * Update address
+     * @param {string} addressId - Address ID
+     * @param {Object} addressData - Address data
+     * @returns {Promise<{ success: boolean, data: Object }>}
+     */
+    async updateAddress(addressId, addressData) {
+      return await axios.put(`/customers/addresses/${addressId}`, addressData);
+    },
+    /**
+     * Delete address
+     * @param {string} addressId - Address ID
+     * @returns {Promise<{ success: boolean }>}
+     */
+    async deleteAddress(addressId) {
+      return await axios.delete(`/customers/addresses/${addressId}`);
+    },
+    /**
+     * Set default address
+     * @param {string} addressId - Address ID
+     * @returns {Promise<{ success: boolean, data: Object }>}
+     */
+    async setDefaultAddress(addressId) {
+      return await axios.put(`/customers/addresses/${addressId}/default`);
+    },
+  },
+
+  /**
    * Orders (existing)
    */
   orders: {
@@ -546,6 +669,132 @@ const api = {
       return await axios.get(`/orders/${id}/invoice`, {
         responseType: 'blob'
       });
+    },
+
+    /**
+     * Admin Order Management Endpoints
+     */
+    admin: {
+      /**
+       * Get all orders for admin with advanced filters
+       * @param {Object} params - Filter parameters
+       * @returns {Promise<Object>} Orders list with pagination
+       */
+      async getAll(params = {}) {
+        return await axios.get('/admin/orders', { params });
+      },
+
+      /**
+       * Get order by ID for admin
+       * @param {string} id - Order ID
+       * @returns {Promise<Object>} Order details
+       */
+      async getById(id) {
+        return await axios.get(`/admin/orders/${id}`);
+      },
+
+      /**
+       * Update order status
+       * @param {string} id - Order ID
+       * @param {Object} data - Status update data
+       * @returns {Promise<Object>} Updated order
+       */
+      async updateStatus(id, data) {
+        return await axios.put(`/admin/orders/${id}/status`, data);
+      },
+
+      /**
+       * Verify payment
+       * @param {string} id - Order ID
+       * @param {Object} data - Verification data
+       * @returns {Promise<Object>} Updated order
+       */
+      async verifyPayment(id, data) {
+        return await axios.post(`/admin/orders/${id}/verify-payment`, data);
+      },
+
+      /**
+       * Cancel order
+       * @param {string} id - Order ID
+       * @param {Object} data - Cancellation data
+       * @returns {Promise<Object>} Updated order
+       */
+      async cancel(id, data) {
+        return await axios.post(`/admin/orders/${id}/cancel`, data);
+      },
+
+      /**
+       * Process refund
+       * @param {string} id - Order ID
+       * @param {Object} data - Refund data
+       * @returns {Promise<Object>} Refund details
+       */
+      async processRefund(id, data) {
+        return await axios.post(`/admin/orders/${id}/refund`, data);
+      },
+
+      /**
+       * Add internal note
+       * @param {string} id - Order ID
+       * @param {Object} data - Note data
+       * @returns {Promise<Object>} Updated order
+       */
+      async addNote(id, data) {
+        return await axios.post(`/admin/orders/${id}/notes`, data);
+      },
+
+      /**
+       * Update shipping address
+       * @param {string} id - Order ID
+       * @param {Object} data - Address data
+       * @returns {Promise<Object>} Updated order
+       */
+      async updateShippingAddress(id, data) {
+        return await axios.put(`/admin/orders/${id}/shipping-address`, data);
+      },
+
+      /**
+       * Update tracking information
+       * @param {string} id - Order ID
+       * @param {Object} data - Tracking data
+       * @returns {Promise<Object>} Updated order
+       */
+      async updateTracking(id, data) {
+        return await axios.put(`/admin/orders/${id}/tracking`, data);
+      },
+
+      /**
+       * Generate and download invoice PDF
+       * @param {string} id - Order ID
+       * @returns {Promise<Blob>} PDF file
+       */
+      async downloadInvoice(id) {
+        return await axios.get(`/admin/orders/${id}/invoice`, {
+          responseType: 'blob'
+        });
+      },
+
+      /**
+       * Send notification (email/WhatsApp)
+       * @param {string} id - Order ID
+       * @param {Object} data - Notification data
+       * @returns {Promise<Object>} Notification result
+       */
+      async sendNotification(id, data) {
+        return await axios.post(`/admin/orders/${id}/notify`, data);
+      },
+
+      /**
+       * Export orders to CSV
+       * @param {Object} params - Filter parameters
+       * @returns {Promise<Blob>} CSV file
+       */
+      async export(params = {}) {
+        return await axios.get('/admin/orders/export', {
+          params,
+          responseType: 'blob'
+        });
+      }
     }
   },
 
@@ -601,6 +850,62 @@ const api = {
   /**
    * Analytics (existing)
    */
+  /**
+   * Admin Dashboard endpoints
+   */
+  dashboard: {
+    /**
+     * Get complete dashboard data
+     * @param {Object} params - Query parameters (period, startDate, endDate)
+     * @returns {Promise<Object>} Dashboard data
+     */
+    async getDashboard(params = {}) {
+      return await axios.get('/admin/dashboard', { params });
+    },
+    /**
+     * Get revenue trends
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>} Revenue trends data
+     */
+    async getRevenueTrends(params = {}) {
+      return await axios.get('/admin/dashboard/revenue-trends', { params });
+    },
+    /**
+     * Get order distribution
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>} Order distribution data
+     */
+    async getOrderDistribution(params = {}) {
+      return await axios.get('/admin/dashboard/order-distribution', { params });
+    },
+    /**
+     * Get top products
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>} Top products data
+     */
+    async getTopProducts(params = {}) {
+      return await axios.get('/admin/dashboard/top-products', { params });
+    },
+    /**
+     * Get inventory alerts
+     * @returns {Promise<Object>} Low stock alerts
+     */
+    async getInventoryAlerts() {
+      return await axios.get('/admin/dashboard/inventory-alerts');
+    },
+    /**
+     * Export dashboard data
+     * @param {Object} params - Export options (format, type, period, etc.)
+     * @returns {Promise<Blob>} Exported file
+     */
+    async exportData(params = {}) {
+      return await axios.get('/admin/dashboard/export', {
+        params,
+        responseType: 'blob'
+      });
+    }
+  },
+
   analytics: {
     async getDashboardStats(params = {}) {
       return await axios.get('/analytics/dashboard', { params });
@@ -629,6 +934,108 @@ const api = {
      */
     async getTrafficSources(params = {}) {
       return await axios.get('/analytics/traffic', { params });
+    }
+  },
+
+  /**
+   * Custom Orders Endpoints
+   */
+  customOrders: {
+    /**
+     * Submit custom order
+     * @param {FormData} orderData - Custom order data with images
+     * @returns {Promise<{ success: boolean, orderId: string, orderNumber: string }>}
+     */
+    async submit(orderData) {
+      return await axios.post('/orders/custom', orderData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+
+    /**
+     * Upload reference images
+     * @param {File[]} images - Image files
+     * @returns {Promise<{ urls: string[] }>}
+     */
+    async uploadImages(images) {
+      const formData = new FormData();
+      images.forEach((image) => {
+        formData.append('images', image);
+      });
+      return await axios.post('/orders/custom/upload-images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+
+    /**
+     * Get saved measurements (for logged-in users)
+     * @returns {Promise<{ measurements: Array }>}
+     */
+    async getSavedMeasurements() {
+      return await axios.get('/measurements');
+    },
+
+    /**
+     * Save measurements
+     * @param {Object} measurementData - Measurement data
+     * @returns {Promise<{ success: boolean, measurementId: string }>}
+     */
+    async saveMeasurements(measurementData) {
+      return await axios.post('/measurements', measurementData);
+    },
+  },
+
+  /**
+   * Cart Management Endpoints
+   */
+  cart: {
+    /**
+     * Get user's cart
+     * @returns {Promise<{ items: Array, success: boolean }>}
+     */
+    async get() {
+      return await axios.get('/cart');
+    },
+
+    /**
+     * Sync cart with backend
+     * @param {Array} items - Cart items
+     * @returns {Promise<{ success: boolean, items: Array }>}
+     */
+    async sync(items) {
+      return await axios.post('/cart/sync', { items });
+    },
+
+    /**
+     * Apply promo code
+     * @param {string} code - Promo code
+     * @param {Array} items - Cart items
+     * @returns {Promise<{ success: boolean, discount: number, discountType: string, message?: string }>}
+     */
+    async applyPromoCode(code, items) {
+      return await axios.post('/cart/promo', { code, items });
+    },
+
+    /**
+     * Calculate shipping cost
+     * @param {Object} address - Shipping address
+     * @param {Array} items - Cart items
+     * @returns {Promise<{ cost: number }>}
+     */
+    async calculateShipping(address, items) {
+      return await axios.post('/cart/shipping', { address, items });
+    },
+
+    /**
+     * Validate cart items
+     * @returns {Promise<{ valid: boolean, errors: Array }>}
+     */
+    async validate() {
+      return await axios.post('/cart/validate');
     }
   }
 };

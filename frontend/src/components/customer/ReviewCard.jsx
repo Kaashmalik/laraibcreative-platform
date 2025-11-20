@@ -199,10 +199,13 @@ export default function ReviewCard({ review }) {
               >
                 <Image
                   src={image}
-                  alt={`Review image ${index + 1}`}
+                  alt={`Customer review photo ${index + 1} from ${review.customer?.fullName || 'customer'}'s review`}
                   fill
                   sizes="80px"
                   className="object-cover"
+                  quality={60}
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
                 />
               </button>
             ))}
@@ -279,11 +282,13 @@ export default function ReviewCard({ review }) {
             >
               <Image
                 src={lightboxImage}
-                alt="Review image"
+                alt="Customer review photo showing product details"
                 fill
                 sizes="100vw"
                 className="object-contain"
-                quality={100}
+                quality={85}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
               />
             </motion.div>
           </motion.div>

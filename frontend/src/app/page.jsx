@@ -13,6 +13,12 @@ import CategoryCard from '@/components/customer/CategoryCard';
 import TestimonialCard from '@/components/customer/TestimonialCard';
 import NewsletterForm from '@/components/customer/NewsletterForm';
 import WhatsAppButton from '@/components/customer/WhatsAppButton';
+
+/**
+ * Homepage Metadata - Production-ready SEO
+ * Note: Since this is a client component, metadata is handled in layout.js
+ * This comment documents the intended metadata for reference
+ */
 import { 
   Sparkles, 
   Package, 

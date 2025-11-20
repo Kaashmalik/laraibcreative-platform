@@ -36,6 +36,19 @@ export {
   generateReviewSchema
 } from './SEO';
 
+// Product Structured Data Component (TypeScript)
+export { default as ProductStructuredData } from './ProductStructuredData';
+
+// Dynamic Import Components
+export { DynamicErrorBoundary, withErrorBoundary } from './DynamicErrorBoundary';
+export {
+  CustomOrderLoading,
+  RichTextEditorLoading,
+  ChartLoading,
+  ImageGalleryLoading,
+  ComponentLoading
+} from './LoadingComponents';
+
 // ==================== Re-export Types (for TypeScript users) ====================
 // If you convert to TypeScript later, you can add type exports here
 

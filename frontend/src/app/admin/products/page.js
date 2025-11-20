@@ -13,6 +13,8 @@ import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Toast from '@/components/ui/Toast';
 import useDebounce from '@/hooks/useDebounce';
+import api from '@/lib/api';
+import DeleteConfirmModal from '@/components/admin/products/DeleteConfirmModal';
 
 /**
  * Admin Products List Page
@@ -42,6 +44,8 @@ export default function AdminProductsPage() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +67,7 @@ export default function AdminProductsPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         page: currentPage,
         limit: itemsPerPage,
         search: debouncedSearch,
@@ -71,27 +75,17 @@ export default function AdminProductsPage() {
         status: selectedStatus !== 'all' ? selectedStatus : '',
         sortBy,
         sortOrder
-      });
+      };
       
-      const response = await fetch(`/api/admin/products?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      
-      const data = await response.json();
-      setProducts(data.products);
-      setTotalPages(data.totalPages);
-      setTotalProducts(data.totalProducts);
+      const response = await api.products.getAllAdmin(params);
+      setProducts(response.data.products || response.data);
+      setTotalPages(response.data.pagination?.totalPages || response.data.totalPages || 1);
+      setTotalProducts(response.data.pagination?.totalProducts || response.data.totalProducts || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
       setToast({
         type: 'error',
-        message: 'Failed to load products. Please try again.'
+        message: error.response?.data?.message || 'Failed to load products. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -150,34 +144,29 @@ export default function AdminProductsPage() {
    * Bulk delete selected products
    */
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedProducts.length} products? This action cannot be undone.`)) {
-      return;
-    }
-    
+    setShowDeleteModal(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    setBulkActionLoading(true);
     try {
-      const response = await fetch('/api/admin/products/bulk-delete', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({ productIds: selectedProducts })
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete products');
+      await api.products.bulkDelete(selectedProducts);
       
       setToast({
         type: 'success',
-        message: `Successfully deleted ${selectedProducts.length} products`
+        message: `Successfully deleted ${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''}`
       });
       setSelectedProducts([]);
+      setShowDeleteModal(false);
       fetchProducts();
     } catch (error) {
       console.error('Error deleting products:', error);
       setToast({
         type: 'error',
-        message: 'Failed to delete products. Please try again.'
+        message: error.response?.data?.message || 'Failed to delete products. Please try again.'
       });
+    } finally {
+      setBulkActionLoading(false);
     }
   };
   
@@ -185,24 +174,13 @@ export default function AdminProductsPage() {
    * Bulk update featured status
    */
   const handleBulkFeature = async (featured) => {
+    setBulkActionLoading(true);
     try {
-      const response = await fetch('/api/admin/products/bulk-update', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({ 
-          productIds: selectedProducts,
-          updates: { featured }
-        })
-      });
-      
-      if (!response.ok) throw new Error('Failed to update products');
+      await api.products.bulkUpdateAdmin(selectedProducts, { isFeatured: featured });
       
       setToast({
         type: 'success',
-        message: `Successfully ${featured ? 'featured' : 'unfeatured'} ${selectedProducts.length} products`
+        message: `Successfully ${featured ? 'featured' : 'unfeatured'} ${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''}`
       });
       setSelectedProducts([]);
       fetchProducts();
@@ -210,8 +188,10 @@ export default function AdminProductsPage() {
       console.error('Error updating products:', error);
       setToast({
         type: 'error',
-        message: 'Failed to update products. Please try again.'
+        message: error.response?.data?.message || 'Failed to update products. Please try again.'
       });
+    } finally {
+      setBulkActionLoading(false);
     }
   };
   
@@ -219,24 +199,15 @@ export default function AdminProductsPage() {
    * Bulk update availability status
    */
   const handleBulkAvailability = async (availability) => {
+    setBulkActionLoading(true);
     try {
-      const response = await fetch('/api/admin/products/bulk-update', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({ 
-          productIds: selectedProducts,
-          updates: { availability }
-        })
+      await api.products.bulkUpdateAdmin(selectedProducts, { 
+        'availability.status': availability 
       });
-      
-      if (!response.ok) throw new Error('Failed to update products');
       
       setToast({
         type: 'success',
-        message: `Successfully updated ${selectedProducts.length} products to ${availability}`
+        message: `Successfully updated ${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''} to ${availability}`
       });
       setSelectedProducts([]);
       fetchProducts();
@@ -244,8 +215,10 @@ export default function AdminProductsPage() {
       console.error('Error updating products:', error);
       setToast({
         type: 'error',
-        message: 'Failed to update products. Please try again.'
+        message: error.response?.data?.message || 'Failed to update products. Please try again.'
       });
+    } finally {
+      setBulkActionLoading(false);
     }
   };
   
@@ -254,15 +227,16 @@ export default function AdminProductsPage() {
    */
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/products/export', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
+      const filters = {
+        category: selectedCategory !== 'all' ? selectedCategory : '',
+        status: selectedStatus !== 'all' ? selectedStatus : '',
+        search: debouncedSearch,
+      };
       
-      if (!response.ok) throw new Error('Failed to export products');
+      const response = await api.products.export(filters);
       
-      const blob = await response.blob();
+      // Create blob from response
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -280,7 +254,7 @@ export default function AdminProductsPage() {
       console.error('Error exporting products:', error);
       setToast({
         type: 'error',
-        message: 'Failed to export products. Please try again.'
+        message: error.response?.data?.message || 'Failed to export products. Please try again.'
       });
     }
   };
@@ -467,6 +441,20 @@ export default function AdminProductsPage() {
         onPageChange={setCurrentPage}
       />
       
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmBulkDelete}
+        productCount={selectedProducts.length}
+        productNames={products
+          .filter(p => selectedProducts.includes(p._id))
+          .map(p => p.title)
+          .slice(0, 5)}
+        isBulk={true}
+        isLoading={bulkActionLoading}
+      />
+
       {/* Toast Notifications */}
       {toast && (
         <Toast

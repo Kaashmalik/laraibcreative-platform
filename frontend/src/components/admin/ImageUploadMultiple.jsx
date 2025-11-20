@@ -361,9 +361,13 @@ export default function ImageUploadMultiple({
               {/* Image */}
               <Image
                 src={imageUrl}
-                alt={`Product image ${index + 1}`}
+                alt={`Product photo ${index + 1}${primaryImage === imageUrl ? ' (primary image)' : ''}`}
                 fill
                 className="object-cover"
+                quality={75}
+                sizes="200px"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
               />
               
               {/* Primary Badge */}
@@ -451,9 +455,13 @@ export default function ImageUploadMultiple({
           <div className="relative w-full h-[70vh]">
             <Image
               src={previewImage}
-              alt="Preview"
+              alt="Product image preview - full size view"
               fill
               className="object-contain"
+              quality={85}
+              sizes="100vw"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
             />
           </div>
           

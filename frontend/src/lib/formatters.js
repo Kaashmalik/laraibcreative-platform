@@ -4,6 +4,39 @@
  */
 
 /**
+ * Format currency with PKR symbol and thousands separator
+ * @param {number|string} amount - Amount to format
+ * @param {string} currency - Currency code (default: PKR)
+ * @param {boolean} hideDecimals - Hide decimal places for whole numbers
+ * @returns {string} - Formatted currency string
+ * @example
+ * formatCurrency(1000) // 'Rs. 1,000'
+ * formatCurrency(1000.50) // 'Rs. 1,000.50'
+ * formatCurrency(1000, 'PKR', true) // 'Rs. 1,000'
+ */
+export function formatCurrency(amount, currency = 'PKR', hideDecimals = false) {
+  if (amount === null || amount === undefined || amount === '') {
+    return 'Rs. 0';
+  }
+
+  const numAmount = Number(amount);
+  if (isNaN(numAmount)) {
+    return 'Rs. 0';
+  }
+
+  const formatted = new Intl.NumberFormat('en-PK', {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: hideDecimals && Number.isInteger(numAmount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(numAmount);
+
+  // Replace PKR with Rs. for better readability
+  return formatted.replace('PKR', 'Rs.').trim();
+}
+
+/**
  * Format phone number to standard Pakistani format
  * @param {string} phone - Phone number to format
  * @param {boolean} international - Include country code prefix

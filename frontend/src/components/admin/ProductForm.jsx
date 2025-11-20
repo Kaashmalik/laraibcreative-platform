@@ -8,7 +8,22 @@ import Textarea from '@/components/ui/Textarea';
 import Select from '@/components/ui/Select';
 import Checkbox from '@/components/ui/Checkbox';
 import ImageUploadMultiple from '@/components/admin/ImageUploadMultiple';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import dynamic from 'next/dynamic';
+import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
+import { RichTextEditorLoading } from '@/components/shared/LoadingComponents';
+
+// Dynamically import RichTextEditor (heavy component with editor logic)
+const RichTextEditor = dynamic(
+  () => import('@/components/admin/RichTextEditor'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="RichTextEditor">
+        <RichTextEditorLoading />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false, // Editor requires browser APIs
+  }
+);
 import { generateSlug, generateSKU } from '@/lib/utils';
 
 /**

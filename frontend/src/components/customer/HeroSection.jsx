@@ -137,6 +137,7 @@ export default function HeroSection() {
                   height={400}
                   className="object-contain w-full h-full p-4 sm:p-8"
                   priority
+                  quality={75}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
                 />
               </div>

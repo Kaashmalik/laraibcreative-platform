@@ -9,8 +9,8 @@ import { useState } from 'react';
  * Step 2 of checkout - Collect shipping address
  */
 
-export default function ShippingAddressForm({ formData, updateFormData, onNext, onBack }) {
-  const [errors, setErrors] = useState({});
+export default function ShippingAddressForm({ formData, updateFormData, onNext, onBack, errors: propErrors = {} }) {
+  const [errors, setErrors] = useState(propErrors);
   const [touched, setTouched] = useState({});
 
   const data = formData?.shippingAddress || {

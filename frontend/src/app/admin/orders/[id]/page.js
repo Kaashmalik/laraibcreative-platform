@@ -488,6 +488,10 @@ export default function AdminOrderDetailPage() {
                           height={700}
                           className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={() => window.open(order.payment.receiptImage, '_blank')}
+                          quality={80}
+                          sizes="(max-width: 768px) 100vw, 500px"
+                          placeholder="blur"
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
                         />
                         {order.payment.status === 'pending' && (
                           <Button

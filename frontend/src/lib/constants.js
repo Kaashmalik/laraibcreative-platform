@@ -27,13 +27,15 @@ export const CLOUDINARY_API_KEY = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || 
 
 /**
  * Image quality settings for different use cases
+ * Optimized for performance while maintaining visual quality
  */
 export const IMAGE_QUALITY = {
-  thumbnail: 50,    // Low quality for thumbnails
-  low: 60,
-  medium: 75,       // Medium quality for product listings
-  high: 90,         // High quality for product details
-  original: 100     // Original quality for zoom/downloads
+  thumbnail: 60,      // Small thumbnails (cart, search results)
+  card: 75,           // Product cards in listings
+  detail: 80,         // Product detail pages
+  hero: 75,           // Hero images and banners
+  zoom: 100,          // Lightbox/zoom views only
+  logo: 75            // Logos and icons
 };
 
 /**
@@ -46,6 +48,20 @@ export const IMAGE_SIZES = {
   large: { width: 1200, height: 1200 },
   hero: { width: 1920, height: 800 },
   banner: { width: 1920, height: 600 }
+};
+
+/**
+ * Responsive sizes strings for Next.js Image component
+ */
+export const IMAGE_SIZES_STRING = {
+  thumbnail: "(max-width: 640px) 150px, 150px",
+  productCard: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+  productDetail: "(max-width: 1024px) 100vw, 50vw",
+  hero: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw",
+  cart: "(max-width: 768px) 96px, 112px",
+  review: "80px",
+  search: "64px",
+  admin: "256px"
 };
 
 // ============================================================================

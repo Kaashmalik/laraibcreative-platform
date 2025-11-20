@@ -81,6 +81,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
               sizes="(max-width: 768px) 96px, 112px"
               className="object-cover hover:scale-105 transition-transform duration-300"
               itemProp="image"
+              quality={60}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
             />
           </div>
         </Link>
