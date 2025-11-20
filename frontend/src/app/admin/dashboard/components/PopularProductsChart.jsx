@@ -8,13 +8,20 @@
 'use client';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import type { PopularProduct } from '@/types/dashboard';
 
-interface PopularProductsChartProps {
-  data?: PopularProduct[];
-}
+/**
+ * @typedef {Object} PopularProduct
+ * @property {string} title
+ * @property {number} sales
+ * @property {number} revenue
+ */
 
-export default function PopularProductsChart({ data: propData }: PopularProductsChartProps) {
+/**
+ * @param {Object} props
+ * @param {PopularProduct[]} [props.data]
+ */
+
+export default function PopularProductsChart({ data: propData }) {
   // Fallback mock data if no data provided
   const defaultData = [
     { name: 'Bridal Lehenga', sales: 45, revenue: 450000 },

@@ -18,13 +18,20 @@
 'use client';
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import type { RevenueTrend } from '@/types/dashboard';
 
-interface RevenueChartProps {
-  data?: RevenueTrend[];
-}
+/**
+ * @typedef {Object} RevenueTrend
+ * @property {string} date
+ * @property {number} revenue
+ * @property {number} orders
+ */
 
-export default function RevenueChart({ data: propData }: RevenueChartProps) {
+/**
+ * @param {Object} props
+ * @param {RevenueTrend[]} [props.data]
+ */
+
+export default function RevenueChart({ data: propData }) {
   // Fallback mock data if no data provided
   const defaultData = [
     { date: 'Oct 1', revenue: 12000, orders: 8 },

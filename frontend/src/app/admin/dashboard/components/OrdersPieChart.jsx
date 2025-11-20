@@ -16,11 +16,19 @@
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import type { OrderDistribution } from '@/types/dashboard';
 
-interface OrdersPieChartProps {
-  data?: OrderDistribution[];
-}
+/**
+ * @typedef {Object} OrderDistribution
+ * @property {string} status
+ * @property {number} percentage
+ * @property {number} count
+ * @property {number} revenue
+ */
+
+/**
+ * @param {Object} props
+ * @param {OrderDistribution[]} [props.data]
+ */
 
 // Color palette for order statuses
 const STATUS_COLORS: Record<string, string> = {
@@ -37,7 +45,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const DEFAULT_COLORS = ['#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#06b6d4', '#6366f1', '#14b8a6'];
 
-export default function OrdersPieChart({ data: propData }: OrdersPieChartProps) {
+export default function OrdersPieChart({ data: propData }) {
   // Transform order distribution data for pie chart
   const data = propData && propData.length > 0
     ? propData.map((item, index) => ({
