@@ -44,7 +44,7 @@ export function useDashboard(options: UseDashboardOptions = {}) {
       if (endDate) params.endDate = endDate;
 
       const response = await api.dashboard.getDashboard(params);
-      const result: DashboardResponse = response as DashboardResponse;
+      const result: DashboardResponse = response as unknown as DashboardResponse;
 
       if (result.success) {
         setData(result.data);

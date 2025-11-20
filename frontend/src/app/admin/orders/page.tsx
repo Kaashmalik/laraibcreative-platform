@@ -62,7 +62,7 @@ export default function AdminOrdersPage() {
       }
 
       const response = await api.orders.admin.getAll(params);
-      const data: OrderListResponse = response as OrderListResponse;
+      const data: OrderListResponse = response as unknown as OrderListResponse;
 
       setOrders(data.data.orders || []);
       setPagination(data.data.pagination);

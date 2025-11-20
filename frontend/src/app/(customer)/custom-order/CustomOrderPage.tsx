@@ -180,7 +180,7 @@ function CustomOrderPage() {
       });
 
       // Submit order
-      const response = await api.customOrders.submit(formDataToSubmit) as OrderSubmissionResponse;
+      const response = await api.customOrders.submit(formDataToSubmit) as unknown as OrderSubmissionResponse;
 
       if (response.success) {
         setSubmittedOrder(response);
