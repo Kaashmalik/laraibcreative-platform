@@ -248,10 +248,8 @@ export default function PaymentVerification({
 
             {/* Verification Notes */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Verification Notes {verified === false && <span className="text-red-500">*</span>}
-              </label>
               <Textarea
+                label={`Verification Notes ${verified === false ? '*' : ''}`}
                 value={verificationNotes}
                 onChange={(e) => setVerificationNotes(e.target.value)}
                 placeholder={

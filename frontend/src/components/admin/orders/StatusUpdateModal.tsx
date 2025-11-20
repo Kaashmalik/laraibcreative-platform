@@ -147,10 +147,8 @@ export default function StatusUpdateModal({
 
             {/* Note */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Internal Note (Optional)
-              </label>
               <Textarea
+                label="Internal Note (Optional)"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Add a note about this status change..."

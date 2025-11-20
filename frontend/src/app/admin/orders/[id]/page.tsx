@@ -597,10 +597,11 @@ export default function AdminOrderDetailPage() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Instructions</label>
                             <Textarea
+                              label="Delivery Instructions"
                               value={shippingAddress.deliveryInstructions || ''}
                               onChange={(e) => setShippingAddress({ ...shippingAddress, deliveryInstructions: e.target.value })}
+                              placeholder="Enter delivery instructions"
                               rows={3}
                             />
                           </div>
@@ -728,6 +729,7 @@ export default function AdminOrderDetailPage() {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Internal Note</h3>
                       <Textarea
+                        label="Internal Note"
                         value={adminNotes}
                         onChange={(e) => setAdminNotes(e.target.value)}
                         placeholder="Add a note for internal reference..."
@@ -1006,10 +1008,8 @@ export default function AdminOrderDetailPage() {
               </div>
               <div className="px-6 py-4">
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cancellation Reason <span className="text-red-500">*</span>
-                  </label>
                   <Textarea
+                    label="Cancellation Reason"
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
                     placeholder="Please provide a reason for cancellation..."
