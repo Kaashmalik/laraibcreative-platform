@@ -75,7 +75,7 @@ export default function AdminOrderDetailPage() {
   const fetchOrderDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.orders.admin.getById(orderId);
+      const response = await api.orders.admin.getById(orderId) as { order: Order };
       setOrder(response.order);
     } catch (error: any) {
       console.error('Error fetching order:', error);
