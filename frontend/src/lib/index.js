@@ -133,7 +133,7 @@ export const initializeLib = () => {
       if (isDevelopment()) {
         const usage = storageUtils.getStorageUsage();
         const size = storageUtils.getStorageSize();
-        console.log(`📦 Storage: ${size} (${usage}% full)`);
+        // console.log(`📦 Storage: ${size} (${usage}% full)`);
       }
     } catch (error) {
       console.error('Error initializing library:', error);

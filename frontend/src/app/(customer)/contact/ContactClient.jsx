@@ -17,7 +17,7 @@ export default function ContactClient() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // TODO: Implement contact form submission
-    console.log('Form submitted:', formData);
+    // Form submitted: formData
   };
 
   const handleChange = (e) => {

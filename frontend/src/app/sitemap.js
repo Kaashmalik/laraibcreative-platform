@@ -4,7 +4,15 @@
 // Generates sitemap.xml for SEO optimization
 // ==========================================
 
-export default function sitemap() {
+import api from '@/lib/api';
+
+// ==========================================
+// DYNAMIC SITEMAP GENERATION
+// ==========================================
+// Generates sitemap.xml for SEO optimization
+// ==========================================
+
+export default async function sitemap() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://laraibcreative.studio';
   const currentDate = new Date().toISOString();
 
@@ -60,7 +68,39 @@ export default function sitemap() {
     },
   ];
 
-  // Category routes (you can fetch these dynamically from API)
+  // Fetch all products
+  let productRoutes = [];
+  try {
+    const productsResponse = await api.products.getAll({ limit: 1000 });
+    const products = productsResponse.products || productsResponse.data?.products || [];
+    
+    productRoutes = products.map((product) => ({
+      url: `${baseUrl}/products/${product.slug || product._id}`,
+      lastModified: product.updatedAt || currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+  } catch (error) {
+    console.error('Error fetching products for sitemap:', error);
+  }
+
+  // Fetch all blog posts
+  let blogRoutes = [];
+  try {
+    const blogResponse = await api.blog.getAll({ limit: 1000 });
+    const posts = blogResponse.posts || blogResponse.data?.posts || [];
+
+    blogRoutes = posts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt || currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error('Error fetching blog posts for sitemap:', error);
+  }
+
+  // Category routes
   const categoryRoutes = [
     'bridal-wear',
     'party-wear',
@@ -68,12 +108,12 @@ export default function sitemap() {
     'formal-wear',
     'designer-replicas',
   ].map((category) => ({
-    url: `${baseUrl}/categories/${category}`,
+    url: `${baseUrl}/products?category=${category}`,
     lastModified: currentDate,
     changeFrequency: 'weekly',
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...categoryRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
 }
 

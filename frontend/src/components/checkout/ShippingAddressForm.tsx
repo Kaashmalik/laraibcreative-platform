@@ -93,7 +93,7 @@ export default function ShippingAddressForm({
         }
       } catch (error) {
         // User might not be logged in, which is fine for guest checkout
-        console.log('No saved addresses available (guest checkout)');
+        // No saved addresses available (guest checkout)
       } finally {
         setIsLoadingAddresses(false);
       }

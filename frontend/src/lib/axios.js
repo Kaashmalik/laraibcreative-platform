@@ -44,10 +44,10 @@ axiosInstance.interceptors.request.use(
 
     // Log requests in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `🚀 [API] ${config.method?.toUpperCase()} ${config.url}`,
-        config.params || config.data || ''
-      );
+      // console.log(
+      //   `🚀 [API] ${config.method?.toUpperCase()} ${config.url}`,
+      //   config.params || config.data || ''
+      // );
     }
 
     // Generate unique request ID
@@ -81,9 +81,9 @@ axiosInstance.interceptors.response.use(
     // Log response time in development
     if (process.env.NODE_ENV === 'development' && response.config.metadata) {
       const duration = Date.now() - response.config.metadata.startTime;
-      console.log(
-        `✅ [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
-      );
+      // console.log(
+      //   `✅ [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
+      // );
     }
 
     // Clear request from tracking
@@ -255,7 +255,7 @@ function handleValidationError(data) {
       
       // Log all errors in development
       if (process.env.NODE_ENV === 'development') {
-        console.log('Validation errors:', data.errors);
+        // console.log('Validation errors:', data.errors);
       }
     }
   } else {
@@ -288,7 +288,7 @@ export function cancelAllRequests() {
   });
   
   if (process.env.NODE_ENV === 'development') {
-    console.log('🚫 [API] All requests cancelled');
+    // console.log('🚫 [API] All requests cancelled');
   }
 }
 

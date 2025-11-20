@@ -52,7 +52,7 @@ interface OrderConfirmationProps {
 export default function OrderConfirmation({ order }: OrderConfirmationProps) {
   useEffect(() => {
     // Log order confirmation for analytics
-    console.log('Order placed successfully:', order);
+    // Order placed successfully: order
     
     // Optional: Trigger confetti animation or celebration effect
     // You can integrate a library like react-confetti here

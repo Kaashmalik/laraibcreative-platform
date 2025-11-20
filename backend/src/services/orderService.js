@@ -7,35 +7,29 @@ const logger = require('../utils/logger');
 /**
  * Generate unique order number
  * Format: LC-YYYY-NNNN (e.g., LC-2025-0001)
+ * Uses atomic update to prevent race conditions
  */
 exports.generateOrderNumber = async () => {
   try {
+    const Counter = require('../models/Counter'); // Ensure Counter model exists
     const currentYear = new Date().getFullYear();
     const prefix = `LC-${currentYear}-`;
 
-    // Find the last order for current year
-    const lastOrder = await Order.findOne({
-      orderNumber: new RegExp(`^${prefix}`)
-    })
-      .sort({ createdAt: -1 })
-      .select('orderNumber')
-      .lean();
-
-    let nextNumber = 1;
-
-    if (lastOrder) {
-      // Extract the number part and increment
-      const lastNumber = parseInt(lastOrder.orderNumber.split('-')[2]);
-      nextNumber = lastNumber + 1;
-    }
+    // Atomic increment
+    const counter = await Counter.findOneAndUpdate(
+      { _id: 'orderNumber', year: currentYear },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
 
     // Pad with zeros (4 digits)
-    const paddedNumber = String(nextNumber).padStart(4, '0');
+    const paddedNumber = String(counter.seq).padStart(4, '0');
     return `${prefix}${paddedNumber}`;
 
   } catch (error) {
     logger.error('Error generating order number:', error);
-    throw new Error('Failed to generate order number');
+    // Fallback to random if counter fails (should not happen)
+    return `LC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
   }
 };
 

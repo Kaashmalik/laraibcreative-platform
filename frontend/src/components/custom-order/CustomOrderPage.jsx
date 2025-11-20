@@ -98,7 +98,7 @@ const CustomOrderPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Here you would normally send data to your backend
-      console.log('Order Data:', orderData);
+      // Order Data: orderData
       
       setIsSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });

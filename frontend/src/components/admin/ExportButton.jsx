@@ -154,7 +154,7 @@ export default function ExportButton({
       }
 
       // Success notification (you can integrate with toast context)
-      console.log(`Successfully exported as ${type.toUpperCase()}`);
+      // Successfully exported as type.toUpperCase()
     } catch (error) {
       console.error('Export failed:', error);
       alert('Export failed. Please try again.');

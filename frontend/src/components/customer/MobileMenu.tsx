@@ -26,6 +26,13 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import type { MobileMenuProps } from '@/types/navigation';
 
+interface User {
+  name?: string;
+  email?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
 /**
  * MobileMenu Component - Production Ready
  * 
@@ -48,6 +55,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const typedUser = user as User | null;
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
@@ -90,7 +98,8 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
   useEffect(() => {
     if (!isOpen || !menuRef.current) return;
 
-    const focusableElements = menuRef.current.querySelectorAll<HTMLElement>(
+    const currentMenuRef = menuRef.current;
+    const focusableElements = currentMenuRef.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
     );
     
@@ -115,11 +124,11 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
       }
     };
 
-    menuRef.current.addEventListener('keydown', handleTabKey);
+    currentMenuRef.addEventListener('keydown', handleTabKey);
     firstElement?.focus();
 
     return () => {
-      menuRef.current?.removeEventListener('keydown', handleTabKey);
+      currentMenuRef.removeEventListener('keydown', handleTabKey);
     };
   }, [isOpen]);
 
@@ -209,11 +218,11 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
 
             {/* User Section with enhanced design */}
             <div className="px-6 py-4 bg-gradient-to-br from-primary-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
-              {user ? (
+              {typedUser ? (
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <div className="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 dark:from-primary-500 dark:to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-xl shadow-lg">
-                      {(user as any)?.name?.charAt(0).toUpperCase() || (user as any)?.email?.charAt(0).toUpperCase() || 'U'}
+                      {typedUser.name?.charAt(0).toUpperCase() || typedUser.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div 
                       className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full" 
@@ -222,10 +231,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-gray-100 truncate text-base">
-                      {(user as any)?.name || 'User'}
+                      {typedUser.name || 'User'}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {(user as any)?.email || ''}
+                      {typedUser.email || ''}
                     </p>
                   </div>
                 </div>
@@ -320,7 +329,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
                                   key={category.name}
                                   href={category.href}
                                   onClick={handleLinkClick}
-                                  className="block px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] flex items-center"
+                                  className="px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] flex items-center"
                                   role="menuitem"
                                 >
                                   <div>

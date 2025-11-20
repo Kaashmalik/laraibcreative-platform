@@ -5,7 +5,7 @@ export async function POST(request) {
     const body = await request.json();
     
     // TODO: Handle webhook events (payment confirmations, etc.)
-    console.log('Webhook received:', body);
+    // console.log('Webhook received:', body);
 
     return NextResponse.json({
       success: true,

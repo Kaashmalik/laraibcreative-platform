@@ -11,7 +11,7 @@ export default function TrackOrderPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // TODO: Implement order tracking
-    console.log('Tracking order:', orderNumber, email);
+    // Tracking order: orderNumber, email
   };
 
   return (

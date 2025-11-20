@@ -15,6 +15,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const { generateSlug, calculateReadTime } = require('../utils/helpers');
 const { deleteFromCloudinary } = require('../config/cloudinary');
+const { productSchema } = require('../utils/validationSchemas');
 
 /**
  * GET /api/products

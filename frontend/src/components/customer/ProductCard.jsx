@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
+import { useUIStore } from '@/store/uiStore';
+
 /**
  * ProductCard Component
  * 
@@ -23,6 +25,7 @@ import { motion } from 'framer-motion';
 export default function ProductCard({ product, viewMode = 'grid' }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const openQuickView = useUIStore((state) => state.openQuickView);
 
   /**
    * Toggle wishlist status
@@ -57,10 +60,7 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
    */
   const handleQuickView = (e) => {
     e.preventDefault();
-    // Dispatch custom event or use context to open modal
-    window.dispatchEvent(
-      new CustomEvent('openQuickView', { detail: { productId: product._id } })
-    );
+    openQuickView(product._id);
   };
 
   /**

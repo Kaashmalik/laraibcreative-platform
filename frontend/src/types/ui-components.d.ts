@@ -16,7 +16,7 @@ declare module '@/components/ui/Button' {
     type?: 'button' | 'submit' | 'reset';
     className?: string;
     ariaLabel?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   const Button: React.FC<ButtonProps>;
   export { Button };
@@ -42,7 +42,7 @@ declare module '@/components/ui/Textarea' {
     size?: 'sm' | 'md' | 'lg';
     resize?: 'none' | 'vertical' | 'horizontal' | 'both';
     className?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   const Textarea: React.FC<TextareaProps>;
   export { Textarea };
@@ -118,7 +118,7 @@ declare module '@/components/ui/Checkbox' {
     checked?: boolean;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     className?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   const Checkbox: React.ForwardRefExoticComponent<CheckboxProps & React.RefAttributes<HTMLInputElement>>;
   export { Checkbox };
@@ -136,7 +136,7 @@ declare module '@/components/ui/Input' {
     errorMessage?: string;
     helperText?: string;
     className?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   const Input: React.ForwardRefExoticComponent<InputProps & React.RefAttributes<HTMLInputElement>>;
   export { Input };

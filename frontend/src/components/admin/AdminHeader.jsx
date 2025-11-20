@@ -115,7 +115,7 @@ export default function AdminHeader({
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      console.log('Searching for:', searchQuery);
+      // Searching for: searchQuery
       setIsSearchOpen(false);
       setSearchQuery('');
     }
