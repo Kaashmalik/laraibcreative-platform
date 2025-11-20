@@ -104,9 +104,9 @@ export default function OrderTimeline({ order }: OrderTimelineProps) {
                   {formatDate(item.timestamp, 'short')}
                 </span>
               </div>
-              {item.updatedBy && typeof item.updatedBy === 'object' && (
+              {item.updatedBy && typeof item.updatedBy === 'object' && 'fullName' in item.updatedBy && (
                 <p className="text-xs text-gray-500">
-                  Updated by {item.updatedBy.fullName || 'Admin'}
+                  Updated by {(item.updatedBy as any).fullName || 'Admin'}
                 </p>
               )}
             </div>

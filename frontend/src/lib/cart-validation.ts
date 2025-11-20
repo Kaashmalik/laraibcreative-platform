@@ -5,7 +5,8 @@
  * @module lib/cart-validation
  */
 
-import type { CartItem, Product } from '@/types/cart';
+import type { CartItem } from '@/types/cart';
+import type { Product } from '@/types/product';
 
 /**
  * Validate quantity
@@ -114,7 +115,7 @@ export function validateCartItem(item: CartItem): {
   }
 
   // Validate stock
-  const stockAvailable = item.stockAvailable || item.product.inventory?.quantity || item.product.stockQuantity || 0;
+  const stockAvailable = item.stockAvailable || item.product.inventory?.stockQuantity || item.product.stockQuantity || 0;
   if (stockAvailable > 0) {
     const stockValidation = validateStock(item.quantity, stockAvailable);
     if (!stockValidation.valid) {
@@ -184,7 +185,7 @@ export function canUpdateQuantity(
   }
 
   // Validate stock
-  const stockAvailable = item.stockAvailable || item.product.inventory?.quantity || item.product.stockQuantity || 0;
+  const stockAvailable = item.stockAvailable || item.product.inventory?.stockQuantity || item.product.stockQuantity || 0;
   if (stockAvailable > 0) {
     const stockValidation = validateStock(newQuantity, stockAvailable);
     if (!stockValidation.valid) {
@@ -202,7 +203,7 @@ export function canUpdateQuantity(
  * Calculate maximum allowed quantity
  */
 export function getMaxQuantity(item: CartItem): number {
-  const stockAvailable = item.stockAvailable || item.product.inventory?.quantity || item.product.stockQuantity || 0;
+  const stockAvailable = item.stockAvailable || item.product.inventory?.stockQuantity || item.product.stockQuantity || 0;
   
   if (stockAvailable > 0) {
     return Math.min(stockAvailable, 99);

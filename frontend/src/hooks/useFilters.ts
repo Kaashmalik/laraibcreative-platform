@@ -91,7 +91,7 @@ function parseFiltersFromURL(searchParams: URLSearchParams): Partial<ProductFilt
   arrayFilters.forEach((key) => {
     const value = searchParams.get(key);
     if (value) {
-      filters[key] = value.split(',').filter(Boolean);
+      (filters as any)[key] = value.split(',').filter(Boolean);
     }
   });
 
@@ -206,7 +206,7 @@ export function useFilters(options: UseFiltersOptions = {}): UseFiltersReturn {
       // Only use stored filters if URL doesn't have them
       Object.keys(storedFilters).forEach((key) => {
         if (!filters[key as keyof ProductFilters]) {
-          filters[key as keyof ProductFilters] = storedFilters[key as keyof ProductFilters];
+          (filters as any)[key as keyof ProductFilters] = storedFilters[key as keyof ProductFilters];
         }
       });
     }

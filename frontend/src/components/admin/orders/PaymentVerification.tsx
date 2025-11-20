@@ -43,7 +43,9 @@ export default function PaymentVerification({
 
   if (!isOpen) return null;
 
-  const receiptImage = order.payment.receiptImage?.url || order.payment.receiptImage;
+  const receiptImage = typeof order.payment.receiptImage === 'string' 
+    ? order.payment.receiptImage 
+    : order.payment.receiptImage?.url || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

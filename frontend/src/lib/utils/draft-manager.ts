@@ -25,7 +25,7 @@ export function saveDraft(formData: CustomOrderFormData): boolean {
           size: img.size,
           preview: img.preview,
           uploadedAt: img.uploadedAt || new Date().toISOString(),
-        })),
+        })) as any[],
       },
       savedAt: new Date().toISOString(),
       version: DRAFT_VERSION,

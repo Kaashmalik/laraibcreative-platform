@@ -7,7 +7,8 @@
 
 import { useCartStore } from '@/store/cartStore';
 import { useCallback, useEffect } from 'react';
-import type { Product, CartItemCustomizations } from '@/types/cart';
+import type { CartItemCustomizations } from '@/types/cart';
+import type { Product } from '@/types/product';
 
 /**
  * useCart Hook

@@ -134,7 +134,9 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
     
     setIsLoggingOut(true);
     try {
-      await logout();
+      if (logout && typeof logout === 'function') {
+        await (logout as () => Promise<void>)();
+      }
       onClose();
       router.push('/');
     } catch (error) {
@@ -211,7 +213,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <div className="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 dark:from-primary-500 dark:to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-xl shadow-lg">
-                      {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                      {(user as any)?.name?.charAt(0).toUpperCase() || (user as any)?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div 
                       className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full" 
@@ -220,10 +222,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-gray-100 truncate text-base">
-                      {user.name || 'User'}
+                      {(user as any)?.name || 'User'}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {user.email || ''}
+                      {(user as any)?.email || ''}
                     </p>
                   </div>
                 </div>

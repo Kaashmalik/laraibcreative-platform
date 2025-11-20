@@ -127,14 +127,14 @@ export default function OrderFilters({ filters, onFiltersChange, onClear }: Orde
             <Input
               type="number"
               placeholder="Min Amount"
-              value={filters.minAmount || ''}
+              value={filters.minAmount?.toString() || ''}
               onChange={(e) => handleFilterChange('minAmount', e.target.value ? Number(e.target.value) : undefined)}
               className="w-full"
             />
             <Input
               type="number"
               placeholder="Max Amount"
-              value={filters.maxAmount || ''}
+              value={filters.maxAmount?.toString() || ''}
               onChange={(e) => handleFilterChange('maxAmount', e.target.value ? Number(e.target.value) : undefined)}
               className="w-full"
             />

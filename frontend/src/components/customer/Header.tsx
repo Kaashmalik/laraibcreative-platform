@@ -256,7 +256,9 @@ export default function Header() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await logout();
+      if (logout && typeof logout === 'function') {
+        await (logout as () => Promise<void>)();
+      }
       setIsUserMenuOpen(false);
     } catch (error) {
       console.error('Logout error:', error);
@@ -509,7 +511,7 @@ export default function Header() {
                   >
                     <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                       <span className="text-xs font-semibold text-primary-600 dark:text-primary-400">
-                        {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                        {(user as any)?.name?.charAt(0).toUpperCase() || (user as any)?.email?.charAt(0).toUpperCase() || 'U'}
                       </span>
                     </div>
                     <ChevronDown className="w-3.5 h-3.5 hidden lg:block" aria-hidden="true" />
@@ -530,10 +532,10 @@ export default function Header() {
                         {/* User Info */}
                         <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                            {user.name || 'User'}
+                            {(user as any)?.name || 'User'}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {user.email || ''}
+                            {(user as any)?.email || ''}
                           </p>
                         </div>
 

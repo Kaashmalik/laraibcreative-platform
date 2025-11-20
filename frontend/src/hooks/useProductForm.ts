@@ -83,21 +83,21 @@ export function useProductForm({ initialData, onSubmit, onDraftSave }: UseProduc
             }))
           : [],
         primaryImage: initialData.primaryImage || initialData.image || '',
-        pricing: initialData.pricing || {
+        pricing: (initialData.pricing as any) || {
           basePrice: initialData.price || 0,
           currency: 'PKR',
         },
-        fabric: initialData.fabric || { type: '' },
-        inventory: initialData.inventory || {
+        fabric: (initialData.fabric as any) || { type: '' },
+        inventory: (initialData.inventory as any) || {
           trackInventory: false,
           stockQuantity: initialData.stockQuantity || 0,
           lowStockThreshold: 5,
         },
-        availability: initialData.availability || {
+        availability: (initialData.availability as any) || {
           status: initialData.inStock ? 'in-stock' : 'made-to-order',
         },
         productType: initialData.productType || 'both',
-        sizeAvailability: initialData.sizeAvailability || {
+        sizeAvailability: (initialData.sizeAvailability as any) || {
           availableSizes: [],
           customSizesAvailable: false,
         },
@@ -109,8 +109,8 @@ export function useProductForm({ initialData, onSubmit, onDraftSave }: UseProduc
         tags: initialData.tags || [],
         features: initialData.features || [],
         whatsIncluded: initialData.whatsIncluded || [],
-        availableColors: initialData.availableColors || [],
-        occasion: initialData.occasion || undefined,
+        availableColors: (initialData.availableColors as any) || [],
+        occasion: (initialData.occasion as any) || undefined,
         subcategory: initialData.subcategory || '',
         adminNotes: initialData.adminNotes || '',
       };

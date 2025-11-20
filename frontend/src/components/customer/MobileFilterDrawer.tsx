@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter } from 'lucide-react';
+import { useFilters } from '@/hooks/useFilters';
 import ProductFilters from './ProductFilters';
 import ActiveFilters from './ActiveFilters';
 

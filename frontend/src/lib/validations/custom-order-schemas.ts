@@ -10,35 +10,39 @@ import { z } from 'zod';
 /**
  * Step 1: Service Type Schema
  */
-export const serviceTypeSchema = z.object({
+const serviceTypeBase = z.object({
   serviceType: z.enum(['fully-custom', 'brand-article'], {
     required_error: 'Please select a service type',
   }),
-  designIdea: z.string().optional().refine(
-    (val, ctx) => {
-      const serviceType = ctx.parent?.serviceType;
-      if (serviceType === 'fully-custom') {
-        return val && val.trim().length >= 50;
-      }
-      return true;
-    },
-    {
-      message: 'Design idea must be at least 50 characters for fully custom orders',
-    }
-  ),
+  designIdea: z.string().optional(),
 });
+
+export const serviceTypeSchema = serviceTypeBase.refine(
+  (data) => {
+    if (data.serviceType === 'fully-custom') {
+      return data.designIdea && data.designIdea.trim().length >= 50;
+    }
+    return true;
+  },
+  {
+    message: 'Design idea must be at least 50 characters for fully custom orders',
+    path: ['designIdea'],
+  }
+);
 
 /**
  * Step 2: Reference Images Schema
  */
-export const referenceImagesSchema = z.object({
+const referenceImagesBase = z.object({
   referenceImages: z.array(z.any()).min(2, {
     message: 'Please upload at least 2 reference images',
   }).max(6, {
     message: 'Maximum 6 images allowed',
   }).optional(),
   serviceType: z.enum(['fully-custom', 'brand-article']),
-}).refine(
+});
+
+export const referenceImagesSchema = referenceImagesBase.refine(
   (data) => {
     // Skip validation if fully-custom
     if (data.serviceType === 'fully-custom') {
@@ -55,13 +59,15 @@ export const referenceImagesSchema = z.object({
 /**
  * Step 3: Fabric Selection Schema
  */
-export const fabricSelectionSchema = z.object({
+const fabricSelectionBase = z.object({
   fabricSource: z.enum(['lc-provides', 'customer-provides'], {
     required_error: 'Please select fabric source',
   }),
   selectedFabric: z.any().nullable().optional(),
   fabricDetails: z.string().optional(),
-}).refine(
+});
+
+export const fabricSelectionSchema = fabricSelectionBase.refine(
   (data) => {
     if (data.fabricSource === 'lc-provides') {
       return data.selectedFabric !== null && data.selectedFabric !== undefined;
@@ -116,13 +122,15 @@ export const measurementsSchema = z.object({
 /**
  * Step 4: Measurements Schema
  */
-export const measurementsStepSchema = z.object({
+const measurementsStepBase = z.object({
   useStandardSize: z.boolean(),
   standardSize: z.enum(['XS', 'S', 'M', 'L', 'XL']).optional(),
   measurements: measurementsSchema,
   saveMeasurements: z.boolean().optional(),
   measurementLabel: z.string().optional(),
-}).refine(
+});
+
+export const measurementsStepSchema = measurementsStepBase.refine(
   (data) => {
     if (data.useStandardSize) {
       return !!data.standardSize;
@@ -192,17 +200,17 @@ export const reviewStepSchema = z.object({
  * Complete Order Schema
  */
 export const completeOrderSchema = z.object({
-  serviceType: serviceTypeSchema.shape.serviceType,
-  designIdea: serviceTypeSchema.shape.designIdea,
-  referenceImages: referenceImagesSchema.shape.referenceImages,
-  fabricSource: fabricSelectionSchema.shape.fabricSource,
+  serviceType: serviceTypeBase.shape.serviceType,
+  designIdea: serviceTypeBase.shape.designIdea,
+  referenceImages: referenceImagesBase.shape.referenceImages,
+  fabricSource: fabricSelectionBase.shape.fabricSource,
   selectedFabric: z.any().nullable().optional(),
-  fabricDetails: fabricSelectionSchema.shape.fabricDetails,
-  useStandardSize: measurementsStepSchema.shape.useStandardSize,
-  standardSize: measurementsStepSchema.shape.standardSize,
+  fabricDetails: fabricSelectionBase.shape.fabricDetails,
+  useStandardSize: measurementsStepBase.shape.useStandardSize,
+  standardSize: measurementsStepBase.shape.standardSize,
   measurements: measurementsSchema,
-  saveMeasurements: measurementsStepSchema.shape.saveMeasurements,
-  measurementLabel: measurementsStepSchema.shape.measurementLabel,
+  saveMeasurements: measurementsStepBase.shape.saveMeasurements,
+  measurementLabel: measurementsStepBase.shape.measurementLabel,
   specialInstructions: reviewStepSchema.shape.specialInstructions,
   rushOrder: reviewStepSchema.shape.rushOrder,
   customerInfo: customerInfoSchema,

@@ -204,15 +204,14 @@ export function createDynamicImport<P extends object>(
 
   return dynamic(importFn, {
     loading: LoadingComponent
-      ? () => (
-          <DynamicErrorBoundary componentName={componentName}>
-            {typeof LoadingComponent === 'function' ? (
-              <LoadingComponent />
-            ) : (
-              <LoadingComponent />
-            )}
-          </DynamicErrorBoundary>
-        )
+      ? () => {
+          const Loader = LoadingComponent as ComponentType;
+          return (
+            <DynamicErrorBoundary componentName={componentName}>
+              <Loader />
+            </DynamicErrorBoundary>
+          );
+        }
       : undefined,
     ssr,
   });

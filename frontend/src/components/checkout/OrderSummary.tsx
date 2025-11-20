@@ -34,7 +34,7 @@ export default function OrderSummary({
   promoCode,
   onPromoCodeChange,
 }: OrderSummaryProps) {
-  const { applyCoupon, removeCoupon, isLoading } = useCart();
+  const { applyPromoCode, removePromoCode, isLoading } = useCart();
   const [promoInput, setPromoInput] = useState(promoCode || '');
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
@@ -49,9 +49,9 @@ export default function OrderSummary({
     setPromoSuccess('');
 
     try {
-      const result = await applyCoupon(promoInput.trim().toUpperCase());
+      const result = await applyPromoCode(promoInput.trim().toUpperCase());
       if (result.success) {
-        setPromoSuccess(`Coupon applied! You saved ${formatCurrency(result.discountAmount || 0)}`);
+        setPromoSuccess(`Coupon applied! You saved ${formatCurrency(result.discount || 0)}`);
         onPromoCodeChange?.(promoInput.trim().toUpperCase());
         setTimeout(() => setPromoSuccess(''), 3000);
       } else {
@@ -64,7 +64,7 @@ export default function OrderSummary({
 
   const handleRemovePromo = async () => {
     try {
-      await removeCoupon();
+      removePromoCode();
       setPromoInput('');
       setPromoSuccess('');
       setPromoError('');

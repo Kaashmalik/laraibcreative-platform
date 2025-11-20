@@ -698,13 +698,13 @@ export default function AdminOrderDetailPage() {
                           <img
                             src={typeof order.payment.receiptImage === 'string' 
                               ? order.payment.receiptImage 
-                              : order.payment.receiptImage.url}
+                              : order.payment.receiptImage?.url || ''}
                             alt="Payment Receipt"
                             className="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => window.open(
                               typeof order.payment.receiptImage === 'string' 
                                 ? order.payment.receiptImage 
-                                : order.payment.receiptImage.url, 
+                                : order.payment.receiptImage?.url || '', 
                               '_blank'
                             )}
                           />
@@ -766,8 +766,8 @@ export default function AdminOrderDetailPage() {
                               </div>
                               <p className="text-xs text-gray-500">
                                 {formatDate(note.timestamp, 'short')}
-                                {typeof note.addedBy === 'object' && note.addedBy?.fullName && (
-                                  <span> • by {note.addedBy.fullName}</span>
+                                {typeof note.addedBy === 'object' && note.addedBy && 'fullName' in note.addedBy && (
+                                  <span> • by {(note.addedBy as any).fullName}</span>
                                 )}
                               </p>
                             </div>

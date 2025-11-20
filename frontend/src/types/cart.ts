@@ -135,7 +135,10 @@ export interface CartActions {
   loadCart: () => Promise<void>;
   
   /** Validate cart items (check stock, prices) */
-  validateCart: () => Promise<{ valid: boolean; errors: string[] }>;
+  validateCart: () => Promise<{ 
+    valid: boolean; 
+    errors: Array<{ itemId: string; productId: string; message: string }> 
+  }>;
 }
 
 /**

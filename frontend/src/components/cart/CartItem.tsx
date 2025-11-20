@@ -33,10 +33,13 @@ export default function CartItem({ item, onRemove }: CartItemProps) {
   const productId = product._id || product.id || '';
   const productSlug = product.slug || productId;
   const productName = product.title || product.name || 'Product';
-  const productImage = product.primaryImage || product.images?.[0] || product.image || '/images/placeholder.png';
+  const productImage = (typeof product.primaryImage === 'string' ? product.primaryImage : (product.primaryImage as any)?.url) 
+    || (typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url)
+    || (typeof product.image === 'string' ? product.image : (product.image as any)?.url)
+    || '/images/placeholder.png';
   const productPrice = item.priceAtAdd || product.pricing?.basePrice || product.price || 0;
   const subtotal = productPrice * localQuantity;
-  const stockAvailable = item.stockAvailable || product.inventory?.quantity || product.stockQuantity || 0;
+  const stockAvailable = item.stockAvailable || (product as any).inventory?.quantity || product.stockQuantity || 0;
   const isOutOfStock = stockAvailable > 0 && localQuantity > stockAvailable;
 
   // Handle quantity change

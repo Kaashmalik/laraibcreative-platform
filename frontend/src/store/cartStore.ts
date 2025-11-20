@@ -8,7 +8,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { CartStore, CartItem, Product, CartItemCustomizations, ShippingAddress, PromoCodeResponse } from '@/types/cart';
+import type { CartStore, CartItem, CartItemCustomizations, ShippingAddress, PromoCodeResponse } from '@/types/cart';
+import type { Product } from '@/types/product';
 import api from '@/lib/api';
 
 /**
@@ -71,7 +72,7 @@ export const useCartStore = create<CartStore>()(
             }
 
             // Check stock availability
-            const stockAvailable = product.inventory?.quantity || product.stockQuantity || 0;
+            const stockAvailable = product.inventory?.stockQuantity || product.stockQuantity || 0;
             if (stockAvailable > 0 && quantity > stockAvailable) {
               throw new Error(`Only ${stockAvailable} items available in stock`);
             }
@@ -181,7 +182,7 @@ export const useCartStore = create<CartStore>()(
             }
 
             // Check stock
-            const stockAvailable = item.stockAvailable || item.product.inventory?.quantity || item.product.stockQuantity || 0;
+            const stockAvailable = item.stockAvailable || item.product.inventory?.stockQuantity || item.product.stockQuantity || 0;
             if (stockAvailable > 0 && quantity > stockAvailable) {
               throw new Error(`Only ${stockAvailable} items available in stock`);
             }
@@ -396,10 +397,11 @@ export const useCartStore = create<CartStore>()(
             for (const item of items) {
               // Check if product still exists
               try {
-                const product = await api.products.getById(item.productId);
+                const response = await api.products.getById(item.productId);
+                const product = response.data;
                 
                 // Check stock
-                const stockAvailable = product.inventory?.quantity || product.stockQuantity || 0;
+                const stockAvailable = product.inventory?.stockQuantity || product.stockQuantity || 0;
                 if (stockAvailable > 0 && item.quantity > stockAvailable) {
                   errors.push({
                     itemId: item.id,

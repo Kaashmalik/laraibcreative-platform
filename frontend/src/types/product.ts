@@ -29,6 +29,16 @@ export interface ProductPricing {
   basePrice: number;
   /** Compare price (original price before discount) */
   comparePrice?: number;
+  /** Custom stitching charge */
+  customStitchingCharge?: number;
+  /** Brand article charge */
+  brandArticleCharge?: number;
+  /** Fabric provided by LC */
+  fabricProvidedByLC?: number;
+  /** Rush order fee */
+  rushOrderFee?: number;
+  /** Currency */
+  currency?: 'PKR' | 'USD';
   /** Discount information */
   discount?: {
     percentage?: number;
@@ -112,6 +122,9 @@ export interface Product {
   /** Product SKU */
   sku?: string;
   
+  /** Design code (format: LC-YYYY-XXX) */
+  designCode?: string;
+  
   /** Product images array */
   images?: ProductImage[] | string[];
   
@@ -140,10 +153,49 @@ export interface Product {
     slug?: string;
   };
   
+  /** Product subcategory */
+  subcategory?: string;
+  
   /** Product brand */
   brand?: string | {
     name?: string;
   };
+  
+  /** Fabric information */
+  fabric?: {
+    type?: string;
+    name?: string;
+    color?: string;
+    pattern?: string;
+    weight?: string;
+    composition?: string;
+    careInstructions?: string;
+  };
+  
+  /** Inventory information */
+  inventory?: {
+    trackInventory?: boolean;
+    stockQuantity?: number;
+    lowStockThreshold?: number;
+    sku?: string;
+  };
+  
+  /** Product type */
+  productType?: 'ready-made' | 'custom-only' | 'both';
+  
+  /** Size availability */
+  sizeAvailability?: {
+    availableSizes?: string[];
+    customSizesAvailable?: boolean;
+  };
+  
+  /** Available colors */
+  availableColors?: Array<{
+    name?: string;
+    hexCode?: string;
+    image?: string;
+    inStock?: boolean;
+  }>;
   
   /** Product rating and reviews */
   averageRating?: number;
@@ -158,6 +210,12 @@ export interface Product {
   /** Product features */
   features?: string[];
   
+  /** What's included */
+  whatsIncluded?: string[];
+  
+  /** Occasion */
+  occasion?: string;
+  
   /** SEO information */
   seo?: {
     title?: string;
@@ -170,6 +228,9 @@ export interface Product {
   isFeatured?: boolean;
   isNewArrival?: boolean;
   isBestSeller?: boolean;
+  
+  /** Admin notes */
+  adminNotes?: string;
   
   /** Additional metadata */
   createdAt?: string | Date;

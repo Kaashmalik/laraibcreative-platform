@@ -9,27 +9,27 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
 export default function CartPage() {
-  const router = useRouter();
-  const { cart, updateQuantity, removeFromCart, clearCart, getCartTotal } = useCart();
-  const [promoCode, setPromoCode] = useState('');
-  const [discount, setDiscount] = useState(0);
+  const router = useRouter();
+  const { items: cart, updateQuantity, removeItem: removeFromCart, clearCart, subtotal: cartSubtotal } = useCart();
+  const [promoCode, setPromoCode] = useState('');
+  const [discount, setDiscount] = useState(0);
 
-  const handleQuantityChange = (itemId, newQuantity) => {
-    if (newQuantity < 1) return;
-    updateQuantity(itemId, newQuantity);
-  };
+  const handleQuantityChange = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    updateQuantity(itemId, newQuantity);
+  };
 
-  const handleApplyPromo = () => {
-    // TODO: Implement promo code validation
-    if (promoCode.toLowerCase() === 'welcome10') {
-      setDiscount(10);
-    }
-  };
+  const handleApplyPromo = () => {
+    // TODO: Implement promo code validation
+    if (promoCode.toLowerCase() === 'welcome10') {
+      setDiscount(10);
+    }
+  };
 
-  const subtotal = getCartTotal();
-  const shipping = subtotal > 0 ? 200 : 0; // Rs. 200 shipping
-  const discountAmount = (subtotal * discount) / 100;
-  const total = subtotal + shipping - discountAmount;
+  const subtotal = cartSubtotal || 0;
+  const shipping = subtotal > 0 ? 200 : 0; // Rs. 200 shipping
+  const discountAmount = (subtotal * discount) / 100;
+  const total = subtotal + shipping - discountAmount;
 
   if (!cart || cart.length === 0) {
     return (
