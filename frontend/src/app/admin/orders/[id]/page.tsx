@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
-import { Input } from '@/components/ui/Input';
+import Input from '@/components/ui/Input';
 import OrderDetailView from '@/components/admin/orders/OrderDetailView';
 import PaymentVerification from '@/components/admin/orders/PaymentVerification';
 import StatusUpdateModal from '@/components/admin/orders/StatusUpdateModal';
