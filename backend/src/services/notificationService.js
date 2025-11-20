@@ -443,6 +443,152 @@ exports.sendOrderCancellation = async (order, reason = '') => {
   }
 };
 
+/**
+ * Send refund processed notification
+ * @param {Object} order - Order object
+ * @param {Number} amount - Refund amount
+ * @param {String} reason - Refund reason
+ * @returns {Promise<Object>} Notification results
+ */
+exports.sendRefundProcessed = async (order, amount, reason = '') => {
+  try {
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
+    }
+
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
+
+    // Send email
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendEmail({
+          to: contact.email,
+          subject: `Refund Processed - ${order.orderNumber}`,
+          text: `Refund of PKR ${amount} has been processed for order ${order.orderNumber}. ${reason}`,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2 style="color: #10B981;">Refund Processed</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              <p><strong>Refund Amount:</strong> PKR ${amount.toLocaleString()}</p>
+              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+              <p>The refund will be processed to your original payment method within 5-7 business days.</p>
+            </div>
+          `,
+        });
+        results.email = { sent: emailResult.success };
+        logNotification('Refund Processed Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Refund email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
+    }
+
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const message = `✅ *Refund Processed*\n\nOrder: ${order.orderNumber}\nAmount: PKR ${amount.toLocaleString()}\n${reason ? `Reason: ${reason}\n` : ''}Refund will be processed within 5-7 business days.`;
+        const whatsappResult = await whatsappConfig.sendWhatsAppMessage(contact.whatsapp, message);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Refund Processed WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Refund WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
+    }
+
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
+
+  } catch (error) {
+    console.error('Error in sendRefundProcessed:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+/**
+ * Send tracking update notification
+ * @param {Object} order - Order object
+ * @returns {Promise<Object>} Notification results
+ */
+exports.sendTrackingUpdate = async (order) => {
+  try {
+    if (!order || !order.orderNumber) {
+      throw new Error('Invalid order object');
+    }
+
+    const contact = getCustomerContact(order);
+    const results = {
+      email: { sent: false },
+      whatsapp: { sent: false },
+    };
+
+    const tracking = order.tracking || {};
+    const trackingInfo = tracking.trackingNumber 
+      ? `${tracking.courierService} - ${tracking.trackingNumber}`
+      : 'Your order has been dispatched';
+
+    // Send email
+    if (contact.email) {
+      try {
+        const emailResult = await emailConfig.sendEmail({
+          to: contact.email,
+          subject: `Order Dispatched - ${order.orderNumber}`,
+          text: `Your order ${order.orderNumber} has been dispatched. ${trackingInfo}`,
+          html: `
+            <div style="font-family: Arial, sans-serif;">
+              <h2 style="color: #3B82F6;">Order Dispatched</h2>
+              <p><strong>Order Number:</strong> ${order.orderNumber}</p>
+              <p><strong>Courier:</strong> ${tracking.courierService || 'N/A'}</p>
+              <p><strong>Tracking Number:</strong> ${tracking.trackingNumber || 'N/A'}</p>
+              ${tracking.trackingUrl ? `<p><a href="${tracking.trackingUrl}">Track Your Order</a></p>` : ''}
+              ${tracking.estimatedDeliveryDate ? `<p><strong>Estimated Delivery:</strong> ${new Date(tracking.estimatedDeliveryDate).toLocaleDateString()}</p>` : ''}
+            </div>
+          `,
+        });
+        results.email = { sent: emailResult.success };
+        logNotification('Tracking Update Email', contact.email, emailResult.success);
+      } catch (error) {
+        console.error('Tracking email failed:', error.message);
+        results.email = { sent: false, error: error.message };
+      }
+    }
+
+    // Send WhatsApp
+    if (contact.whatsapp) {
+      try {
+        const message = `📦 *Order Dispatched*\n\nOrder: ${order.orderNumber}\nCourier: ${tracking.courierService || 'N/A'}\nTracking: ${tracking.trackingNumber || 'N/A'}\n${tracking.estimatedDeliveryDate ? `Est. Delivery: ${new Date(tracking.estimatedDeliveryDate).toLocaleDateString()}\n` : ''}${tracking.trackingUrl ? `Track: ${tracking.trackingUrl}` : ''}`;
+        const whatsappResult = await whatsappConfig.sendWhatsAppMessage(contact.whatsapp, message);
+        results.whatsapp = { sent: whatsappResult.success };
+        logNotification('Tracking Update WhatsApp', contact.whatsapp, whatsappResult.success);
+      } catch (error) {
+        console.error('Tracking WhatsApp failed:', error.message);
+        results.whatsapp = { sent: false, error: error.message };
+      }
+    }
+
+    return {
+      success: results.email.sent || results.whatsapp.sent,
+      results,
+    };
+
+  } catch (error) {
+    console.error('Error in sendTrackingUpdate:', error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 // ==========================================
 // CUSTOMER ENGAGEMENT
 // ==========================================

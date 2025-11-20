@@ -1,18 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getDashboard,
+  getDashboardOverview,
   getSalesReport,
   getCustomerReport,
   getProductReport,
-  getConversionFunnel
+  getConversionFunnel,
+  getRevenueTrends,
+  getOrderDistribution,
+  getTopProducts,
+  getInventoryAlerts,
+  exportAnalytics
 } = require('../controllers/analyticsController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 // All analytics routes require admin authentication
 router.use(protect, adminOnly);
 
-router.get('/dashboard', getDashboard);
+router.get('/dashboard', getDashboardOverview);
 router.get('/sales', getSalesReport);
 router.get('/customers', getCustomerReport);
 router.get('/products', getProductReport);

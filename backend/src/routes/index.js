@@ -13,18 +13,14 @@ const blogRoutes = require('./blog.routes');
 const measurementRoutes = require('./measurement.routes');
 const uploadRoutes = require('./upload.routes');
 const analyticsRoutes = require('./analytics.routes');
+const dashboardRoutes = require('./dashboard.routes');
 const settingsRoutes = require('./settings.routes');
+const adminProductRoutes = require('./adminProduct.routes');
+const adminOrderRoutes = require('./adminOrder.routes');
 
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'API is running',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Health check routes (mounted before API version)
+const healthRoutes = require('./health.routes');
+router.use('/health', healthRoutes);
 
 // API version prefix
 const API_VERSION = '/v1';
@@ -34,12 +30,16 @@ router.use(`${API_VERSION}/auth`, authRoutes);
 router.use(`${API_VERSION}/products`, productRoutes);
 router.use(`${API_VERSION}/categories`, categoryRoutes);
 router.use(`${API_VERSION}/orders`, orderRoutes);
+router.use(`${API_VERSION}/orders/custom`, require('./customOrder.routes'));
 router.use(`${API_VERSION}/customers`, customerRoutes);
 router.use(`${API_VERSION}/reviews`, reviewRoutes);
 router.use(`${API_VERSION}/blog`, blogRoutes);
 router.use(`${API_VERSION}/measurements`, measurementRoutes);
 router.use(`${API_VERSION}/upload`, uploadRoutes);
 router.use(`${API_VERSION}/analytics`, analyticsRoutes);
+router.use(`${API_VERSION}/admin/dashboard`, dashboardRoutes);
+router.use(`${API_VERSION}/admin/products`, adminProductRoutes);
+router.use(`${API_VERSION}/admin/orders`, adminOrderRoutes);
 router.use(`${API_VERSION}/settings`, settingsRoutes);
 
 // Root endpoint
@@ -60,6 +60,7 @@ router.get('/', (req, res) => {
       measurements: '/api/v1/measurements',
       upload: '/api/v1/upload',
       analytics: '/api/v1/analytics',
+      dashboard: '/api/v1/admin/dashboard',
       settings: '/api/v1/settings'
     }
   });
@@ -81,6 +82,7 @@ router.use('*', (req, res) => {
       '/api/v1/measurements',
       '/api/v1/upload',
       '/api/v1/analytics',
+      '/api/v1/admin/dashboard',
       '/api/v1/settings'
     ]
   });

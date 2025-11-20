@@ -365,6 +365,121 @@ const profileUpdateNotification = (userName, updatedFields) => {
   return emailWrapper(content, 'Your profile has been updated');
 };
 
+/**
+ * Custom Order Confirmation Email Template
+ */
+const customOrderConfirmationEmail = ({ orderNumber, customerName, serviceType, estimatedPrice, estimatedDays }) => {
+  const content = `
+    <h1>Custom Order Confirmation 🎉</h1>
+    <p>Hi ${customerName},</p>
+    <p>Thank you for placing a custom order with LaraibCreative! We're excited to bring your vision to life.</p>
+    
+    <div class="info-box">
+      <p><strong>Order Details:</strong></p>
+      <ul style="list-style: none; padding: 0;">
+        <li>📋 <strong>Order Number:</strong> ${orderNumber}</li>
+        <li>🎨 <strong>Service Type:</strong> ${serviceType}</li>
+        <li>💰 <strong>Estimated Price:</strong> PKR ${estimatedPrice.toLocaleString()}</li>
+        <li>⏱️ <strong>Estimated Delivery:</strong> ${estimatedDays} days</li>
+      </ul>
+    </div>
+    
+    <div class="info-box">
+      <p><strong>What happens next?</strong></p>
+      <ol>
+        <li>Our team will review your order within 24 hours</li>
+        <li>We'll contact you via WhatsApp or phone to confirm details</li>
+        <li>You'll receive a final quote before we begin</li>
+        <li>Once confirmed, we'll start working on your custom order</li>
+        <li>You'll receive regular updates on the progress</li>
+      </ol>
+    </div>
+    
+    <p style="margin-top: 30px;">We're committed to creating something beautiful for you!</p>
+    <p><strong>The LaraibCreative Team</strong></p>
+  `;
+  
+  return emailWrapper(content, `Your custom order ${orderNumber} has been confirmed`);
+};
+
+/**
+ * Custom Order Admin Notification Email Template
+ */
+const customOrderAdminNotificationEmail = ({ orderNumber, customerName, customerPhone, serviceType, estimatedPrice, rushOrder }) => {
+  const content = `
+    <h1>New Custom Order Received 🔔</h1>
+    <p>A new custom order has been submitted and requires your attention.</p>
+    
+    <div class="info-box">
+      <p><strong>Order Details:</strong></p>
+      <ul style="list-style: none; padding: 0;">
+        <li>📋 <strong>Order Number:</strong> ${orderNumber}</li>
+        <li>👤 <strong>Customer:</strong> ${customerName}</li>
+        <li>📱 <strong>Phone:</strong> ${customerPhone}</li>
+        <li>🎨 <strong>Service Type:</strong> ${serviceType}</li>
+        <li>💰 <strong>Estimated Price:</strong> PKR ${estimatedPrice.toLocaleString()}</li>
+        <li>⚡ <strong>Rush Order:</strong> ${rushOrder ? 'Yes' : 'No'}</li>
+      </ul>
+    </div>
+    
+    <div class="warning-box">
+      <p><strong>⚠️ Action Required:</strong></p>
+      <p>Please review the order details and contact the customer within 24 hours to confirm the order and provide final pricing.</p>
+    </div>
+    
+    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/orders/${orderNumber}" class="button">View Order Details</a>
+    
+    <p style="margin-top: 30px;">Best regards,<br><strong>LaraibCreative System</strong></p>
+  `;
+  
+  return emailWrapper(content, `New custom order: ${orderNumber}`);
+};
+
+/**
+ * Regular Order Confirmation Email Template
+ */
+const orderConfirmationEmail = ({ orderNumber, customerName, total, paymentMethod, itemCount, trackingUrl, estimatedDelivery }) => {
+  const content = `
+    <h1>Order Confirmation 🎉</h1>
+    <p>Hi ${customerName},</p>
+    <p>Thank you for placing your order with LaraibCreative! We're excited to create something beautiful for you.</p>
+    
+    <div class="info-box">
+      <p><strong>Order Details:</strong></p>
+      <ul style="list-style: none; padding: 0;">
+        <li><strong>Order Number:</strong> ${orderNumber}</li>
+        <li><strong>Total Amount:</strong> PKR ${total.toLocaleString()}</li>
+        <li><strong>Payment Method:</strong> ${paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'bank-transfer' ? 'Bank Transfer' : paymentMethod === 'jazzcash' ? 'JazzCash' : paymentMethod === 'easypaisa' ? 'Easypaisa' : paymentMethod}</li>
+        <li><strong>Items:</strong> ${itemCount} ${itemCount === 1 ? 'item' : 'items'}</li>
+        ${estimatedDelivery ? `<li><strong>Estimated Delivery:</strong> ${estimatedDelivery}</li>` : ''}
+      </ul>
+    </div>
+    
+    ${['bank-transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod) ? `
+    <div class="warning-box">
+      <p><strong>⏳ Payment Verification Pending</strong></p>
+      <p>We're verifying your payment receipt. This usually takes 2-4 hours. You'll receive a confirmation once verified.</p>
+    </div>
+    ` : ''}
+    
+    <p style="margin-top: 20px;">You can track the status of your order here:</p>
+    <a href="${trackingUrl}" class="button">Track Your Order</a>
+    
+    <p style="margin-top: 30px;">What happens next?</p>
+    <ul>
+      <li>You'll receive order confirmation via email and WhatsApp</li>
+      ${['bank-transfer', 'jazzcash', 'easypaisa'].includes(paymentMethod) ? '<li>Our team will verify your payment receipt (2-4 hours)</li>' : ''}
+      <li>Our expert tailors will start working on your order</li>
+      <li>Your order will be delivered to your doorstep in 5-7 business days</li>
+    </ul>
+    
+    <p style="margin-top: 30px;">If you have any questions, please don't hesitate to reply to this email or contact us on WhatsApp.</p>
+    <p>Best regards,<br><strong>The LaraibCreative Team</strong></p>
+  `;
+  
+  return emailWrapper(content, 'Your order has been confirmed!');
+};
+
 module.exports = {
   welcomeEmail,
   emailVerification,
@@ -373,5 +488,8 @@ module.exports = {
   passwordResetSuccess,
   accountLockedEmail,
   loginNotification,
-  profileUpdateNotification
+  profileUpdateNotification,
+  customOrderConfirmationEmail,
+  customOrderAdminNotificationEmail,
+  orderConfirmationEmail
 };

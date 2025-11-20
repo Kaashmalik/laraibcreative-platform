@@ -15,6 +15,7 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 const path = require('path');
+const { fileUploadSecurity } = require('./fileUploadSecurity.middleware');
 
 // ============================================
 // CLOUDINARY STORAGE CONFIGURATION

@@ -659,4 +659,707 @@ exports.searchAutocomplete = async (req, res) => {
   }
 };
 
+// ============================================
+// ADMIN CONTROLLER METHODS
+// ============================================
+
+/**
+ * GET /api/v1/admin/products
+ * Get all products for admin with advanced filters, search, and pagination
+ * @access Private (Admin)
+ */
+exports.getAllProductsAdmin = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      category = '',
+      status = '',
+      featured = '',
+      productType = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      minPrice = '',
+      maxPrice = '',
+      occasion = ''
+    } = req.query;
+
+    // Build filter object
+    const filter = { isDeleted: { $ne: true } }; // Exclude soft-deleted products
+
+    // Search across multiple fields
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { designCode: { $regex: search, $options: 'i' } },
+        { 'inventory.sku': { $regex: search, $options: 'i' } },
+        { 'seo.keywords': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Category filter
+    if (category) {
+      filter.category = category;
+    }
+
+    // Status filter (availability status)
+    if (status) {
+      filter['availability.status'] = status;
+    }
+
+    // Featured filter
+    if (featured === 'true') {
+      filter.isFeatured = true;
+    } else if (featured === 'false') {
+      filter.isFeatured = false;
+    }
+
+    // Product type filter
+    if (productType) {
+      filter.productType = productType;
+    }
+
+    // Price range filter
+    if (minPrice || maxPrice) {
+      filter['pricing.basePrice'] = {};
+      if (minPrice) filter['pricing.basePrice'].$gte = parseFloat(minPrice);
+      if (maxPrice) filter['pricing.basePrice'].$lte = parseFloat(maxPrice);
+    }
+
+    // Occasion filter
+    if (occasion) {
+      filter.occasion = occasion;
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Execute query
+    const [products, total] = await Promise.all([
+      Product.find(filter)
+        .populate('category', 'name slug')
+        .select('-__v')
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
+      Product.countDocuments(filter)
+    ]);
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / parseInt(limit));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        products,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalProducts: total,
+          productsPerPage: parseInt(limit),
+          hasNextPage: parseInt(page) < totalPages,
+          hasPrevPage: parseInt(page) > 1
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in getAllProductsAdmin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch products',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * POST /api/v1/admin/products
+ * Create new product (admin only)
+ * @access Private (Admin)
+ */
+exports.createProductAdmin = async (req, res) => {
+  try {
+    // Parse form data (handles both JSON and form-data)
+    let productData = {};
+    
+    // If body is JSON string, parse it
+    if (typeof req.body === 'string') {
+      try {
+        productData = JSON.parse(req.body);
+      } catch (e) {
+        productData = req.body;
+      }
+    } else {
+      productData = req.body;
+    }
+
+    // Parse nested objects if they're strings
+    if (typeof productData.pricing === 'string') {
+      productData.pricing = JSON.parse(productData.pricing);
+    }
+    if (typeof productData.fabric === 'string') {
+      productData.fabric = JSON.parse(productData.fabric);
+    }
+    if (typeof productData.inventory === 'string') {
+      productData.inventory = JSON.parse(productData.inventory);
+    }
+    if (typeof productData.availability === 'string') {
+      productData.availability = JSON.parse(productData.availability);
+    }
+    if (typeof productData.seo === 'string') {
+      productData.seo = JSON.parse(productData.seo);
+    }
+    if (typeof productData.sizeAvailability === 'string') {
+      productData.sizeAvailability = JSON.parse(productData.sizeAvailability);
+    }
+    if (typeof productData.availableColors === 'string') {
+      productData.availableColors = JSON.parse(productData.availableColors);
+    }
+
+    // Validate required fields
+    if (!productData.title || !productData.description || !productData.category || !productData.pricing?.basePrice) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: title, description, category, pricing.basePrice'
+      });
+    }
+
+    // Check if category exists
+    const categoryExists = await Category.findById(productData.category);
+    if (!categoryExists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    // Generate unique slug
+    let slug = generateSlug(productData.title);
+    let slugExists = await Product.findOne({ slug });
+    let counter = 1;
+    while (slugExists) {
+      slug = `${generateSlug(productData.title)}-${counter}`;
+      slugExists = await Product.findOne({ slug });
+      counter++;
+    }
+
+    // Generate design code if not provided
+    if (!productData.designCode) {
+      const year = new Date().getFullYear();
+      const random = Math.floor(Math.random() * 9000) + 1000;
+      productData.designCode = `LC-${year}-${random}`;
+    }
+
+    // Generate SKU if not provided
+    if (!productData.inventory?.sku) {
+      const sku = `LC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      if (!productData.inventory) productData.inventory = {};
+      productData.inventory.sku = sku;
+    }
+
+    // Handle uploaded images
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        images.push({
+          url: file.path || file.secure_url,
+          publicId: file.filename || file.public_id,
+          altText: productData.title,
+          displayOrder: images.length
+        });
+      });
+    }
+
+    // Set primary image
+    const primaryImage = images.length > 0 ? images[0].url : '';
+    const thumbnailImage = primaryImage;
+
+    // Create product
+    const product = await Product.create({
+      title: productData.title,
+      slug,
+      description: productData.description,
+      shortDescription: productData.shortDescription || '',
+      designCode: productData.designCode,
+      category: productData.category,
+      subcategory: productData.subcategory || '',
+      occasion: productData.occasion || '',
+      tags: productData.tags || [],
+      images,
+      primaryImage,
+      thumbnailImage,
+      fabric: productData.fabric || {},
+      pricing: productData.pricing,
+      inventory: productData.inventory || { trackInventory: false, stockQuantity: 0, lowStockThreshold: 5 },
+      availability: productData.availability || { status: 'made-to-order' },
+      productType: productData.productType || 'both',
+      sizeAvailability: productData.sizeAvailability || { availableSizes: [], customSizesAvailable: false },
+      availableColors: productData.availableColors || [],
+      features: productData.features || [],
+      whatsIncluded: productData.whatsIncluded || [],
+      isActive: productData.isActive !== undefined ? productData.isActive : true,
+      isFeatured: productData.isFeatured || false,
+      isNewArrival: productData.isNewArrival || false,
+      isBestSeller: productData.isBestSeller || false,
+      seo: productData.seo || {},
+      adminNotes: productData.adminNotes || '',
+      createdBy: req.user.id
+    });
+
+    // Populate category for response
+    await product.populate('category', 'name slug');
+
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      data: product
+    });
+
+  } catch (error) {
+    console.error('Error in createProductAdmin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create product',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * GET /api/v1/admin/products/:id/edit
+ * Get product data for editing
+ * @access Private (Admin)
+ */
+exports.getProductForEdit = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id)
+      .populate('category', 'name slug')
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product
+    });
+
+  } catch (error) {
+    console.error('Error in getProductForEdit:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * PUT /api/v1/admin/products/:id
+ * Update existing product (admin only)
+ * @access Private (Admin)
+ */
+exports.updateProductAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Parse form data
+    let updateData = {};
+    if (typeof req.body === 'string') {
+      try {
+        updateData = JSON.parse(req.body);
+      } catch (e) {
+        updateData = req.body;
+      }
+    } else {
+      updateData = req.body;
+    }
+
+    // Parse nested objects
+    ['pricing', 'fabric', 'inventory', 'availability', 'seo', 'sizeAvailability', 'availableColors'].forEach(key => {
+      if (typeof updateData[key] === 'string') {
+        try {
+          updateData[key] = JSON.parse(updateData[key]);
+        } catch (e) {
+          // Keep as is if parsing fails
+        }
+      }
+    });
+
+    // Check if product exists
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // If title is being updated, regenerate slug
+    if (updateData.title && updateData.title !== product.title) {
+      let slug = generateSlug(updateData.title);
+      let slugExists = await Product.findOne({ slug, _id: { $ne: id } });
+      let counter = 1;
+      while (slugExists) {
+        slug = `${generateSlug(updateData.title)}-${counter}`;
+        slugExists = await Product.findOne({ slug, _id: { $ne: id } });
+        counter++;
+      }
+      updateData.slug = slug;
+    }
+
+    // Handle new uploaded images
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map((file, index) => ({
+        url: file.path || file.secure_url,
+        publicId: file.filename || file.public_id,
+        altText: updateData.title || product.title,
+        displayOrder: (product.images?.length || 0) + index
+      }));
+
+      // Merge with existing images or replace
+      if (updateData.replaceImages) {
+        // Delete old images from Cloudinary
+        if (product.images && product.images.length > 0) {
+          for (const img of product.images) {
+            try {
+              if (img.publicId) {
+                await deleteFromCloudinary(img.publicId);
+              }
+            } catch (err) {
+              console.error('Error deleting old image:', err);
+            }
+          }
+        }
+        updateData.images = newImages;
+      } else {
+        updateData.images = [...(product.images || []), ...newImages];
+      }
+
+      // Update primary image if not set
+      if (!updateData.primaryImage && newImages.length > 0) {
+        updateData.primaryImage = newImages[0].url;
+      }
+    }
+
+    // Update lastModifiedBy
+    updateData.lastModifiedBy = req.user.id;
+
+    // Perform update
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate('category', 'name slug');
+
+    res.status(200).json({
+      success: true,
+      message: 'Product updated successfully',
+      data: updatedProduct
+    });
+
+  } catch (error) {
+    console.error('Error in updateProductAdmin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update product',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * DELETE /api/v1/admin/products/:id
+ * Delete product (admin only) - Soft delete
+ * @access Private (Admin)
+ */
+exports.deleteProductAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Soft delete (mark as deleted)
+    product.isDeleted = true;
+    product.deletedAt = new Date();
+    product.deletedBy = req.user.id;
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error in deleteProductAdmin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete product',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * DELETE /api/v1/admin/products/bulk-delete
+ * Bulk delete products
+ * @access Private (Admin)
+ */
+exports.bulkDeleteProducts = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product IDs array is required'
+      });
+    }
+
+    // Soft delete all products
+    const result = await Product.updateMany(
+      { _id: { $in: productIds } },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: req.user.id
+        }
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${result.modifiedCount} product(s)`,
+      data: {
+        deletedCount: result.modifiedCount
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in bulkDeleteProducts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete products',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * PATCH /api/v1/admin/products/bulk-update
+ * Bulk update products
+ * @access Private (Admin)
+ */
+exports.bulkUpdateProducts = async (req, res) => {
+  try {
+    const { productIds, updates } = req.body;
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product IDs array is required'
+      });
+    }
+
+    if (!updates || typeof updates !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: 'Updates object is required'
+      });
+    }
+
+    // Convert nested field updates (e.g., 'availability.status' to nested object)
+    const updateObject = {};
+    Object.keys(updates).forEach(key => {
+      if (key.includes('.')) {
+        const keys = key.split('.');
+        let current = updateObject;
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!current[keys[i]]) current[keys[i]] = {};
+          current = current[keys[i]];
+        }
+        current[keys[keys.length - 1]] = updates[key];
+      } else {
+        updateObject[key] = updates[key];
+      }
+    });
+
+    // Add lastModifiedBy
+    updateObject.lastModifiedBy = req.user.id;
+
+    // Update all products
+    const result = await Product.updateMany(
+      { _id: { $in: productIds } },
+      { $set: updateObject }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} product(s)`,
+      data: {
+        updatedCount: result.modifiedCount
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in bulkUpdateProducts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update products',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * POST /api/v1/admin/products/:id/duplicate
+ * Duplicate existing product
+ * @access Private (Admin)
+ */
+exports.duplicateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const originalProduct = await Product.findById(id).lean();
+    if (!originalProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    // Remove MongoDB-specific fields
+    delete originalProduct._id;
+    delete originalProduct.__v;
+    delete originalProduct.createdAt;
+    delete originalProduct.updatedAt;
+    delete originalProduct.views;
+    delete originalProduct.clicks;
+    delete originalProduct.addedToCart;
+    delete originalProduct.purchased;
+    delete originalProduct.wishlistedBy;
+    delete originalProduct.averageRating;
+    delete originalProduct.totalReviews;
+    delete originalProduct.ratingDistribution;
+
+    // Generate new slug
+    let slug = generateSlug(`${originalProduct.title} Copy`);
+    let slugExists = await Product.findOne({ slug });
+    let counter = 1;
+    while (slugExists) {
+      slug = `${generateSlug(originalProduct.title)}-copy-${counter}`;
+      slugExists = await Product.findOne({ slug });
+      counter++;
+    }
+
+    // Generate new design code
+    const year = new Date().getFullYear();
+    const random = Math.floor(Math.random() * 9000) + 1000;
+    const designCode = `LC-${year}-${random}`;
+
+    // Generate new SKU
+    const sku = `LC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+
+    // Create duplicated product
+    const duplicatedProduct = await Product.create({
+      ...originalProduct,
+      title: `${originalProduct.title} (Copy)`,
+      slug,
+      designCode,
+      'inventory.sku': sku,
+      isActive: false, // Set as inactive by default
+      isFeatured: false,
+      isNewArrival: false,
+      isBestSeller: false,
+      createdBy: req.user.id
+    });
+
+    await duplicatedProduct.populate('category', 'name slug');
+
+    res.status(201).json({
+      success: true,
+      message: 'Product duplicated successfully',
+      data: duplicatedProduct
+    });
+
+  } catch (error) {
+    console.error('Error in duplicateProduct:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to duplicate product',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * GET /api/v1/admin/products/export
+ * Export products to CSV
+ * @access Private (Admin)
+ */
+exports.exportProducts = async (req, res) => {
+  try {
+    const { search, category, status, featured, productType } = req.query;
+
+    // Build filter (same as getAllProductsAdmin)
+    const filter = { isDeleted: { $ne: true } };
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { designCode: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (category) filter.category = category;
+    if (status) filter['availability.status'] = status;
+    if (featured === 'true') filter.isFeatured = true;
+    if (productType) filter.productType = productType;
+
+    // Get all products matching filter
+    const products = await Product.find(filter)
+      .populate('category', 'name')
+      .select('title designCode inventory.sku pricing.basePrice availability.status isActive isFeatured category createdAt')
+      .lean();
+
+    // Generate CSV
+    const { generateProductCSV } = require('../utils/csvGenerator');
+    const csvContent = generateProductCSV(products);
+
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=products-export-${Date.now()}.csv`);
+    res.send(csvContent);
+
+  } catch (error) {
+    console.error('Error in exportProducts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export products',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = exports;

@@ -396,4 +396,177 @@ exports.generateMeasurementSheet = async (measurement, customer) => {
   });
 };
 
+/**
+ * Generate dashboard report PDF
+ * @param {Object} res - Express response object
+ * @param {Object} dashboardData - Dashboard data object
+ * @param {string} period - Date period
+ * @returns {Promise<void>}
+ */
+exports.generateDashboardPDF = async (res, dashboardData, period) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50,
+        info: {
+          Title: `Dashboard Report - ${period}`,
+          Author: 'LaraibCreative',
+          Subject: 'Admin Dashboard Report'
+        }
+      });
+
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        const pdfBuffer = Buffer.concat(buffers);
+        const filename = `dashboard-report-${period}-${Date.now()}.pdf`;
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(pdfBuffer);
+        resolve();
+      });
+      doc.on('error', reject);
+
+      const primaryColor = '#D946A6';
+      const textColor = '#111827';
+      let yPos = 50;
+
+      // Header
+      doc
+        .fontSize(24)
+        .fillColor(primaryColor)
+        .text('LaraibCreative', 50, yPos)
+        .fontSize(16)
+        .text('Dashboard Report', 50, yPos + 30)
+        .fontSize(10)
+        .fillColor(textColor)
+        .text(`Period: ${period}`, 50, yPos + 55)
+        .text(`Generated: ${new Date().toLocaleDateString('en-PK')}`, 50, yPos + 70);
+
+      yPos = 120;
+
+      // Statistics Section
+      doc
+        .fontSize(14)
+        .fillColor(primaryColor)
+        .text('STATISTICS', 50, yPos);
+
+      yPos += 25;
+
+      const stats = dashboardData.stats;
+      doc
+        .fontSize(10)
+        .fillColor(textColor)
+        .text(`Total Revenue: PKR ${stats.revenue.total.toLocaleString()}`, 60, yPos)
+        .text(`Total Orders: ${stats.orders.total}`, 60, yPos + 15)
+        .text(`Total Customers: ${stats.customers.total}`, 60, yPos + 30)
+        .text(`Total Products: ${stats.products.total}`, 60, yPos + 45)
+        .text(`Low Stock Alerts: ${stats.products.lowStock}`, 60, yPos + 60);
+
+      yPos += 90;
+
+      // Revenue Trends (Summary)
+      if (dashboardData.revenueTrends && dashboardData.revenueTrends.length > 0) {
+        doc
+          .fontSize(14)
+          .fillColor(primaryColor)
+          .text('REVENUE TRENDS', 50, yPos);
+
+        yPos += 25;
+
+        const totalRevenue = dashboardData.revenueTrends.reduce((sum, item) => sum + item.revenue, 0);
+        const avgRevenue = totalRevenue / dashboardData.revenueTrends.length;
+        const maxRevenue = Math.max(...dashboardData.revenueTrends.map(item => item.revenue));
+
+        doc
+          .fontSize(10)
+          .fillColor(textColor)
+          .text(`Total Revenue: PKR ${totalRevenue.toLocaleString()}`, 60, yPos)
+          .text(`Average Daily: PKR ${Math.round(avgRevenue).toLocaleString()}`, 60, yPos + 15)
+          .text(`Highest Day: PKR ${maxRevenue.toLocaleString()}`, 60, yPos + 30);
+
+        yPos += 50;
+      }
+
+      // Order Distribution
+      if (dashboardData.orderDistribution && dashboardData.orderDistribution.length > 0) {
+        doc
+          .fontSize(14)
+          .fillColor(primaryColor)
+          .text('ORDER DISTRIBUTION', 50, yPos);
+
+        yPos += 25;
+
+        dashboardData.orderDistribution.slice(0, 5).forEach(item => {
+          doc
+            .fontSize(10)
+            .fillColor(textColor)
+            .text(`${item.status}: ${item.count} (${item.percentage}%)`, 60, yPos);
+          yPos += 15;
+        });
+
+        yPos += 10;
+      }
+
+      // Popular Products
+      if (dashboardData.popularProducts && dashboardData.popularProducts.length > 0) {
+        doc
+          .fontSize(14)
+          .fillColor(primaryColor)
+          .text('TOP PRODUCTS', 50, yPos);
+
+        yPos += 25;
+
+        dashboardData.popularProducts.slice(0, 5).forEach((item, index) => {
+          doc
+            .fontSize(10)
+            .fillColor(textColor)
+            .text(`${index + 1}. ${item.title.substring(0, 40)}`, 60, yPos)
+            .text(`   Sales: ${item.sales} | Revenue: PKR ${item.revenue.toLocaleString()}`, 70, yPos + 12);
+          yPos += 30;
+        });
+
+        yPos += 10;
+      }
+
+      // Low Stock Alerts
+      if (dashboardData.lowStockAlerts && dashboardData.lowStockAlerts.length > 0) {
+        if (yPos > 650) {
+          doc.addPage();
+          yPos = 50;
+        }
+
+        doc
+          .fontSize(14)
+          .fillColor('#EF4444')
+          .text('LOW STOCK ALERTS', 50, yPos);
+
+        yPos += 25;
+
+        dashboardData.lowStockAlerts.slice(0, 10).forEach(item => {
+          doc
+            .fontSize(10)
+            .fillColor(textColor)
+            .text(`${item.title.substring(0, 40)} - Stock: ${item.stock}`, 60, yPos);
+          yPos += 15;
+        });
+      }
+
+      // Footer
+      doc
+        .fontSize(8)
+        .fillColor('#6B7280')
+        .text('This is an automated report generated by LaraibCreative Admin Dashboard.', 50, 750, { align: 'center', width: 495 });
+
+      doc.end();
+
+      logger.info(`Dashboard PDF report generated for period: ${period}`);
+    } catch (error) {
+      logger.error('Error generating dashboard PDF:', error);
+      reject(error);
+    }
+  });
+};
+
 module.exports = exports;
