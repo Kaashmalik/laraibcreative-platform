@@ -76,7 +76,7 @@ export default function AdminOrderDetailPage() {
     setLoading(true);
     try {
       const response = await api.orders.admin.getById(orderId);
-      setOrder(response.data.order);
+      setOrder(response.order);
     } catch (error: any) {
       console.error('Error fetching order:', error);
       toast.error(error.response?.data?.message || 'Failed to fetch order');
