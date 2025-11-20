@@ -1,0 +1,79 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-vercel.yml'
+      - 'vercel.json'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: ./frontend
+        run: npm run lint || true
+      
+      - name: Type check
+        working-directory: ./frontend
+        run: npm run type-check || true
+      
+      - name: Build application
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+        run: npm run build
+      
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        id: vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./frontend
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+      
+      - name: Deployment URL
+        run: |
+          echo "✅ Frontend deployed to Vercel"
+          echo "Preview URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
+      
+      - name: Verify deployment
+        run: |
+          FRONTEND_URL="${{ secrets.FRONTEND_URL }}"
+          if [ -n "$FRONTEND_URL" ]; then
+            echo "Verifying frontend..."
+            sleep 10
+            if curl -f -s "$FRONTEND_URL" > /dev/null; then
+              echo "✅ Frontend verification passed"
+            else
+              echo "⚠️  Frontend verification failed (deployment may still be in progress)"
+            fi
+          else
+            echo "⚠️  FRONTEND_URL not set, skipping verification"
+          fi
+

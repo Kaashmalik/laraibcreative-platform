@@ -1,11 +1,84 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Environment variables - NEVER COMMIT
 .env
 .env.local
-.next/
-uploads/
-logs/
-dist/
-.DS_Store
+.env.production
+.env.development
+.env.test
+.env*.local
+backend/.env
+backend/.env.*
+frontend/.env.local
+frontend/.env.production
+frontend/.env.development
+*.env.backup
 
-# Sensitive deployment artifact (contains credentials) – never commit
+# Build outputs
+.next/
+out/
+dist/
+build/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+debug.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+.jest/
+
+# Deployment
+.vercel
+.vercel/*
+!.vercel/project.json
+
+# Uploads and user-generated content
+uploads/
+public/uploads/
+
+# Sensitive files - NEVER COMMIT
+secrets/
+*.pem
+*.key
+*.crt
 DEPLOYMENT_IN_PROGRESS.txt
+CREDENTIALS_UPDATED.txt
+PROVIDE_YOUR_INFO.txt
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Database backups (may contain sensitive data)
+*.sql
+*.dump
+backups/
+*.backup

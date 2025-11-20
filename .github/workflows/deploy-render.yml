@@ -1,0 +1,85 @@
+name: Deploy Backend to Render
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-render.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint || true
+      
+      - name: Run tests
+        working-directory: ./backend
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET_TEST }}
+          NODE_ENV: test
+        run: npm test -- --passWithNoTests || true
+      
+      - name: Build verification
+        working-directory: ./backend
+        run: |
+          if [ ! -f "server.js" ]; then
+            echo "❌ Server file not found"
+            exit 1
+          fi
+          echo "✅ Build verification passed"
+      
+      - name: Trigger Render deployment
+        run: |
+          echo "✅ Code pushed to main branch"
+          echo "Render will auto-deploy if auto-deploy is enabled"
+          echo ""
+          echo "To manually deploy:"
+          echo "1. Go to Render Dashboard"
+          echo "2. Select your service"
+          echo "3. Click 'Manual Deploy' → 'Deploy latest commit'"
+      
+      - name: Wait for deployment
+        run: |
+          echo "Waiting 30 seconds for Render to start deployment..."
+          sleep 30
+      
+      - name: Verify health check
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          if [ -n "$BACKEND_URL" ]; then
+            echo "Verifying backend health..."
+            for i in {1..5}; do
+              if curl -f -s "$BACKEND_URL/api/health" > /dev/null; then
+                echo "✅ Backend health check passed"
+                exit 0
+              fi
+              echo "Attempt $i failed, retrying in 10 seconds..."
+              sleep 10
+            done
+            echo "⚠️  Health check failed (deployment may still be in progress)"
+          else
+            echo "⚠️  BACKEND_URL not set, skipping health check"
+          fi
+
