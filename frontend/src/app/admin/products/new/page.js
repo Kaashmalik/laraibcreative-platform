@@ -66,7 +66,7 @@ export default function NewProductPage() {
       
       const response = await api.products.createAdmin(formData);
       
-      const result = response.data;
+      const result = response;
       
       setToast({
         type: 'success',

@@ -62,7 +62,7 @@ export default function AdminOrdersPage() {
       }
 
       const response = await api.orders.admin.getAll(params);
-      const data: OrderListResponse = response.data;
+      const data: OrderListResponse = response as OrderListResponse;
 
       setOrders(data.data.orders || []);
       setPagination(data.data.pagination);
@@ -101,8 +101,7 @@ export default function AdminOrdersPage() {
   // Export orders
   const handleExport = async () => {
     try {
-      const response = await api.orders.admin.export(filters);
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = await api.orders.admin.export(filters) as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

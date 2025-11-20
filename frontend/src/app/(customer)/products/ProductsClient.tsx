@@ -99,8 +99,8 @@ function ProductsContent() {
       const response = await api.products.getAll(params);
       
       let products: any[] = [];
-      if (response && response.data) {
-        const data = response.data;
+      if (response) {
+        const data = response;
         // Handle both response structures: { products, total } or { data: products, pagination: { totalProducts } }
         products = data.products || data.data || [];
         const total = data.total || data.pagination?.totalProducts || products.length;

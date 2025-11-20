@@ -271,7 +271,7 @@ export default function CheckoutPage() {
 
       // Submit order
       const response = await api.orders.create(orderPayload);
-      const result: OrderSubmissionResponse = response.data;
+      const result: OrderSubmissionResponse = response as OrderSubmissionResponse;
 
       if (result.success) {
         // Clear cart

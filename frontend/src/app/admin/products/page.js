@@ -78,9 +78,9 @@ export default function AdminProductsPage() {
       };
       
       const response = await api.products.getAllAdmin(params);
-      setProducts(response.data.products || response.data);
-      setTotalPages(response.data.pagination?.totalPages || response.data.totalPages || 1);
-      setTotalProducts(response.data.pagination?.totalProducts || response.data.totalProducts || 0);
+      setProducts(response.products || response);
+      setTotalPages(response.pagination?.totalPages || response.totalPages || 1);
+      setTotalProducts(response.pagination?.totalProducts || response.totalProducts || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
       setToast({
@@ -233,10 +233,7 @@ export default function AdminProductsPage() {
         search: debouncedSearch,
       };
       
-      const response = await api.products.export(filters);
-      
-      // Create blob from response
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = await api.products.export(filters);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

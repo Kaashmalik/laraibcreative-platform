@@ -43,7 +43,7 @@ export default function EditProductPage() {
     const fetchProduct = async () => {
       try {
         const response = await api.products.getForEdit(productId);
-        setProduct(response.data);
+        setProduct(response);
       } catch (error) {
         console.error('Error fetching product:', error);
         setToast({
@@ -109,7 +109,7 @@ export default function EditProductPage() {
       });
       
       // Update local product state
-      setProduct(response.data);
+      setProduct(response);
       
       // Clear form dirty flag
       sessionStorage.removeItem('productFormDirty');
@@ -172,7 +172,7 @@ export default function EditProductPage() {
       
       // Redirect to edit page of new product
       setTimeout(() => {
-        router.push(`/admin/products/edit/${response.data._id}`);
+        router.push(`/admin/products/edit/${response._id}`);
       }, 1500);
       
     } catch (error) {

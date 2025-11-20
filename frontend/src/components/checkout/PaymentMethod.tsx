@@ -175,8 +175,8 @@ export default function PaymentMethod({
 
       // Upload receipt using upload endpoint
       const response = await api.upload.single(formData);
-      if (response.data.success) {
-        updateFormData('payment.receiptImage', response.data.data.url);
+      if (response.success) {
+        updateFormData('payment.receiptImage', response.data.url);
         toast.success('Receipt uploaded successfully');
       } else {
         throw new Error('Upload failed');

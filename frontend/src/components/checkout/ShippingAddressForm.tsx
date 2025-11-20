@@ -82,11 +82,11 @@ export default function ShippingAddressForm({
       try {
         setIsLoadingAddresses(true);
         const response = await api.customers?.getAddresses?.();
-        if (response?.data?.success) {
-          setSavedAddresses(response.data.data || []);
+        if (response?.success) {
+          setSavedAddresses(response.data || []);
           
           // Auto-select default address if available
-          const defaultAddress = response.data.data?.find((addr: SavedAddress) => addr.isDefault);
+          const defaultAddress = response.data?.find((addr: SavedAddress) => addr.isDefault);
           if (defaultAddress && !formData.shippingAddress?.fullAddress) {
             handleSelectSavedAddress(defaultAddress);
           }
