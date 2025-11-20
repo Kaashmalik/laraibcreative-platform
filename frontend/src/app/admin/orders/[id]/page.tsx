@@ -599,7 +599,7 @@ export default function AdminOrderDetailPage() {
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Instructions</label>
                             <Textarea
-                              value={shippingAddress.deliveryInstructions}
+                              value={shippingAddress.deliveryInstructions || ''}
                               onChange={(e) => setShippingAddress({ ...shippingAddress, deliveryInstructions: e.target.value })}
                               rows={3}
                             />
