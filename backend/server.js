@@ -130,10 +130,34 @@ app.use(compression());
 // =================================================================
 // LOGGING MIDDLEWARE
 // =================================================================
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  // Create logs directory if it doesn't exist
+// Import comprehensive logging middleware
+const { 
+  httpLogger, 
+  apiMetricsLogger, 
+  rateLimitLogger, 
+  authLogger,
+  errorLogger 
+} = require('./src/middleware/logger.middleware');
+
+// Import monitoring middleware
+const {
+  monitoringMiddleware,
+  adminMonitoringMiddleware,
+  healthCheckMiddleware
+} = require('./src/middleware/monitoring.middleware');
+
+// Use comprehensive logger middleware for production monitoring
+if (process.env.NODE_ENV === 'production') {
+  // Production: Use optimized logger with monitoring
+  app.use(healthCheckMiddleware);
+  app.use(monitoringMiddleware);
+  app.use(httpLogger);
+  app.use(apiMetricsLogger);
+  app.use(rateLimitLogger);
+  app.use(authLogger);
+  app.use(adminMonitoringMiddleware);
+  
+  // Also keep morgan for access logs
   const logsDir = path.join(__dirname, 'logs');
   if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
@@ -144,6 +168,13 @@ if (process.env.NODE_ENV === 'development') {
     { flags: 'a' }
   );
   app.use(morgan('combined', { stream: accessLogStream }));
+} else {
+  // Development: Use detailed logger
+  app.use(morgan('dev'));
+  app.use(monitoringMiddleware);
+  app.use(httpLogger);
+  app.use(apiMetricsLogger);
+  app.use(adminMonitoringMiddleware);
 }
 
 // =================================================================
@@ -251,12 +282,66 @@ app.get('/health', async (req, res) => {
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
         total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
-        percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100) + '%'
+        percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100) + '%',
+        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + ' MB'
       },
       system: {
         nodeVersion: process.version,
         platform: process.platform,
         cpuUsage: process.cpuUsage()
+      }
+    }
+  };
+
+  // Check if database is connected
+  const dbConnected = mongoose.connection.readyState === 1;
+  
+  // If database is not connected, return 503 (Service Unavailable)
+  if (!dbConnected) {
+    healthStatus.status = 'DEGRADED';
+    healthStatus.message = 'API is running but database is not connected';
+    return res.status(503).json(healthStatus);
+  }
+
+  // All checks passed
+  res.status(200).json(healthStatus);
+});
+
+// Detailed health check endpoint with monitoring data
+app.get('/health/detailed', async (req, res) => {
+  const healthStatus = {
+    success: true,
+    status: 'OK',
+    message: 'LaraibCreative API - Detailed Health Check',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    checks: {
+      database: {
+        status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        readyState: mongoose.connection.readyState,
+        host: mongoose.connection.host || 'N/A',
+        name: mongoose.connection.name || 'N/A',
+        collections: mongoose.connection.collections ? Object.keys(mongoose.connection.collections).length : 0
+      },
+      memory: {
+        heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+        heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
+        rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + ' MB',
+        external: Math.round(process.memoryUsage().external / 1024 / 1024) + ' MB',
+        percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100) + '%'
+      },
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        cpuUsage: process.cpuUsage(),
+        pid: process.pid
+      },
+      monitoring: {
+        logLevel: process.env.LOG_LEVEL || 'info',
+        monitoringEnabled: true
       }
     }
   };
@@ -355,9 +440,16 @@ app.use((req, res) => {
 // =================================================================
 // GLOBAL ERROR HANDLER
 // =================================================================
+// Use error logger middleware before error handler
+app.use(errorLogger);
+
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.message);
-  console.error('Stack:', err.stack);
+  // Error is already logged by errorLogger middleware
+  // Additional console logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.error('❌ Error:', err.message);
+    console.error('Stack:', err.stack);
+  }
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {

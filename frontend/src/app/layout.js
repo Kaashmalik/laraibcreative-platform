@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
 import Header from '@/components/customer/Header'
 import Footer from '@/components/customer/Footer'
+import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
 
 // Font configurations
 const inter = Inter({
@@ -186,15 +187,16 @@ export default function RootLayout({ children }) {
         className={`${inter.className} antialiased bg-white text-gray-900`}
         suppressHydrationWarning
       >
-        <AuthProvider>
-          <CartProvider>
-            <ThemeProvider>
-              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
-                Skip to content
-              </a>
-              <Header />
-              <main id="main-content" className="pt-16">{children}</main>
-              <Footer />
+        <GlobalErrorBoundary>
+          <AuthProvider>
+            <CartProvider>
+              <ThemeProvider>
+                <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
+                  Skip to content
+                </a>
+                <Header />
+                <main id="main-content" className="pt-16">{children}</main>
+                <Footer />
               <Toaster
                 position="top-right"
                 toastOptions={{
@@ -256,9 +258,10 @@ export default function RootLayout({ children }) {
                   }}
                 />
               )}
-            </ThemeProvider>
-          </CartProvider>
-        </AuthProvider>
+              </ThemeProvider>
+            </CartProvider>
+          </AuthProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   )
