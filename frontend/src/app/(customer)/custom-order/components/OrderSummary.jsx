@@ -430,7 +430,7 @@ export default function OrderSummary({ formData, onChange, estimatedPrice, price
               
               toast.success('Order added to cart!');
               onAddToCart?.();
-            } catch (error: any) {
+            } catch (error) {
               toast.error(error.message || 'Failed to add to cart');
             } finally {
               setIsAddingToCart(false);

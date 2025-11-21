@@ -15,7 +15,7 @@ import { useWizard } from '@/hooks/useWizard';
 import { ArrowLeft, ArrowRight, Save, CheckCircle } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import type { OrderSubmissionData, OrderSubmissionResponse, ReferenceImage, CustomOrderFormData, PriceBreakdown } from '@/types/custom-order';
+import type { OrderSubmissionData, OrderSubmissionResponse, ReferenceImage, CustomOrderFormData, PriceBreakdown, SuitType } from '@/types/custom-order';
 
 // Dynamically import step components for code splitting
 const StepIndicator = dynamic(() => import('./components/StepIndicator'), {
@@ -41,7 +41,11 @@ const ImageUpload = dynamic(() => import('./components/ImageUpload'), {
 const SuitTypeSelection = dynamic(() => import('./components/SuitTypeSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
-});
+}) as unknown as React.ComponentType<{
+  suitType: SuitType | '';
+  onChange: (field: string, value: any) => void;
+  errors: Record<string, string>;
+}>;
 
 const FabricSelection = dynamic(() => import('./components/FabricSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
@@ -243,7 +247,7 @@ function CustomOrderPage() {
       case 1:
         return (
           <SuitTypeSelection
-            suitType={formData.suitType}
+            suitType={formData.suitType as SuitType | ''}
             onChange={(field: string, value: any) => updateFormData(field as any, value)}
             errors={errors}
           />
