@@ -11,6 +11,12 @@ import BlogPostClient from './BlogPostClient';
 export const revalidate = 86400;
 
 /**
+ * Dynamic route configuration
+ * Allow dynamic params that aren't generated at build time
+ */
+export const dynamicParams = true;
+
+/**
  * Generate static params for blog posts at build time
  * Pre-generates pages for published blog posts
  */
@@ -31,8 +37,12 @@ export async function generateStaticParams() {
         slug: post.slug,
       }));
   } catch (error) {
-    console.error('Error generating static params for blog posts:', error);
-    // Return empty array on error - pages will be generated on-demand
+    // Silently handle API errors during build - pages will be generated on-demand
+    // Only log in development to avoid build failures
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Blog API not available during build. Pages will be generated on-demand:', error.message);
+    }
+    // Return empty array on error - pages will be generated on-demand via ISR
     return [];
   }
 }
@@ -134,7 +144,10 @@ export async function generateMetadata({ params }) {
       },
     };
   } catch (error) {
-    console.error('Error generating blog metadata:', error);
+    // Silently handle API errors - return default metadata
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Error generating blog metadata:', error.message);
+    }
     return {
       title: 'Blog | LaraibCreative',
       description: 'Read our latest fashion tips, stitching guides, and style inspiration.',
@@ -168,7 +181,10 @@ export default async function BlogPostPage({ params }) {
 
     return <BlogPostClient params={params} post={post} />;
   } catch (error) {
-    console.error('Error fetching blog post:', error);
+    // Handle API errors gracefully - don't log in production to avoid build failures
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Error fetching blog post:', error.message);
+    }
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
