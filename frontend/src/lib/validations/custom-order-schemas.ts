@@ -243,15 +243,6 @@ export const completeOrderSchema = z.object({
 });
 
 /**
- * Suit Type Schema
- */
-export const suitTypeSchema = z.object({
-  suitType: z.enum(['ready-made', 'replica', 'karhai'], {
-    errorMap: () => ({ message: 'Please select a suit type' }),
-  }),
-});
-
-/**
  * Step Validation Functions
  */
 export const validateStep = {
