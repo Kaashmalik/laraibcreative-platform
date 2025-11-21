@@ -49,6 +49,34 @@ exports.createOrder = async (req, res) => {
     const orderItems = await orderService.validateAndProcessItems(items);
     const pricing = orderService.calculateOrderPricing(orderItems, shippingAddress.city);
 
+    // Validate and secure receipt uploads
+    if (payment.receiptImage) {
+      // Ensure receipt image is from secure source (Cloudinary)
+      if (typeof payment.receiptImage === 'object' && payment.receiptImage.url) {
+        const receiptUrl = payment.receiptImage.url;
+        // Validate URL is from Cloudinary or secure source
+        if (!receiptUrl.includes('cloudinary.com') && !receiptUrl.includes('res.cloudinary.com')) {
+          logger.warn('Receipt uploaded from non-secure source', { url: receiptUrl });
+          // Still allow but log warning - in production, you might want to reject
+        }
+        // Ensure HTTPS
+        if (!receiptUrl.startsWith('https://')) {
+          return res.status(400).json({
+            success: false,
+            message: 'Receipt must be uploaded via secure HTTPS connection'
+          });
+        }
+      } else if (typeof payment.receiptImage === 'string') {
+        // If string URL, validate HTTPS
+        if (!payment.receiptImage.startsWith('https://')) {
+          return res.status(400).json({
+            success: false,
+            message: 'Receipt must be uploaded via secure HTTPS connection'
+          });
+        }
+      }
+    }
+
     // For COD, validate advance payment amount
     if (payment.method === 'cod') {
       const requiredAdvance = pricing.total * 0.5;

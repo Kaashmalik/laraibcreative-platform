@@ -693,21 +693,41 @@ export default function AdminOrderDetailPage() {
                     {/* Payment Receipt */}
                     {order.payment.receiptImage && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Receipt</h3>
-                        <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-900">Payment Receipt</h3>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const receiptUrl = typeof order.payment.receiptImage === 'string' 
+                                ? order.payment.receiptImage 
+                                : order.payment.receiptImage?.url || '';
+                              window.open(receiptUrl, '_blank');
+                            }}
+                            className="flex items-center gap-2"
+                            ariaLabel="Open receipt in new tab"
+                          >
+                            <Download className="w-4 h-4" />
+                            Open Full Size
+                          </Button>
+                        </div>
+                        <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300">
                           <img
                             src={typeof order.payment.receiptImage === 'string' 
                               ? order.payment.receiptImage 
                               : order.payment.receiptImage?.url || ''}
                             alt="Payment Receipt"
-                            className="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => window.open(
-                              typeof order.payment.receiptImage === 'string' 
+                            className="w-full h-full object-contain cursor-zoom-in hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              const receiptUrl = typeof order.payment.receiptImage === 'string' 
                                 ? order.payment.receiptImage 
-                                : order.payment.receiptImage?.url || '', 
-                              '_blank'
-                            )}
+                                : order.payment.receiptImage?.url || '';
+                              window.open(receiptUrl, '_blank');
+                            }}
                           />
+                          <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                            Click to enlarge
+                          </div>
                         </div>
                         {order.payment.status === 'pending' && (
                           <Button

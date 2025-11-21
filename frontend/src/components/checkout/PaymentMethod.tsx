@@ -37,6 +37,12 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
       'Enter transaction ID',
     ],
     note: 'Verification within 2-4 hours',
+    accountDetails: {
+      bankName: 'Allied Bank Limited',
+      accountNumber: 'XXXX-XXXX-XXXX-XXXX',
+      accountTitle: 'LaraibCreative',
+      iban: 'PK00ALLL0000000000000000',
+    },
   },
   {
     value: 'jazzcash',
@@ -52,6 +58,11 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
       'Enter transaction ID',
     ],
     note: 'Verification within 2-4 hours',
+    accountDetails: {
+      accountNumber: '0302-0718182',
+      accountName: 'LaraibCreative',
+      accountType: 'Mobile Account',
+    },
   },
   {
     value: 'easypaisa',
@@ -67,6 +78,11 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
       'Provide transaction reference',
     ],
     note: 'Verification within 2-4 hours',
+    accountDetails: {
+      accountNumber: '0302-0718182',
+      accountName: 'LaraibCreative',
+      accountType: 'Mobile Account',
+    },
   },
   {
     value: 'cod',
@@ -311,26 +327,103 @@ export default function PaymentMethod({
 
         {/* Payment Instructions */}
         {selectedMethodData && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-blue-900 mb-2">{selectedMethodData.label} Instructions</h4>
-                <ul className="space-y-1 text-sm text-blue-800">
-                  {selectedMethodData.instructions?.map((instruction, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-1">•</span>
-                      <span>{instruction}</span>
-                    </li>
-                  ))}
-                </ul>
-                {selectedMethodData.note && (
-                  <p className="mt-3 text-sm font-medium text-blue-900">
-                    Note: {selectedMethodData.note}
-                  </p>
-                )}
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 mb-2">{selectedMethodData.label} Instructions</h4>
+                  <ul className="space-y-1 text-sm text-blue-800">
+                    {selectedMethodData.instructions?.map((instruction, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="text-blue-600 mt-1">•</span>
+                        <span>{instruction}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {selectedMethodData.note && (
+                    <p className="mt-3 text-sm font-medium text-blue-900">
+                      Note: {selectedMethodData.note}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Account Details for JazzCash/EasyPaisa */}
+            {(selectedMethod === 'jazzcash' || selectedMethod === 'easypaisa') && selectedMethodData.accountDetails && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-5">
+                <h4 className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                  <Smartphone className="w-5 h-5" />
+                  {selectedMethodData.label} Account Details
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-2 border-b border-green-200">
+                    <span className="text-sm font-medium text-green-800">Account Number:</span>
+                    <span className="text-lg font-bold text-green-900 font-mono">
+                      {selectedMethodData.accountDetails.accountNumber}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-green-200">
+                    <span className="text-sm font-medium text-green-800">Account Name:</span>
+                    <span className="text-sm font-semibold text-green-900">
+                      {selectedMethodData.accountDetails.accountName}
+                    </span>
+                  </div>
+                  {selectedMethodData.accountDetails.accountType && (
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-sm font-medium text-green-800">Account Type:</span>
+                      <span className="text-sm text-green-900">
+                        {selectedMethodData.accountDetails.accountType}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 p-3 bg-white rounded-lg border border-green-300">
+                  <p className="text-xs text-green-800 font-medium">
+                    💡 Copy the account number above and use it in your {selectedMethodData.label} app
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Bank Account Details for Bank Transfer */}
+            {selectedMethod === 'bank-transfer' && selectedMethodData.accountDetails && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-5">
+                <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Bank Account Details
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-2 border-b border-blue-200">
+                    <span className="text-sm font-medium text-blue-800">Bank Name:</span>
+                    <span className="text-sm font-semibold text-blue-900">
+                      {selectedMethodData.accountDetails.bankName}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-blue-200">
+                    <span className="text-sm font-medium text-blue-800">Account Number:</span>
+                    <span className="text-lg font-bold text-blue-900 font-mono">
+                      {selectedMethodData.accountDetails.accountNumber}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-blue-200">
+                    <span className="text-sm font-medium text-blue-800">Account Title:</span>
+                    <span className="text-sm font-semibold text-blue-900">
+                      {selectedMethodData.accountDetails.accountTitle}
+                    </span>
+                  </div>
+                  {selectedMethodData.accountDetails.iban && (
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-sm font-medium text-blue-800">IBAN:</span>
+                      <span className="text-sm font-mono text-blue-900">
+                        {selectedMethodData.accountDetails.iban}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

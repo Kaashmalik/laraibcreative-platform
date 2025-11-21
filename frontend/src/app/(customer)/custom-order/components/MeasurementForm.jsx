@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Ruler, Info, BookmarkPlus, Shirt } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Ruler, Info, BookmarkPlus, Shirt, User, Download } from 'lucide-react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
 
 /**
  * Measurement Form Component - Step 4
@@ -67,14 +69,68 @@ export default function MeasurementForm({
   measurements,
   saveMeasurements,
   measurementLabel,
+  selectedMeasurementProfile,
   onToggleStandardSize,
   onStandardSizeChange,
   onMeasurementChange,
   onSaveMeasurementsChange,
   onLabelChange,
+  onProfileSelect,
   errors,
 }) {
   const [activeTooltip, setActiveTooltip] = useState(null);
+  const [savedProfiles, setSavedProfiles] = useState([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
+
+  /**
+   * Load saved measurement profiles
+   */
+  useEffect(() => {
+    const loadProfiles = async () => {
+      try {
+        setLoadingProfiles(true);
+        const response = await api.customOrders.getSavedMeasurements();
+        if (response.success && response.data?.measurements) {
+          setSavedProfiles(response.data.measurements);
+        }
+      } catch (error) {
+        console.error('Failed to load measurement profiles:', error);
+        // Don't show error toast - profiles are optional
+      } finally {
+        setLoadingProfiles(false);
+      }
+    };
+
+    loadProfiles();
+  }, []);
+
+  /**
+   * Load measurements from selected profile
+   */
+  const handleProfileSelect = async (profileId) => {
+    try {
+      const profile = savedProfiles.find(p => p._id === profileId);
+      if (!profile) return;
+
+      // Apply all measurements from profile
+      Object.keys(profile.measurements || {}).forEach(key => {
+        if (profile.measurements[key] !== undefined && profile.measurements[key] !== null) {
+          onMeasurementChange(key, profile.measurements[key]);
+        }
+      });
+
+      // Set shirt style if available
+      if (profile.measurements.shirtStyle) {
+        onMeasurementChange('shirtStyle', profile.measurements.shirtStyle);
+      }
+
+      onProfileSelect?.(profileId);
+      toast.success(`Loaded measurements from "${profile.label}"`);
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      toast.error('Failed to load measurement profile');
+    }
+  };
 
   /**
    * Apply standard size measurements
@@ -198,6 +254,41 @@ export default function MeasurementForm({
           Choose a standard size or enter custom measurements for a perfect fit
         </p>
       </div>
+
+      {/* Saved Measurement Profiles */}
+      {savedProfiles.length > 0 && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <User className="w-5 h-5 text-blue-600" />
+            <h3 className="font-semibold text-gray-900">Load from Saved Profile</h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-2">
+            {savedProfiles.map((profile) => (
+              <button
+                key={profile._id}
+                type="button"
+                onClick={() => handleProfileSelect(profile._id)}
+                className={`
+                  p-3 rounded-lg text-left border-2 transition-all duration-200
+                  flex items-center justify-between
+                  ${selectedMeasurementProfile === profile._id
+                    ? 'border-blue-500 bg-blue-100'
+                    : 'border-blue-200 hover:border-blue-400 bg-white'
+                  }
+                `}
+              >
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">{profile.label || 'My Measurements'}</p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Saved {new Date(profile.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <Download className="w-4 h-4 text-blue-600" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Standard Size Toggle */}
       <div className="flex items-center justify-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">

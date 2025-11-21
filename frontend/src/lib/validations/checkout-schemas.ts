@@ -124,6 +124,7 @@ export const checkoutFormSchema = z.object({
   specialInstructions: z.string()
     .max(1000, 'Special instructions cannot exceed 1000 characters')
     .optional(),
+  enableWhatsAppNotifications: z.boolean().default(true),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and conditions',
   }),

@@ -8,6 +8,31 @@
 import { z } from 'zod';
 
 /**
+ * Suit Type Schema
+ */
+export const suitTypeSchema = z.object({
+  suitType: z.enum(['ready-made', 'replica', 'karhai'], {
+    required_error: 'Please select a suit type',
+  }),
+});
+
+/**
+ * Karhai Pattern Schema
+ */
+export const karhaiPatternSchema = z.object({
+  embroideryType: z.enum(['zardozi', 'aari', 'sequins', 'beads', 'thread', 'mixed', 'none'], {
+    required_error: 'Please select an embroidery type',
+  }),
+  complexity: z.enum(['simple', 'moderate', 'intricate', 'heavy'], {
+    required_error: 'Please select complexity level',
+  }),
+  coverage: z.enum(['minimal', 'partial', 'full', 'heavy'], {
+    required_error: 'Please select coverage level',
+  }),
+  description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
+});
+
+/**
  * Step 1: Service Type Schema
  */
 const serviceTypeBase = z.object({
@@ -15,6 +40,7 @@ const serviceTypeBase = z.object({
     required_error: 'Please select a service type',
   }),
   designIdea: z.string().optional(),
+  suitType: z.enum(['ready-made', 'replica', 'karhai']).optional(),
 });
 
 export const serviceTypeSchema = serviceTypeBase.refine(
@@ -299,6 +325,8 @@ export const validateStep = {
 };
 
 export default {
+  suitTypeSchema,
+  karhaiPatternSchema,
   serviceTypeSchema,
   referenceImagesSchema,
   fabricSelectionSchema,

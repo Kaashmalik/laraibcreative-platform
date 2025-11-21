@@ -11,6 +11,11 @@
 export type ServiceType = 'fully-custom' | 'brand-article';
 
 /**
+ * Suit Type
+ */
+export type SuitType = 'ready-made' | 'replica' | 'karhai';
+
+/**
  * Fabric Source
  */
 export type FabricSource = 'lc-provides' | 'customer-provides';
@@ -100,17 +105,26 @@ export interface CustomerInfo {
  * Custom Order Form Data
  */
 export interface CustomOrderFormData {
+  // Step 0: Suit Type Selection
+  suitType: SuitType | '';
+  
   // Step 1: Service Type
   serviceType: ServiceType | '';
   designIdea: string;
   
-  // Step 2: Reference Images
+  // Step 2: Reference Images / Replica Uploads
   referenceImages: ReferenceImage[];
   
-  // Step 3: Fabric Selection
+  // Step 3: Fabric Selection / Karhai Pattern
   fabricSource: FabricSource | '';
   selectedFabric: FabricOption | null;
   fabricDetails: string;
+  karhaiPattern?: {
+    embroideryType: 'zardozi' | 'aari' | 'sequins' | 'beads' | 'thread' | 'mixed' | 'none';
+    complexity: 'simple' | 'moderate' | 'intricate' | 'heavy';
+    coverage: 'minimal' | 'partial' | 'full' | 'heavy';
+    description?: string;
+  };
   
   // Step 4: Measurements
   useStandardSize: boolean;
@@ -118,6 +132,7 @@ export interface CustomOrderFormData {
   measurements: Measurements;
   saveMeasurements: boolean;
   measurementLabel: string;
+  selectedMeasurementProfile?: string; // ID of saved measurement profile
   
   // Step 5: Special Instructions
   specialInstructions: string;
@@ -125,6 +140,9 @@ export interface CustomOrderFormData {
   
   // Contact (if not logged in)
   customerInfo: CustomerInfo;
+  
+  // Cart Integration
+  addToCart?: boolean;
 }
 
 /**

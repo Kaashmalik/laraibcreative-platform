@@ -42,6 +42,7 @@ const orderItemSchema = Joi.object({
   product: objectId.required(),
   quantity: Joi.number().integer().min(1).required(),
   isCustom: Joi.boolean().default(false),
+  suitType: Joi.string().valid('ready-made', 'replica', 'karhai').optional(),
   measurements: Joi.when('isCustom', {
     is: true,
     then: measurementSchema.required(),
@@ -51,6 +52,12 @@ const orderItemSchema = Joi.object({
     url: Joi.string().uri().required(),
     caption: Joi.string().allow('')
   })),
+  karhaiPattern: Joi.object({
+    embroideryType: Joi.string().valid('zardozi', 'aari', 'sequins', 'beads', 'thread', 'mixed', 'none').optional(),
+    complexity: Joi.string().valid('simple', 'moderate', 'intricate', 'heavy').optional(),
+    coverage: Joi.string().valid('minimal', 'partial', 'full', 'heavy').optional(),
+    description: Joi.string().max(500).allow('', null).optional()
+  }).optional(),
   specialInstructions: Joi.string().max(1000).allow('', null),
   fabric: Joi.string().allow('', null)
 });
@@ -65,16 +72,19 @@ const createOrderSchema = Joi.object({
       is: 'cod',
       then: Joi.object({
         url: Joi.string().uri().required(),
-        cloudinaryId: Joi.string().allow('')
+        cloudinaryId: Joi.string().allow(''),
+        secure: Joi.boolean().default(true)
       }).required(),
       otherwise: Joi.object({
         url: Joi.string().uri(),
-        cloudinaryId: Joi.string().allow('')
+        cloudinaryId: Joi.string().allow(''),
+        secure: Joi.boolean().default(true)
       }).allow(null)
     }),
     transactionId: Joi.string().allow('', null),
     transactionDate: Joi.date().allow(null),
-    advanceAmount: Joi.number().min(0).allow(null)
+    advanceAmount: Joi.number().min(0).allow(null),
+    enableWhatsAppNotifications: Joi.boolean().default(true)
   }).required(),
   customerInfo: Joi.object({
     name: Joi.string().required(),

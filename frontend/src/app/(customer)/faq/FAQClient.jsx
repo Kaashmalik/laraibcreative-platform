@@ -28,18 +28,35 @@ const faqs = [
 export default function FAQClient() {
   const [openIndex, setOpenIndex] = useState(null);
 
-  // FAQ Structured Data (JSON-LD)
+  // Enhanced FAQ Structured Data (JSON-LD) with SEO optimizations
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map(faq => ({
+    '@id': 'https://laraibcreative.com/faq#webpage',
+    mainEntity: faqs.map((faq, index) => ({
       '@type': 'Question',
+      '@id': `https://laraibcreative.com/faq#question-${index + 1}`,
       name: faq.question,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: faq.answer
+        text: faq.answer,
+        upvoteCount: 0,
+        dateCreated: new Date().toISOString()
+      },
+      dateCreated: new Date().toISOString(),
+      author: {
+        '@type': 'Organization',
+        name: 'LaraibCreative'
       }
-    }))
+    })),
+    about: {
+      '@type': 'Organization',
+      name: 'LaraibCreative',
+      url: 'https://laraibcreative.com',
+      logo: 'https://laraibcreative.com/images/logo.png'
+    },
+    inLanguage: 'en-PK',
+    isAccessibleForFree: true
   };
 
   return (
