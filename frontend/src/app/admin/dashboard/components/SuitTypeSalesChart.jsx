@@ -43,7 +43,7 @@ const DEFAULT_COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e'];
 
 export default function SuitTypeSalesChart({ data: propData }) {
   // Transform suit type sales data for pie chart
-  const data = propData && propData.length > 0
+  const data = propData && Array.isArray(propData) && propData.length > 0
     ? propData.map((item, index) => ({
         name: item.label || item.suitType || 'Unknown',
         value: parseFloat(item.percentage) || 0,

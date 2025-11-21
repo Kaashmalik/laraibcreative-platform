@@ -721,6 +721,7 @@ exports.getAllProductsAdmin = async (req, res) => {
       status = '',
       featured = '',
       productType = '',
+      type = '', // Suit type filter (ready-made, replica, karhai)
       sortBy = 'createdAt',
       sortOrder = 'desc',
       minPrice = '',
@@ -762,6 +763,11 @@ exports.getAllProductsAdmin = async (req, res) => {
     // Product type filter
     if (productType) {
       filter.productType = productType;
+    }
+
+    // Suit type filter (ready-made, replica, karhai)
+    if (type) {
+      filter.type = type;
     }
 
     // Price range filter

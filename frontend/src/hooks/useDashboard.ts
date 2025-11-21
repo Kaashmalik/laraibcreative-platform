@@ -46,10 +46,13 @@ export function useDashboard(options: UseDashboardOptions = {}) {
       const response = await api.dashboard.getDashboard(params);
       const result: DashboardResponse = response as unknown as DashboardResponse;
 
-      if (result.success) {
+      if (result && result.success) {
+        setData(result.data);
+      } else if (result && result.data) {
+        // Handle case where response is just data object
         setData(result.data);
       } else {
-        throw new Error(result.message || 'Failed to fetch dashboard data');
+        throw new Error(result?.message || 'Failed to fetch dashboard data');
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load dashboard data';

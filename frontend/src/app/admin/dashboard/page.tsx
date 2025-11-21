@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
     startDate: customStartDate,
     endDate: customEndDate,
     autoRefresh: true,
-    refreshInterval: 60000 // Refresh every minute
+    refreshInterval: 120000 // Refresh every 2 minutes (reduced from 1 minute for performance)
   });
 
   // Update document title and meta tags for client component
@@ -239,7 +239,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</p>
             </div>
           </div>
-          {dashboardData.revenueTrends ? (
+          {dashboardData.revenueTrends && dashboardData.revenueTrends.length > 0 ? (
             <RevenueChart data={dashboardData.revenueTrends} />
           ) : (
             <ChartLoading height={350} />
@@ -254,7 +254,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">Distribution</p>
             </div>
           </div>
-          {dashboardData.orderDistribution ? (
+          {dashboardData.orderDistribution && dashboardData.orderDistribution.length > 0 ? (
             <OrdersPieChart data={dashboardData.orderDistribution} />
           ) : (
             <ChartLoading height={350} />
@@ -270,7 +270,11 @@ export default function AdminDashboardPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">Karhai, Replica & Ready-Made distribution</p>
           </div>
         </div>
-        <SuitTypeSalesChart data={dashboardData.suitTypeSales} />
+        {dashboardData.suitTypeSales && dashboardData.suitTypeSales.length > 0 ? (
+          <SuitTypeSalesChart data={dashboardData.suitTypeSales} />
+        ) : (
+          <ChartLoading height={350} />
+        )}
       </div>
 
       {/* Popular Products Chart */}
@@ -281,7 +285,7 @@ export default function AdminDashboardPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">Top 10 best sellers</p>
           </div>
         </div>
-        {dashboardData.popularProducts ? (
+        {dashboardData.popularProducts && dashboardData.popularProducts.length > 0 ? (
           <PopularProductsChart data={dashboardData.popularProducts} />
         ) : (
           <ChartLoading height={400} />

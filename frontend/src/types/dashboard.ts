@@ -89,6 +89,15 @@ export interface LowStockAlert {
   image?: string;
 }
 
+export interface SuitTypeSales {
+  suitType: string;
+  label: string;
+  revenue: number;
+  orders: number;
+  quantity: number;
+  percentage: number;
+}
+
 export interface DashboardData {
   stats: DashboardStats;
   revenueTrends: RevenueTrend[];
@@ -96,6 +105,7 @@ export interface DashboardData {
   popularProducts: PopularProduct[];
   recentOrders: RecentOrder[];
   lowStockAlerts: LowStockAlert[];
+  suitTypeSales?: SuitTypeSales[];
   dateRange: {
     startDate: string;
     endDate: string;

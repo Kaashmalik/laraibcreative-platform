@@ -31,8 +31,18 @@ export default function SEOReports() {
       setLoading(true);
       // This would call the actual SEO analytics API
       // For now, using mock data structure
-      const response = await api.analytics.getSEOAnalytics();
-      setSeoData(response.data);
+      try {
+        const response = await api.analytics.getSEOAnalytics();
+        if (response && response.data) {
+          setSeoData(response.data);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (apiError) {
+        // Fallback to mock data if API fails
+        console.warn('SEO analytics API not available, using mock data:', apiError);
+        throw apiError; // Will be caught by outer catch
+      }
     } catch (err) {
       console.error('Error fetching SEO data:', err);
       setError('Failed to load SEO reports');

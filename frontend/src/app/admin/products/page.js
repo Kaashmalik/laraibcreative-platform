@@ -58,8 +58,8 @@ export default function AdminProductsPage() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   
-  // Debounced search term for API calls
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  // Debounced search term for API calls (increased delay for performance)
+  const debouncedSearch = useDebounce(searchTerm, 800);
   
   /**
    * Fetch products from API
@@ -80,9 +80,11 @@ export default function AdminProductsPage() {
       };
       
       const response = await api.products.getAllAdmin(params);
-      setProducts(response.products || response);
-      setTotalPages(response.pagination?.totalPages || response.totalPages || 1);
-      setTotalProducts(response.pagination?.totalProducts || response.totalProducts || 0);
+      // Handle both response formats
+      const responseData = response.data || response;
+      setProducts(responseData.products || []);
+      setTotalPages(responseData.pagination?.totalPages || 1);
+      setTotalProducts(responseData.pagination?.totalProducts || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
       setToast({
@@ -108,6 +110,13 @@ export default function AdminProductsPage() {
     }
   };
   
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearch, selectedCategory, selectedStatus, selectedSuitType, sortBy, sortOrder]);
+
   // Fetch products when dependencies change
   useEffect(() => {
     fetchProducts();
@@ -152,7 +161,7 @@ export default function AdminProductsPage() {
   const confirmBulkDelete = async () => {
     setBulkActionLoading(true);
     try {
-      await api.products.bulkDelete(selectedProducts);
+      await api.products.admin.bulkDelete(selectedProducts);
       
       setToast({
         type: 'success',
@@ -178,7 +187,7 @@ export default function AdminProductsPage() {
   const handleBulkFeature = async (featured) => {
     setBulkActionLoading(true);
     try {
-      await api.products.bulkUpdateAdmin(selectedProducts, { isFeatured: featured });
+      await api.products.admin.bulkUpdateAdmin(selectedProducts, { isFeatured: featured });
       
       setToast({
         type: 'success',
@@ -203,7 +212,7 @@ export default function AdminProductsPage() {
   const handleBulkAvailability = async (availability) => {
     setBulkActionLoading(true);
     try {
-      await api.products.bulkUpdateAdmin(selectedProducts, { 
+      await api.products.admin.bulkUpdateAdmin(selectedProducts, { 
         'availability.status': availability 
       });
       
@@ -235,7 +244,7 @@ export default function AdminProductsPage() {
         search: debouncedSearch,
       };
       
-      const blob = await api.products.export(filters);
+      const blob = await api.products.admin.export(filters);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -266,6 +275,8 @@ export default function AdminProductsPage() {
     setSelectedCategory('all');
     setSelectedStatus('all');
     setSelectedSuitType('all');
+    setSortBy('createdAt');
+    setSortOrder('desc');
     setCurrentPage(1);
   };
   

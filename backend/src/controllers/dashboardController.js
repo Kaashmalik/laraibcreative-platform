@@ -580,51 +580,62 @@ async function getLowStockAlerts(limit = 20) {
  * Get suit type sales distribution
  */
 async function getSuitTypeSales(dateRange) {
-  const { startDate, endDate } = dateRange;
-  
-  const suitTypeSales = await Order.aggregate([
-    {
-      $match: {
-        createdAt: { $gte: startDate, $lte: endDate },
-        'payment.status': 'verified',
-        status: { $ne: 'cancelled' }
-      }
-    },
-    { $unwind: '$items' },
-    {
-      $lookup: {
-        from: 'products',
-        localField: 'items.product',
-        foreignField: '_id',
-        as: 'productDetails'
-      }
-    },
-    { $unwind: '$productDetails' },
-    {
-      $group: {
-        _id: '$productDetails.type',
-        revenue: {
-          $sum: { $multiply: ['$items.price', '$items.quantity'] }
-        },
-        orders: { $sum: 1 },
-        quantity: { $sum: '$items.quantity' }
-      }
-    },
-    { $sort: { revenue: -1 } }
-  ]);
+  try {
+    const { startDate, endDate } = dateRange;
+    
+    const suitTypeSales = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate, $lte: endDate },
+          'payment.status': 'verified',
+          status: { $ne: 'cancelled' }
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      { $unwind: '$productDetails' },
+      {
+        $group: {
+          _id: '$productDetails.type',
+          revenue: {
+            $sum: { $multiply: ['$items.price', '$items.quantity'] }
+          },
+          orders: { $sum: 1 },
+          quantity: { $sum: '$items.quantity' }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ]);
 
-  const totalRevenue = suitTypeSales.reduce((sum, item) => sum + item.revenue, 0);
+    // If no data, return empty array with default structure
+    if (!suitTypeSales || suitTypeSales.length === 0) {
+      return [];
+    }
 
-  return suitTypeSales.map(item => ({
-    suitType: item._id || 'ready-made',
-    label: item._id === 'karhai' ? 'Hand-Made Karhai' : 
-           item._id === 'replica' ? 'Brand Replicas' : 
-           'Ready-Made',
-    revenue: Math.round(item.revenue),
-    orders: item.orders,
-    quantity: item.quantity,
-    percentage: totalRevenue > 0 ? parseFloat(((item.revenue / totalRevenue) * 100).toFixed(2)) : 0
-  }));
+    const totalRevenue = suitTypeSales.reduce((sum, item) => sum + (item.revenue || 0), 0);
+
+    return suitTypeSales.map(item => ({
+      suitType: item._id || 'ready-made',
+      label: item._id === 'karhai' ? 'Hand-Made Karhai' : 
+             item._id === 'replica' ? 'Brand Replicas' : 
+             'Ready-Made',
+      revenue: Math.round(item.revenue || 0),
+      orders: item.orders || 0,
+      quantity: item.quantity || 0,
+      percentage: totalRevenue > 0 ? parseFloat(((item.revenue / totalRevenue) * 100).toFixed(2)) : 0
+    }));
+  } catch (error) {
+    logger.error('Error in getSuitTypeSales:', error);
+    // Return empty array on error instead of throwing
+    return [];
+  }
 }
 
 /**

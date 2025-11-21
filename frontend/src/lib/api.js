@@ -248,6 +248,106 @@ const api = {
     async bulkUpdate(updates) {
       return await axios.post('/products/bulk-update', { updates });
     },
+
+    /**
+     * Admin Product Management Endpoints
+     */
+    admin: {
+      /**
+       * Get all products for admin with advanced filters
+       * @param {Object} params - Filter parameters (page, limit, search, category, status, type, etc.)
+       * @returns {Promise<Object>} Products list with pagination
+       */
+      async getAll(params = {}) {
+        return await axios.get('/admin/products', { params });
+      },
+
+      /**
+       * Get product for editing
+       * @param {string} id - Product ID
+       * @returns {Promise<Object>} Product data formatted for editing
+       */
+      async getForEdit(id) {
+        return await axios.get(`/admin/products/${id}/edit`);
+      },
+
+      /**
+       * Create new product
+       * @param {FormData} formData - Product data with images
+       * @returns {Promise<Object>} Created product
+       */
+      async create(formData) {
+        return await axios.post('/admin/products', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      },
+
+      /**
+       * Update product
+       * @param {string} id - Product ID
+       * @param {FormData} formData - Updated product data
+       * @returns {Promise<Object>} Updated product
+       */
+      async update(id, formData) {
+        return await axios.put(`/admin/products/${id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      },
+
+      /**
+       * Delete product
+       * @param {string} id - Product ID
+       * @returns {Promise<Object>} Deletion result
+       */
+      async delete(id) {
+        return await axios.delete(`/admin/products/${id}`);
+      },
+
+      /**
+       * Bulk delete products
+       * @param {Array<string>} ids - Array of product IDs
+       * @returns {Promise<Object>} Deletion result
+       */
+      async bulkDelete(ids) {
+        return await axios.delete('/admin/products/bulk-delete', {
+          data: { ids }
+        });
+      },
+
+      /**
+       * Bulk update products
+       * @param {Array<string>} ids - Array of product IDs
+       * @param {Object} updates - Update data
+       * @returns {Promise<Object>} Update result
+       */
+      async bulkUpdateAdmin(ids, updates) {
+        return await axios.patch('/admin/products/bulk-update', {
+          productIds: ids,
+          updates
+        });
+      },
+
+      /**
+       * Duplicate product
+       * @param {string} id - Product ID
+       * @returns {Promise<Object>} Duplicated product
+       */
+      async duplicate(id) {
+        return await axios.post(`/admin/products/${id}/duplicate`);
+      },
+
+      /**
+       * Export products to CSV
+       * @param {Object} filters - Filter parameters
+       * @returns {Promise<Blob>} CSV file
+       */
+      async export(filters = {}) {
+        return await axios.get('/admin/products/export', {
+          params: filters,
+          responseType: 'blob'
+        });
+      }
+    }
   },
 
   /**
