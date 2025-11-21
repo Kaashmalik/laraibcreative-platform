@@ -49,12 +49,12 @@ export default function OrdersPieChart({ data: propData }) {
   // Transform order distribution data for pie chart
   const data = propData && propData.length > 0
     ? propData.map((item, index) => ({
-        name: item.status.split('-').map(word => 
+        name: (item.status || 'unknown').split('-').map(word => 
           word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' '),
-        value: item.percentage,
-        orders: item.count,
-        revenue: item.revenue,
+        value: item.percentage || 0,
+        orders: item.count || 0,
+        revenue: item.revenue || 0,
         color: STATUS_COLORS[item.status] || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
       }))
     : [

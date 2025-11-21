@@ -39,9 +39,11 @@ export default function PopularProductsChart({ data: propData }) {
   // Use provided data or fallback to default
   const data = propData && propData.length > 0
     ? propData.map(item => ({
-        name: item.title.length > 20 ? item.title.substring(0, 20) + '...' : item.title,
-        sales: item.sales,
-        revenue: item.revenue
+        name: (item.title || item.name || 'Unknown').length > 20 
+          ? (item.title || item.name || 'Unknown').substring(0, 20) + '...' 
+          : (item.title || item.name || 'Unknown'),
+        sales: item.sales || item.count || 0,
+        revenue: item.revenue || 0
       }))
     : defaultData;
 

@@ -69,9 +69,9 @@ export default function RevenueChart({ data: propData }) {
   // Use provided data or fallback to default
   const data = propData && propData.length > 0
     ? propData.map(item => ({
-        date: item.date,
-        revenue: item.revenue,
-        orders: item.orders
+        date: item.date || '',
+        revenue: item.revenue || 0,
+        orders: item.orders || 0
       }))
     : defaultData;
 
