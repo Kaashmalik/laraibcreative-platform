@@ -105,6 +105,48 @@ const categories = [
     metaTitle: 'Embroidered Suits | Thread Work Suits | LaraibCreative',
     metaDescription: 'Discover our embroidered suits collection. Beautiful thread work and embellishments.',
     keywords: ['embroidered suits', 'thread work', 'embellished suits', 'traditional embroidery']
+  },
+  {
+    name: 'Ready-Made Suits',
+    slug: 'ready-made-suits',
+    description: 'Ready-to-wear ladies suits in standard sizes. Perfect fit guaranteed with instant delivery. Shop ready-made ladies suits Pakistan.',
+    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800',
+    displayOrder: 9,
+    isActive: true,
+    isFeatured: true,
+    seo: {
+      metaTitle: 'Ready-Made Ladies Suits Pakistan | Instant Delivery | LaraibCreative',
+      metaDescription: 'Shop ready-made ladies suits in Pakistan. Standard sizes available with perfect fit guarantee. Fast delivery across Pakistan.',
+      keywords: ['ready-made ladies suits Pakistan', 'ready to wear suits', 'instant delivery suits', 'standard size suits']
+    }
+  },
+  {
+    name: 'Brand Replicas',
+    slug: 'brand-replicas',
+    description: 'High-quality brand replica stitching online. Get designer look at affordable prices. Expert brand replica stitching services.',
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800',
+    displayOrder: 10,
+    isActive: true,
+    isFeatured: true,
+    seo: {
+      metaTitle: 'Brand Replica Stitching Online | Designer Replicas | LaraibCreative',
+      metaDescription: 'Expert brand replica stitching online. High-quality designer replicas at affordable prices. Custom brand replica suits.',
+      keywords: ['brand replica stitching online', 'designer replicas', 'brand copies', 'replica stitching service']
+    }
+  },
+  {
+    name: 'Hand-Made Karhai Suits',
+    slug: 'hand-made-karhai-suits',
+    description: 'Exquisite hand-made karhai suits with intricate embroidery. Traditional karhai work in Lahore. Custom hand-made karhai suits.',
+    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800',
+    displayOrder: 11,
+    isActive: true,
+    isFeatured: true,
+    seo: {
+      metaTitle: 'Hand-Made Karhai Suits Lahore | Traditional Karhai Work | LaraibCreative',
+      metaDescription: 'Shop hand-made karhai suits in Lahore. Exquisite traditional karhai embroidery work. Custom hand-made karhai suits with perfect fit.',
+      keywords: ['hand-made karhai suits Lahore', 'karhai work suits', 'traditional karhai embroidery', 'hand-made karhai stitching']
+    }
   }
 ];
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Star } from 'lucide-react';
 
 /**
@@ -39,10 +40,20 @@ export default function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
           
           {/* Left Column - Text Content */}
-          <div className={`space-y-4 sm:space-y-6 md:space-y-8 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="space-y-4 sm:space-y-6 md:space-y-8"
+          >
             
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={mounted ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg"
+            >
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600 flex-shrink-0" />
               <span className="text-xs sm:text-sm font-medium text-gray-700">
                 <span className="hidden sm:inline">Trusted by 500+ Happy Customers</span>
@@ -55,24 +66,39 @@ export default function HeroSection() {
                 <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
                 <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
               </div>
-            </div>
+            </motion.div>
 
             {/* Main Heading */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight sm:leading-tight">
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight sm:leading-tight"
+            >
               <span className="block text-gray-900">Transform Your</span>
               <span className="block bg-gradient-to-r from-pink-600 via-purple-600 to-rose-600 bg-clip-text text-transparent">
                 Vision Into
               </span>
               <span className="block text-gray-900">Beautiful Reality</span>
-            </h1>
+            </motion.h1>
 
             {/* Tagline */}
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-light max-w-xl">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-light max-w-xl"
+            >
               We turn your thoughts & emotions into reality and happiness through custom stitched designer suits
             </p>
 
             {/* Feature Points */}
-            <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm"
+            >
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-pink-600 rounded-full flex-shrink-0" />
                 <span className="text-gray-700">Custom Measurements</span>
@@ -85,10 +111,15 @@ export default function HeroSection() {
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-rose-600 rounded-full flex-shrink-0" />
                 <span className="text-gray-700">Premium Fabrics</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4"
+            >
               {/* Primary CTA - Start Custom Order */}
               <Link
                 href="/custom-order"
@@ -106,10 +137,15 @@ export default function HeroSection() {
                 <span>Browse Collections</span>
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-            </div>
+            </motion.div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-gray-200">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={mounted ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-gray-200"
+            >
               <div className="text-center sm:text-left">
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">500+</div>
                 <div className="text-xs sm:text-sm text-gray-600">Orders Completed</div>
@@ -122,11 +158,16 @@ export default function HeroSection() {
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">7-10</div>
                 <div className="text-xs sm:text-sm text-gray-600">Days Delivery</div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right Column - Hero Image */}
-          <div className={`relative transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'} order-first lg:order-last`}>
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            animate={mounted ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative order-first lg:order-last"
+          >
             <div className="relative aspect-[3/4] max-w-md mx-auto lg:max-w-none rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
               {/* Main Hero Image (placeholder asset to avoid 404) */}
               <div className="relative w-full h-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
@@ -162,7 +203,7 @@ export default function HeroSection() {
             {/* Decorative Elements Around Image - Hidden on mobile */}
             <div className="hidden sm:block absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full blur-2xl opacity-60 animate-pulse" />
             <div className="hidden sm:block absolute -bottom-4 -left-4 sm:-bottom-6 sm:-left-6 w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-purple-400 to-rose-400 rounded-full blur-2xl opacity-60 animate-pulse delay-1000" />
-          </div>
+          </motion.div>
         </div>
       </div>
 

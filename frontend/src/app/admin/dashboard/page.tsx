@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useDashboard } from '@/hooks/useDashboard';
 import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
@@ -89,6 +89,15 @@ export default function AdminDashboardPage() {
     refreshInterval: 60000 // Refresh every minute
   });
 
+  // Update document title and meta tags for client component
+  useEffect(() => {
+    document.title = 'Dashboard | Admin | LaraibCreative';
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Admin dashboard with analytics, charts, and real-time metrics');
+    }
+  }, []);
+
   const handleDateRangeChange = (range: DateRange, start?: string, end?: string) => {
     setDateRange(range);
     setCustomStartDate(start);
@@ -154,7 +163,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+        {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>

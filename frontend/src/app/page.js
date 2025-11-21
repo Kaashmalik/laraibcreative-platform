@@ -16,8 +16,11 @@ export const revalidate = 600;
 export async function generateMetadata() {
   return {
     title: 'LaraibCreative - Custom Ladies Suits & Designer Wear | Pakistan',
-    description: 'Premium custom stitched ladies suits and designer wear in Pakistan. We turn your thoughts & emotions into reality and happiness. Fast delivery across Pakistan.',
+    description: 'Premium custom stitched ladies suits and designer wear in Pakistan. Ready-made suits, brand replicas, and hand-made karhai suits. We turn your thoughts & emotions into reality and happiness. Fast delivery across Pakistan.',
     keywords: [
+      'ready-made ladies suits Pakistan',
+      'brand replica stitching online',
+      'hand-made karhai suits Lahore',
       'custom ladies suits',
       'designer wear Pakistan',
       'custom stitching',

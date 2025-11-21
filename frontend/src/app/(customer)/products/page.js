@@ -7,8 +7,11 @@ import ProductsClient from './ProductsClient';
  */
 export const metadata = {
   title: 'Products | Browse Collection | LaraibCreative',
-  description: 'Browse our complete collection of custom stitched ladies suits, bridal wear, party suits, and designer replicas. Premium quality fabrics with perfect measurements. Shop now!',
+  description: 'Browse our complete collection of custom stitched ladies suits, ready-made suits, brand replicas, hand-made karhai suits, bridal wear, and party suits. Premium quality fabrics with perfect measurements. Shop now!',
   keywords: [
+    'ready-made ladies suits Pakistan',
+    'brand replica stitching online',
+    'hand-made karhai suits Lahore',
     'ladies suits Pakistan',
     'bridal wear online',
     'party suits',

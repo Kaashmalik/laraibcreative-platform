@@ -372,6 +372,48 @@ const ProductSchema = new mongoose.Schema({
     index: true
   },
 
+  // NEW: Suit type classification (ready-made, replica, karhai)
+  type: {
+    type: String,
+    enum: ['ready-made', 'replica', 'karhai'],
+    index: true,
+    default: 'ready-made'
+  },
+
+  // NEW: Embroidery details for karhai suits
+  embroideryDetails: {
+    type: {
+      type: String,
+      enum: ['zardozi', 'aari', 'sequins', 'beads', 'thread', 'mixed', 'none'],
+      default: 'none'
+    },
+    complexity: {
+      type: String,
+      enum: ['simple', 'moderate', 'intricate', 'heavy'],
+      default: 'simple'
+    },
+    coverage: {
+      type: String,
+      enum: ['minimal', 'partial', 'full', 'heavy'],
+      default: 'minimal'
+    },
+    estimatedHours: {
+      type: Number,
+      min: 0,
+      default: 0
+    },
+    additionalCost: {
+      type: Number,
+      min: 0,
+      default: 0
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Embroidery description cannot exceed 500 characters']
+    }
+  },
+
   availability: {
     status: {
       type: String,

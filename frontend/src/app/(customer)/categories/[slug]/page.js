@@ -1,6 +1,6 @@
 import api from '@/lib/api';
 import CategoryPageClient from './CategoryPageClient';
-import { SITE_URL } from '@/lib/constants';
+import { generateCategoryMetadata } from '@/lib/meta-tags';
 
 /**
  * ISR Configuration
@@ -52,25 +52,7 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    const categoryName = category.name;
-    const description = category.description || 
-      `Browse our ${categoryName.toLowerCase()} collection. Premium quality custom stitched suits. Fast delivery across Pakistan.`;
-
-    return {
-      title: `${categoryName} Collection | LaraibCreative`,
-      description: description.length > 160 
-        ? description.substring(0, 157) + '...' 
-        : description,
-      alternates: {
-        canonical: `${SITE_URL}/categories/${params.slug}`,
-      },
-      openGraph: {
-        title: `${categoryName} Collection | LaraibCreative`,
-        description,
-        url: `${SITE_URL}/categories/${params.slug}`,
-        siteName: 'LaraibCreative',
-      },
-    };
+    return generateCategoryMetadata(category);
   } catch (error) {
     console.error('Error generating category metadata:', error);
     return {
