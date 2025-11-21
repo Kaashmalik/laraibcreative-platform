@@ -71,6 +71,7 @@ const OrderSummary = dynamic(() => import('./components/OrderSummary'), {
   estimatedPrice: number;
   priceBreakdown: PriceBreakdown | null;
   errors: Record<string, string>;
+  onAddToCart?: () => void;
 }>;
 
 const SuccessConfirmation = dynamic(() => import('./components/SuccessConfirmation'), {
@@ -263,16 +264,6 @@ function CustomOrderPage() {
           />
         );
 
-      case 2:
-        return (
-          <ServiceTypeSelection
-            serviceType={formData.serviceType}
-            designIdea={formData.designIdea}
-            onChange={(field: string, value: any) => updateFormData(field as any, value)}
-            errors={errors}
-          />
-        );
-
       case 3:
         return (
           <ImageUpload
@@ -301,23 +292,6 @@ function CustomOrderPage() {
             selectedFabric={formData.selectedFabric}
             fabricDetails={formData.fabricDetails}
             onChange={(field: string, value: any) => updateFormData(field as any, value)}
-            errors={errors}
-          />
-        );
-
-      case 5:
-        return (
-          <MeasurementForm
-            useStandardSize={formData.useStandardSize}
-            standardSize={formData.standardSize}
-            measurements={formData.measurements}
-            saveMeasurements={formData.saveMeasurements}
-            measurementLabel={formData.measurementLabel}
-            onToggleStandardSize={(value: boolean) => updateFormData('useStandardSize', value)}
-            onStandardSizeChange={(value: string) => updateFormData('standardSize', value)}
-            onMeasurementChange={updateMeasurements}
-            onSaveMeasurementsChange={(value: boolean) => updateFormData('saveMeasurements', value)}
-            onLabelChange={(value: string) => updateFormData('measurementLabel', value)}
             errors={errors}
           />
         );

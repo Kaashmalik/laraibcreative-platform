@@ -23,6 +23,7 @@ const DEFAULT_FILTERS: ProductFilters = {
   size: [],
   occasion: [],
   availability: [],
+  suitType: [],
   sortBy: 'newest',
   search: '',
   category: '',
