@@ -67,6 +67,27 @@ export default function ProductTable({
         return 'default';
     }
   };
+
+  /**
+   * Get suit type badge variant and color
+   */
+  const getSuitTypeBadge = (suitType) => {
+    if (!suitType) return null;
+    
+    const variants = {
+      'ready-made': { variant: 'default', label: 'Ready-Made', className: 'bg-blue-100 text-blue-800' },
+      'replica': { variant: 'warning', label: 'Replica', className: 'bg-purple-100 text-purple-800' },
+      'karhai': { variant: 'success', label: 'Karhai', className: 'bg-rose-100 text-rose-800' }
+    };
+    
+    const config = variants[suitType] || { variant: 'default', label: suitType, className: 'bg-gray-100 text-gray-800' };
+    
+    return (
+      <Badge variant={config.variant} className={config.className}>
+        {config.label}
+      </Badge>
+    );
+  };
   
   /**
    * Get status label
@@ -290,6 +311,9 @@ export default function ProductTable({
                   Category
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Suit Type
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -368,6 +392,11 @@ export default function ProductTable({
                         {product.subcategory}
                       </span>
                     )}
+                  </td>
+                  
+                  {/* Suit Type */}
+                  <td className="px-4 py-4">
+                    {getSuitTypeBadge(product.type)}
                   </td>
                   
                   {/* Price */}

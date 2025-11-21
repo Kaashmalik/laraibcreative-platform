@@ -910,6 +910,22 @@ const api = {
      */
     async getTrafficSources(params = {}) {
       return await axios.get('/analytics/traffic', { params });
+    },
+    /**
+     * Get suit type sales distribution
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>}
+     */
+    async getSuitTypeSales(params = {}) {
+      return await axios.get('/analytics/suit-type-sales', { params });
+    },
+    /**
+     * Get replica conversion metrics
+     * @param {Object} params - Query parameters
+     * @returns {Promise<Object>}
+     */
+    async getReplicaConversion(params = {}) {
+      return await axios.get('/analytics/replica-conversion', { params });
     }
   },
 

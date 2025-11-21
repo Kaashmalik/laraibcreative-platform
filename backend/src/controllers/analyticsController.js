@@ -462,6 +462,184 @@ exports.getRealtimeStats = async (req, res) => {
 };
 
 /**
+ * Get suit type sales distribution (for pie chart)
+ * @route GET /api/analytics/suit-type-sales
+ * @access Admin
+ */
+exports.getSuitTypeSales = async (req, res) => {
+  try {
+    const { period = 'last30days' } = req.query;
+    const dateRange = getDateRangeFromPeriod(period);
+
+    const suitTypeSales = await Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: dateRange.startDate,
+            $lte: dateRange.endDate
+          },
+          'payment.status': 'verified',
+          status: { $ne: 'cancelled' }
+        }
+      },
+      { $unwind: '$items' },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.product',
+          foreignField: '_id',
+          as: 'productDetails'
+        }
+      },
+      { $unwind: '$productDetails' },
+      {
+        $group: {
+          _id: '$productDetails.type',
+          revenue: {
+            $sum: { $multiply: ['$items.price', '$items.quantity'] }
+          },
+          orders: { $sum: 1 },
+          quantity: { $sum: '$items.quantity' }
+        }
+      },
+      { $sort: { revenue: -1 } }
+    ]);
+
+    const totalRevenue = suitTypeSales.reduce((sum, item) => sum + item.revenue, 0);
+    const totalOrders = suitTypeSales.reduce((sum, item) => sum + item.orders, 0);
+
+    const formattedData = suitTypeSales.map(item => ({
+      suitType: item._id || 'ready-made',
+      label: item._id === 'karhai' ? 'Hand-Made Karhai' : 
+             item._id === 'replica' ? 'Brand Replicas' : 
+             'Ready-Made',
+      revenue: Math.round(item.revenue),
+      orders: item.orders,
+      quantity: item.quantity,
+      percentage: totalRevenue > 0 ? ((item.revenue / totalRevenue) * 100).toFixed(2) : 0
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        distribution: formattedData,
+        totalRevenue: Math.round(totalRevenue),
+        totalOrders,
+        period
+      }
+    });
+  } catch (error) {
+    console.error('Error in getSuitTypeSales:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch suit type sales',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get replica conversion metrics
+ * @route GET /api/analytics/replica-conversion
+ * @access Admin
+ */
+exports.getReplicaConversion = async (req, res) => {
+  try {
+    const { period = 'last30days' } = req.query;
+    const dateRange = getDateRangeFromPeriod(period);
+
+    // Get replica product views and orders
+    const [replicaViews, replicaOrders, totalReplicaProducts] = await Promise.all([
+      Product.aggregate([
+        {
+          $match: {
+            type: 'replica',
+            updatedAt: {
+              $gte: dateRange.startDate,
+              $lte: dateRange.endDate
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalViews: { $sum: '$views' }
+          }
+        }
+      ]),
+      Order.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: dateRange.startDate,
+              $lte: dateRange.endDate
+            },
+            'payment.status': 'verified',
+            status: { $ne: 'cancelled' }
+          }
+        },
+        { $unwind: '$items' },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.product',
+            foreignField: '_id',
+            as: 'productDetails'
+          }
+        },
+        { $unwind: '$productDetails' },
+        {
+          $match: {
+            'productDetails.type': 'replica'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalRevenue: {
+              $sum: { $multiply: ['$items.price', '$items.quantity'] }
+            },
+            totalQuantity: { $sum: '$items.quantity' }
+          }
+        }
+      ]),
+      Product.countDocuments({ type: 'replica' })
+    ]);
+
+    const views = replicaViews[0]?.totalViews || 0;
+    const orders = replicaOrders[0]?.totalOrders || 0;
+    const revenue = replicaOrders[0]?.totalRevenue || 0;
+    const quantity = replicaOrders[0]?.totalQuantity || 0;
+
+    // Calculate conversion rate
+    const conversionRate = views > 0 ? ((orders / views) * 100).toFixed(2) : 0;
+    const averageOrderValue = orders > 0 ? (revenue / orders).toFixed(2) : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        views,
+        orders,
+        revenue: Math.round(revenue),
+        quantity,
+        conversionRate: parseFloat(conversionRate),
+        averageOrderValue: parseFloat(averageOrderValue),
+        totalReplicaProducts,
+        period
+      }
+    });
+  } catch (error) {
+    console.error('Error in getReplicaConversion:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch replica conversion metrics',
+      error: error.message
+    });
+  }
+};
+
+/**
  * Get inventory alerts
  * @route GET /api/analytics/inventory-alerts
  * @access Admin

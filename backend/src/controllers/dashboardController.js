@@ -107,14 +107,16 @@ exports.getDashboard = async (req, res) => {
       orderDistribution,
       popularProducts,
       recentOrders,
-      lowStockAlerts
+      lowStockAlerts,
+      suitTypeSales
     ] = await Promise.all([
       getDashboardStats(dateRange),
       getRevenueTrends(dateRange),
       getOrderDistribution(dateRange),
       getPopularProducts(dateRange),
       getRecentOrders(10),
-      getLowStockAlerts()
+      getLowStockAlerts(),
+      getSuitTypeSales(dateRange)
     ]);
 
     res.status(200).json({
@@ -126,6 +128,7 @@ exports.getDashboard = async (req, res) => {
         popularProducts,
         recentOrders,
         lowStockAlerts,
+        suitTypeSales,
         dateRange: {
           startDate: dateRange.startDate.toISOString(),
           endDate: dateRange.endDate.toISOString(),
@@ -570,6 +573,57 @@ async function getLowStockAlerts(limit = 20) {
     stock: product.inventory?.stock || 0,
     category: product.category?.name || product.category,
     image: product.images?.[0]
+  }));
+}
+
+/**
+ * Get suit type sales distribution
+ */
+async function getSuitTypeSales(dateRange) {
+  const { startDate, endDate } = dateRange;
+  
+  const suitTypeSales = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate, $lte: endDate },
+        'payment.status': 'verified',
+        status: { $ne: 'cancelled' }
+      }
+    },
+    { $unwind: '$items' },
+    {
+      $lookup: {
+        from: 'products',
+        localField: 'items.product',
+        foreignField: '_id',
+        as: 'productDetails'
+      }
+    },
+    { $unwind: '$productDetails' },
+    {
+      $group: {
+        _id: '$productDetails.type',
+        revenue: {
+          $sum: { $multiply: ['$items.price', '$items.quantity'] }
+        },
+        orders: { $sum: 1 },
+        quantity: { $sum: '$items.quantity' }
+      }
+    },
+    { $sort: { revenue: -1 } }
+  ]);
+
+  const totalRevenue = suitTypeSales.reduce((sum, item) => sum + item.revenue, 0);
+
+  return suitTypeSales.map(item => ({
+    suitType: item._id || 'ready-made',
+    label: item._id === 'karhai' ? 'Hand-Made Karhai' : 
+           item._id === 'replica' ? 'Brand Replicas' : 
+           'Ready-Made',
+    revenue: Math.round(item.revenue),
+    orders: item.orders,
+    quantity: item.quantity,
+    percentage: totalRevenue > 0 ? parseFloat(((item.revenue / totalRevenue) * 100).toFixed(2)) : 0
   }));
 }
 

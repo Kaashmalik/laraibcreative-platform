@@ -10,7 +10,9 @@ const {
   getOrderDistribution,
   getTopProducts,
   getInventoryAlerts,
-  exportAnalytics
+  exportAnalytics,
+  getSuitTypeSales,
+  getReplicaConversion
 } = require('../controllers/analyticsController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 
@@ -22,5 +24,12 @@ router.get('/sales', getSalesReport);
 router.get('/customers', getCustomerReport);
 router.get('/products', getProductReport);
 router.get('/funnel', getConversionFunnel);
+router.get('/revenue-trends', getRevenueTrends);
+router.get('/order-distribution', getOrderDistribution);
+router.get('/top-products', getTopProducts);
+router.get('/inventory-alerts', getInventoryAlerts);
+router.get('/suit-type-sales', getSuitTypeSales);
+router.get('/replica-conversion', getReplicaConversion);
+router.get('/export', exportAnalytics);
 
 module.exports = router;

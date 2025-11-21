@@ -70,6 +70,30 @@ const PopularProductsChart = dynamic(
   }
 );
 
+const SuitTypeSalesChart = dynamic(
+  () => import('./components/SuitTypeSalesChart'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="SuitTypeSalesChart">
+        <ChartLoading height={350} />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false,
+  }
+);
+
+const SEOReports = dynamic(
+  () => import('./components/SEOReports'),
+  {
+    loading: () => (
+      <DynamicErrorBoundary componentName="SEOReports">
+        <ChartLoading height={400} />
+      </DynamicErrorBoundary>
+    ),
+    ssr: false,
+  }
+);
+
 export default function AdminDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('month');
   const [customStartDate, setCustomStartDate] = useState<string | undefined>();
@@ -238,6 +262,17 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Suit Type Sales Chart */}
+      <div className="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sales by Suit Type</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Karhai, Replica & Ready-Made distribution</p>
+          </div>
+        </div>
+        <SuitTypeSalesChart data={dashboardData.suitTypeSales} />
+      </div>
+
       {/* Popular Products Chart */}
       <div className="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
@@ -251,6 +286,11 @@ export default function AdminDashboardPage() {
         ) : (
           <ChartLoading height={400} />
         )}
+      </div>
+
+      {/* SEO Reports */}
+      <div className="p-6 bg-white border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700">
+        <SEOReports />
       </div>
 
       {/* Recent Orders and Low Stock Alerts */}
