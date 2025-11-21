@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useRouter, usePathname } from 'next/navigation';
-import useAuth from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import LoadingScreen from './LoadingScreen';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
