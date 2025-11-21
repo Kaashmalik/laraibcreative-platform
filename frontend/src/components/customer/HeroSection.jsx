@@ -90,7 +90,7 @@ export default function HeroSection() {
               className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 font-light max-w-xl"
             >
               We turn your thoughts & emotions into reality and happiness through custom stitched designer suits
-            </p>
+            </motion.p>
 
             {/* Feature Points */}
             <motion.div 

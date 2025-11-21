@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Head from 'next/head';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import LoadingScreen from '@/components/shared/LoadingScreen';
-import { useAuth } from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
 
 // Disable static generation for all admin pages
