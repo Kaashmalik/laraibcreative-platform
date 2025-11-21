@@ -22,6 +22,9 @@ export interface ProductFilters {
   // Availability status
   availability: string[];
   
+  // Suit type (NEW: ready-made, replica, karhai)
+  suitType: string[];
+  
   // Sort option
   sortBy?: string;
   

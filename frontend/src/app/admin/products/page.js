@@ -39,6 +39,7 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedSuitType, setSelectedSuitType] = useState('all'); // NEW: Suit type filter
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
@@ -73,6 +74,7 @@ export default function AdminProductsPage() {
         search: debouncedSearch,
         category: selectedCategory !== 'all' ? selectedCategory : '',
         status: selectedStatus !== 'all' ? selectedStatus : '',
+        type: selectedSuitType !== 'all' ? selectedSuitType : '', // NEW: Suit type filter
         sortBy,
         sortOrder
       };
@@ -109,7 +111,7 @@ export default function AdminProductsPage() {
   // Fetch products when dependencies change
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, debouncedSearch, selectedCategory, selectedStatus, sortBy, sortOrder]);
+  }, [currentPage, debouncedSearch, selectedCategory, selectedStatus, selectedSuitType, sortBy, sortOrder]);
   
   // Fetch categories on mount
   useEffect(() => {
@@ -263,6 +265,7 @@ export default function AdminProductsPage() {
     setSearchTerm('');
     setSelectedCategory('all');
     setSelectedStatus('all');
+    setSelectedSuitType('all');
     setCurrentPage(1);
   };
   
@@ -331,6 +334,18 @@ export default function AdminProductsPage() {
             <option value="in-stock">In Stock</option>
             <option value="custom-only">Custom Only</option>
             <option value="out-of-stock">Out of Stock</option>
+          </Select>
+
+          {/* Suit Type Filter (NEW) */}
+          <Select
+            value={selectedSuitType}
+            onChange={(e) => setSelectedSuitType(e.target.value)}
+            className="w-full lg:w-48"
+          >
+            <option value="all">All Suit Types</option>
+            <option value="ready-made">Ready-Made</option>
+            <option value="replica">Brand Replicas</option>
+            <option value="karhai">Hand-Made Karhai</option>
           </Select>
           
           {/* Filter Button */}

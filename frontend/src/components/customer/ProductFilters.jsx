@@ -31,16 +31,25 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
     occasion: propFilters?.occasion || [],
     color: propFilters?.color || [],
     availability: propFilters?.availability || '',
+    suitType: propFilters?.suitType || [], // NEW: Suit type filter
   };
 
   // Expanded sections state
   const [expanded, setExpanded] = useState({
+    suitType: true, // NEW: Suit type section
     fabric: true,
     price: true,
     occasion: true,
     color: true,
     availability: true,
   });
+
+  // Suit type options (NEW)
+  const suitTypeOptions = [
+    { value: 'ready-made', label: 'Ready-Made Suits', icon: '👗', count: 124 },
+    { value: 'replica', label: 'Brand Replicas', icon: '✨', count: 89 },
+    { value: 'karhai', label: 'Hand-Made Karhai', icon: '🧵', count: 67 },
+  ];
 
   // Filter options
   const fabricOptions = [
@@ -131,6 +140,7 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
   const clearAllFilters = () => {
     const clearedFilters = {
       ...filters,
+      suitType: [],
       fabric: [],
       minPrice: 0,
       maxPrice: 50000,
@@ -156,6 +166,7 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
    */
   const hasActiveFilters = () => {
     return (
+      (Array.isArray(filters.suitType) && filters.suitType.length > 0) ||
       (Array.isArray(filters.fabric) && filters.fabric.length > 0) ||
       filters.minPrice > 0 ||
       filters.maxPrice < 50000 ||
@@ -170,6 +181,7 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
    */
   const getActiveFiltersCount = () => {
     let count = 0;
+    if (Array.isArray(filters.suitType)) count += filters.suitType.length;
     if (Array.isArray(filters.fabric)) count += filters.fabric.length;
     if (Array.isArray(filters.occasion)) count += filters.occasion.length;
     if (Array.isArray(filters.color)) count += filters.color.length;
@@ -202,6 +214,34 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
 
       {/* Filters */}
       <div className="divide-y divide-gray-200">
+        {/* Suit Type (NEW) */}
+        <FilterSection
+          title="Suit Type"
+          isExpanded={expanded.suitType}
+          onToggle={() => toggleSection('suitType')}
+        >
+          <div className="space-y-2">
+            {suitTypeOptions.map((option) => (
+              <label
+                key={option.value}
+                className="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={Array.isArray(filters.suitType) && filters.suitType.includes(option.value)}
+                    onChange={() => handleCheckboxChange('suitType', option.value)}
+                    className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-2 focus:ring-pink-500"
+                  />
+                  <span className="text-lg" aria-hidden="true">{option.icon}</span>
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </div>
+                <span className="text-xs text-gray-500">({option.count})</span>
+              </label>
+            ))}
+          </div>
+        </FilterSection>
+
         {/* Fabric Type */}
         <FilterSection
           title="Fabric Type"

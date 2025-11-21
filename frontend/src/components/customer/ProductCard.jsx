@@ -21,8 +21,9 @@ import { useUIStore } from '@/store/uiStore';
  * 
  * @param {Object} product - Product data object
  * @param {string} viewMode - 'grid' or 'list'
+ * @param {Function} onQuickView - Callback for quick view button
  */
-export default function ProductCard({ product, viewMode = 'grid' }) {
+export default function ProductCard({ product, viewMode = 'grid', onQuickView }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const openQuickView = useUIStore((state) => state.openQuickView);
@@ -60,7 +61,11 @@ export default function ProductCard({ product, viewMode = 'grid' }) {
    */
   const handleQuickView = (e) => {
     e.preventDefault();
-    openQuickView(product._id);
+    if (onQuickView) {
+      onQuickView(product);
+    } else {
+      openQuickView(product._id);
+    }
   };
 
   /**

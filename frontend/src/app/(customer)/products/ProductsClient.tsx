@@ -96,6 +96,11 @@ function ProductsContent() {
         params.availability = activeFilters.availability.join(',');
       }
 
+      // Add suit type filter (NEW)
+      if (activeFilters.suitType && activeFilters.suitType.length > 0) {
+        params.type = activeFilters.suitType.join(',');
+      }
+
       const response = await api.products.getAll(params);
       
       let products: any[] = [];

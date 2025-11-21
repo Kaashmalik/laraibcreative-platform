@@ -37,7 +37,8 @@ exports.getAllProducts = async (req, res) => {
       occasion = '',
       color = '',
       availability = '',
-      featured = ''
+      featured = '',
+      type = '' // NEW: Suit type filter (ready-made, replica, karhai)
     } = req.query;
 
     // Build filter object
@@ -92,6 +93,17 @@ exports.getAllProducts = async (req, res) => {
     // Featured products filter
     if (featured === 'true') {
       filter.featured = true;
+    }
+
+    // Suit type filter (NEW)
+    if (type) {
+      // Support comma-separated values for multiple types
+      const types = type.split(',').map(t => t.trim());
+      if (types.length === 1) {
+        filter.type = types[0];
+      } else {
+        filter.type = { $in: types };
+      }
     }
 
     // Calculate pagination
@@ -516,10 +528,10 @@ exports.incrementViews = async (req, res) => {
 exports.getRelatedProducts = async (req, res) => {
   try {
     const { id } = req.params;
-    const { limit = 6 } = req.query;
+    const { limit = 6, type, category } = req.query;
 
     // Get current product
-    const product = await Product.findById(id).select('category subcategory occasion');
+    const product = await Product.findById(id).select('category subcategory occasion type');
 
     if (!product) {
       return res.status(404).json({
@@ -531,12 +543,19 @@ exports.getRelatedProducts = async (req, res) => {
     // Build filter for related products
     const filter = {
       _id: { $ne: id }, // Exclude current product
+      isActive: true,
       $or: [
-        { category: product.category },
+        { category: category || product.category },
         { subcategory: product.subcategory },
-        { occasion: product.occasion }
+        { occasion: product.occasion },
+        { type: type || product.type } // NEW: Include type matching
       ]
     };
+
+    // Add type filter if specified
+    if (type) {
+      filter.type = type;
+    }
 
     // Find related products
     const relatedProducts = await Product.find(filter)
@@ -548,7 +567,8 @@ exports.getRelatedProducts = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: relatedProducts
+      products: relatedProducts,
+      data: relatedProducts // For backward compatibility
     });
 
   } catch (error) {

@@ -227,8 +227,11 @@ const api = {
     async getBestSellers(limit = 8) {
       return await axios.get('/products/best-sellers', { params: { limit } });
     },
-    async getRelated(id, limit = 4) {
-      return await axios.get(`/products/${id}/related`, { params: { limit } });
+    async getRelated(id, params = {}) {
+      const { limit = 4, type, category } = params;
+      return await axios.get(`/products/${id}/related`, { 
+        params: { limit, type, category } 
+      });
     },
     async create(productData) {
       return await axios.post('/products', productData);
