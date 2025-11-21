@@ -14,6 +14,8 @@ export default function BlogClient() {
 
   const categories = [
     'All Posts',
+    'Karhai Trends',
+    'Replica Guides',
     'Stitching Tips',
     'Fabric Guide',
     'Styling Ideas',

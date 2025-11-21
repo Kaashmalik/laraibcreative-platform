@@ -569,7 +569,20 @@ export const SEO_DEFAULTS = {
   titleTemplate: '%s | LaraibCreative',
   defaultTitle: 'LaraibCreative - Custom Stitching & Premium Pakistani Fashion',
   description: 'Premium custom stitching and tailoring services in Pakistan. Expert craftsmanship for bridal wear, party wear, and casual outfits. Shop unstitched and ready-to-wear collections online.',
-  keywords: 'Pakistani fashion, custom stitching, online clothing Pakistan, designer wear, formal dresses, casual wear, Lahore fashion, bridal wear Pakistan',
+  keywords: 'Pakistani fashion, custom stitching, online clothing Pakistan, designer wear, formal dresses, casual wear, Lahore fashion, bridal wear Pakistan, karhai trends, replica guides, designer replicas, custom suits Pakistan',
+  // Target keywords for SEO optimization
+  targetKeywords: [
+    'custom stitching Pakistan',
+    'designer replica suits',
+    'karhai trends 2025',
+    'replica guides',
+    'custom ladies suits',
+    'Pakistani fashion online',
+    'bridal wear Pakistan',
+    'party wear suits',
+    'designer replicas',
+    'custom tailoring Lahore'
+  ],
   ogImage: `${SITE_URL}/images/og-default.jpg`,
   openGraph: {
     type: 'website',

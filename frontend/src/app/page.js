@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import HomePageClient from './(customer)/HomePageClient';
 import api from '@/lib/api';
 import { SITE_URL } from '@/lib/constants';
+import { generateOrganizationStructuredData } from '@/lib/seo-config';
 
 /**
  * ISR Configuration
@@ -72,24 +73,47 @@ export default async function HomePage() {
     // Fetch testimonials if available
     // const testimonials = await api.testimonials.getAll().catch(() => []);
 
+    // Generate Organization structured data for SEO
+    const organizationSchema = generateOrganizationStructuredData();
+
     return (
-      <HomePageClient
-        featuredProducts={featuredProducts}
-        categories={categories}
-        testimonials={[]} // Add when testimonials API is available
-      />
+      <>
+        {/* JSON-LD Organization Schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <HomePageClient
+          featuredProducts={featuredProducts}
+          categories={categories}
+          testimonials={[]} // Add when testimonials API is available
+        />
+      </>
     );
   } catch (error) {
     console.error('Error fetching homepage data:', error);
     
     // Return homepage with empty data rather than error
     // This ensures the page still loads even if API fails
+    const organizationSchema = generateOrganizationStructuredData();
+    
     return (
-      <HomePageClient
-        featuredProducts={[]}
-        categories={[]}
-        testimonials={[]}
-      />
+      <>
+        {/* JSON-LD Organization Schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <HomePageClient
+          featuredProducts={[]}
+          categories={[]}
+          testimonials={[]}
+        />
+      </>
     );
   }
 }

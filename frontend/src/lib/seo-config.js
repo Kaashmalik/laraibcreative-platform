@@ -7,6 +7,23 @@
 import { SITE_URL, SEO_DEFAULTS, SITE_NAME } from './constants';
 
 /**
+ * Target keywords for SEO optimization
+ * Used across blog posts and pages
+ */
+export const TARGET_KEYWORDS = SEO_DEFAULTS.targetKeywords || [
+  'custom stitching Pakistan',
+  'designer replica suits',
+  'karhai trends 2025',
+  'replica guides',
+  'custom ladies suits',
+  'Pakistani fashion online',
+  'bridal wear Pakistan',
+  'party wear suits',
+  'designer replicas',
+  'custom tailoring Lahore'
+];
+
+/**
  * Generate complete page metadata for Next.js
  * @param {Object} options - Page metadata options
  * @returns {Object} - Complete metadata object for Next.js
@@ -194,6 +211,8 @@ export function generateBlogMetadata(post) {
   const postUrl = `${SITE_URL}/blog/${post.slug}`;
   const keywords = [
     ...(post.tags || []),
+    ...(post.seo?.keywords || []),
+    ...TARGET_KEYWORDS.slice(0, 3), // Include top 3 target keywords
     'fashion blog',
     'Pakistan fashion',
     'clothing guide',
@@ -215,33 +234,37 @@ export function generateBlogMetadata(post) {
     tags: post.tags || []
   });
 
-  // Add BlogPosting structured data
+  // Add Article structured data (using Article instead of BlogPosting for better SEO)
   const structuredData = {
     '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.excerpt || '',
-    image: post.featuredImage,
+    '@type': 'Article',
+    headline: post.seo?.metaTitle || post.title,
+    description: post.seo?.metaDescription || post.excerpt || '',
+    image: post.featuredImage ? [post.featuredImage] : [],
     author: {
       '@type': 'Person',
-      name: post.author || SITE_NAME
+      name: post.authorName || post.author?.fullName || SITE_NAME
     },
     publisher: {
       '@type': 'Organization',
       name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/images/logo.png`
+        url: `${SITE_URL}/images/logo.png`,
+        width: 512,
+        height: 512
       }
     },
-    datePublished: post.publishedAt,
-    dateModified: post.updatedAt || post.publishedAt,
+    datePublished: post.publishedAt || post.createdAt,
+    dateModified: post.updatedAt || post.publishedAt || post.createdAt,
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': postUrl
     },
     keywords: keywords.join(', '),
-    articleBody: post.content
+    articleBody: post.content,
+    articleSection: post.category,
+    wordCount: post.content ? post.content.split(/\s+/).length : 0
   };
 
   // Add word count and reading time

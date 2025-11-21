@@ -127,6 +127,8 @@ const blogSchema = new mongoose.Schema(
       required: [true, 'Category is required'],
       enum: {
         values: [
+          'Karhai Trends',
+          'Replica Guides',
           'Stitching Tips & Tricks',
           'Fabric Guide',
           'Styling Ideas',
