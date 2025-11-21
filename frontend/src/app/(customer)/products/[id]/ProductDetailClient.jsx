@@ -47,12 +47,17 @@ export default function ProductDetailClient({ params: serverParams }) {
         
         // Fetch related products
         if (productData) {
-          const related = await api.products.getRelated(productData._id || productData.id, {
-            type: productData.type,
-            category: productData.category,
-            limit: 8,
-          });
-          setRelatedProducts(related?.products || related || []);
+          try {
+            const related = await api.products.getRelated(productData._id || productData.id, {
+              type: productData.type,
+              category: productData.category?._id || productData.category,
+              limit: 8,
+            });
+            setRelatedProducts(related?.products || related?.data || related || []);
+          } catch (error) {
+            console.error('Error fetching related products:', error);
+            setRelatedProducts([]);
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -86,8 +91,18 @@ export default function ProductDetailClient({ params: serverParams }) {
     }
   };
 
-  const images = product?.images || [product?.primaryImage || product?.image].filter(Boolean);
-  const currentImage = images[currentImageIndex] || images[0];
+  // Safely handle images array
+  const images = product?.images?.length > 0 
+    ? product.images.map(img => typeof img === 'string' ? img : img?.url || img)
+    : (product?.primaryImage || product?.image ? [product.primaryImage || product.image] : []);
+  const currentImage = images[currentImageIndex] || images[0] || '/images/placeholder.png';
+  
+  // Ensure currentImageIndex is within bounds
+  useEffect(() => {
+    if (currentImageIndex >= images.length && images.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [images.length, currentImageIndex]);
   const basePrice = product?.pricing?.basePrice || product?.price || 0;
   const productType = product?.type || 'ready-made';
 

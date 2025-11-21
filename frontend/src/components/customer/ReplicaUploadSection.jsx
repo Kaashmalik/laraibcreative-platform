@@ -22,10 +22,13 @@ export default function ReplicaUploadSection({ onFilesChange, maxFiles = 5 }) {
       size: file.size,
     }));
     
-    setUploadedFiles((prev) => [...prev, ...fileObjects]);
-    if (onFilesChange) {
-      onFilesChange([...uploadedFiles, ...fileObjects]);
-    }
+    setUploadedFiles((prev) => {
+      const updated = [...prev, ...fileObjects];
+      if (onFilesChange) {
+        onFilesChange(updated);
+      }
+      return updated;
+    });
   };
 
   const handleDrop = (e) => {
@@ -45,11 +48,17 @@ export default function ReplicaUploadSection({ onFilesChange, maxFiles = 5 }) {
   };
 
   const handleRemoveFile = (index) => {
-    const newFiles = uploadedFiles.filter((_, i) => i !== index);
-    setUploadedFiles(newFiles);
-    if (onFilesChange) {
-      onFilesChange(newFiles);
-    }
+    setUploadedFiles((prev) => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      // Clean up object URL to prevent memory leaks
+      if (prev[index]?.preview) {
+        URL.revokeObjectURL(prev[index].preview);
+      }
+      if (onFilesChange) {
+        onFilesChange(newFiles);
+      }
+      return newFiles;
+    });
   };
 
   const handleClick = () => {

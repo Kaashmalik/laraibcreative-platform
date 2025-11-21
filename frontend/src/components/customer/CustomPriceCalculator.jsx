@@ -89,7 +89,8 @@ export default function CustomPriceCalculator({
         quantities,
       });
     }
-  }, [basePrice, additionalCost, totalPrice, customizations, quantities, onPriceChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [basePrice, additionalCost, totalPrice, customizations, quantities]);
 
   return (
     <motion.div

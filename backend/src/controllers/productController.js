@@ -80,9 +80,31 @@ exports.getAllProducts = async (req, res) => {
       filter.occasion = { $regex: occasion, $options: 'i' };
     }
 
-    // Color filter
+    // Color filter - support both colors and availableColors fields
     if (color) {
-      filter.colors = { $regex: color, $options: 'i' };
+      const colorArray = color.split(',').map(c => c.trim());
+      const colorRegex = colorArray.map(c => new RegExp(c, 'i'));
+      const colorConditions = [
+        { colors: { $in: colorRegex } },
+        { 'availableColors.name': { $in: colorRegex } }
+      ];
+      
+      // If there's already an $or condition (from search), combine with $and
+      if (filter.$or && Array.isArray(filter.$or)) {
+        filter.$and = [
+          { $or: filter.$or },
+          { $or: colorConditions }
+        ];
+        delete filter.$or;
+      } else {
+        // If no existing $or, create new one
+        if (!filter.$or) {
+          filter.$or = [];
+        }
+        filter.$or = Array.isArray(filter.$or) 
+          ? [...filter.$or, ...colorConditions]
+          : colorConditions;
+      }
     }
 
     // Availability filter

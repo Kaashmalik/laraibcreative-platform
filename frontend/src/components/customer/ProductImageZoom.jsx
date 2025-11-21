@@ -127,7 +127,7 @@ export default function ProductImageZoom({ images, currentIndex = 0, onClose }) 
             >
               <Image
                 src={currentImage?.url || currentImage || '/images/placeholder.png'}
-                alt={`Product image ${activeIndex + 1}`}
+                alt={currentImage?.altText || `Product image ${activeIndex + 1} - High resolution view`}
                 fill
                 className="object-contain"
                 quality={100}
@@ -187,7 +187,7 @@ export default function ProductImageZoom({ images, currentIndex = 0, onClose }) 
                 >
                   <Image
                     src={img?.url || img || '/images/placeholder.png'}
-                    alt={`Thumbnail ${idx + 1}`}
+                    alt={img?.altText || `Product thumbnail ${idx + 1} - Click to view full image`}
                     fill
                     className="object-cover"
                     sizes="80px"
