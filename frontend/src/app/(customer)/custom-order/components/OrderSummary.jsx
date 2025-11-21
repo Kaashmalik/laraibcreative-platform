@@ -1,4 +1,7 @@
-import { FileText, Zap, User, Mail, Phone, MessageSquare, Info } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Zap, User, Mail, Phone, MessageSquare, Info, ShoppingCart } from 'lucide-react';
+import { useCart } from '@/hooks/useCart';
+import toast from 'react-hot-toast';
 
 /**
  * Order Summary Component - Step 5
@@ -19,7 +22,9 @@ import { FileText, Zap, User, Mail, Phone, MessageSquare, Info } from 'lucide-re
  * @param {object} errors - Validation errors
  */
 
-export default function OrderSummary({ formData, onChange, estimatedPrice, errors }) {
+export default function OrderSummary({ formData, onChange, estimatedPrice, priceBreakdown, errors, onAddToCart }) {
+  const { addItem } = useCart();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   /**
    * Format measurement for display
    */
@@ -392,6 +397,54 @@ export default function OrderSummary({ formData, onChange, estimatedPrice, error
             </a>
           </span>
         </label>
+      </div>
+
+      {/* Add to Cart Button */}
+      <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+        <button
+          onClick={async () => {
+            setIsAddingToCart(true);
+            try {
+              // Create a custom product object for cart
+              const customProduct = {
+                _id: `custom-${Date.now()}`,
+                name: `${formData.suitType || 'Custom'} Order - ${formData.serviceType === 'fully-custom' ? 'Fully Custom' : 'Brand Article'}`,
+                price: estimatedPrice,
+                pricing: { basePrice: estimatedPrice },
+                image: formData.referenceImages?.[0]?.preview || '/images/placeholder.jpg',
+                isCustom: true,
+                customizations: {
+                  suitType: formData.suitType,
+                  serviceType: formData.serviceType,
+                  karhaiPattern: formData.karhaiPattern,
+                  measurements: formData.measurements,
+                  specialInstructions: formData.specialInstructions,
+                }
+              };
+              
+              await addItem(customProduct, 1, {
+                measurements: formData.measurements,
+                suitType: formData.suitType,
+                karhaiPattern: formData.karhaiPattern,
+              });
+              
+              toast.success('Order added to cart!');
+              onAddToCart?.();
+            } catch (error: any) {
+              toast.error(error.message || 'Failed to add to cart');
+            } finally {
+              setIsAddingToCart(false);
+            }
+          }}
+          disabled={isAddingToCart}
+          className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          {isAddingToCart ? 'Adding to Cart...' : 'Add to Cart & Continue Shopping'}
+        </button>
+        <p className="text-xs text-gray-600 text-center mt-2">
+          You can review and checkout from your cart
+        </p>
       </div>
     </div>
   );

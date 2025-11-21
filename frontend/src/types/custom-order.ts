@@ -162,12 +162,19 @@ export interface PriceBreakdown {
  * Order Submission Data
  */
 export interface OrderSubmissionData {
+  suitType?: SuitType;
   serviceType: ServiceType;
   designIdea?: string;
   referenceImages: string[]; // URLs after upload
   fabricSource: FabricSource;
   selectedFabric?: FabricOption;
   fabricDetails?: string;
+  karhaiPattern?: {
+    embroideryType: 'zardozi' | 'aari' | 'sequins' | 'beads' | 'thread' | 'mixed' | 'none';
+    complexity: 'simple' | 'moderate' | 'intricate' | 'heavy';
+    coverage: 'minimal' | 'partial' | 'full' | 'heavy';
+    description?: string;
+  };
   useStandardSize: boolean;
   standardSize?: StandardSize;
   measurements: Measurements;

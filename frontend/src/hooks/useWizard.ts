@@ -15,12 +15,14 @@ import { saveDraft, loadDraft, clearDraft } from '@/lib/utils/draft-manager';
  * Initial form data
  */
 const initialFormData: CustomOrderFormData = {
+  suitType: '',
   serviceType: '',
   designIdea: '',
   referenceImages: [],
   fabricSource: '',
   selectedFabric: null,
   fabricDetails: '',
+  karhaiPattern: undefined,
   useStandardSize: false,
   standardSize: '',
   measurements: {
@@ -28,6 +30,7 @@ const initialFormData: CustomOrderFormData = {
   },
   saveMeasurements: false,
   measurementLabel: '',
+  selectedMeasurementProfile: undefined,
   specialInstructions: '',
   rushOrder: false,
   customerInfo: {
@@ -36,6 +39,7 @@ const initialFormData: CustomOrderFormData = {
     phone: '',
     whatsapp: '',
   },
+  addToCart: false,
 };
 
 /**
@@ -145,25 +149,59 @@ export function useWizard(totalSteps: number = 5) {
 
     switch (currentStep) {
       case 1:
+        // Step 1: Suit Type Selection
+        try {
+          const { suitTypeSchema } = require('@/lib/validations/custom-order-schemas');
+          suitTypeSchema.parse({ suitType: formData.suitType });
+          validation = { valid: true, errors: {} };
+        } catch (error: any) {
+          const errors: Record<string, string> = {};
+          if (error.errors) {
+            error.errors.forEach((err: any) => {
+              errors[err.path[0]] = err.message;
+            });
+          }
+          validation = { valid: false, errors };
+        }
+        break;
+      case 2:
         validation = validateStep.step1({
           serviceType: formData.serviceType,
           designIdea: formData.designIdea,
         });
         break;
-      case 2:
+      case 3:
         validation = validateStep.step2({
           referenceImages: formData.referenceImages,
           serviceType: formData.serviceType,
         });
         break;
-      case 3:
-        validation = validateStep.step3({
-          fabricSource: formData.fabricSource,
-          selectedFabric: formData.selectedFabric,
-          fabricDetails: formData.fabricDetails,
-        });
-        break;
       case 4:
+        // Step 4: Fabric or Karhai Pattern
+        if (formData.suitType === 'karhai') {
+          // Validate karhai pattern
+          try {
+            const { karhaiPatternSchema } = require('@/lib/validations/custom-order-schemas');
+            karhaiPatternSchema.parse(formData.karhaiPattern || {});
+            validation = { valid: true, errors: {} };
+          } catch (error: any) {
+            const errors: Record<string, string> = {};
+            if (error.errors) {
+              error.errors.forEach((err: any) => {
+                errors[`karhaiPattern.${err.path[0]}`] = err.message;
+              });
+            }
+            validation = { valid: false, errors };
+          }
+        } else {
+          validation = validateStep.step3({
+            fabricSource: formData.fabricSource,
+            selectedFabric: formData.selectedFabric,
+            fabricDetails: formData.fabricDetails,
+          });
+        }
+        break;
+      case 5:
         validation = validateStep.step4({
           useStandardSize: formData.useStandardSize,
           standardSize: formData.standardSize,
@@ -172,7 +210,7 @@ export function useWizard(totalSteps: number = 5) {
           measurementLabel: formData.measurementLabel,
         });
         break;
-      case 5:
+      case 6:
         validation = validateStep.step5({
           specialInstructions: formData.specialInstructions,
           rushOrder: formData.rushOrder,

@@ -76,5 +76,12 @@ export interface PaymentMethodOption {
   description: string;
   instructions?: string[];
   note?: string;
+  accountDetails?: {
+    bankName?: string;
+    accountNumber: string;
+    accountName: string;
+    accountType?: string;
+    iban?: string;
+  };
 }
 

@@ -40,7 +40,7 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
     accountDetails: {
       bankName: 'Allied Bank Limited',
       accountNumber: 'XXXX-XXXX-XXXX-XXXX',
-      accountTitle: 'LaraibCreative',
+      accountName: 'LaraibCreative',
       iban: 'PK00ALLL0000000000000000',
     },
   },
@@ -408,9 +408,9 @@ export default function PaymentMethod({
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-blue-200">
-                    <span className="text-sm font-medium text-blue-800">Account Title:</span>
+                    <span className="text-sm font-medium text-blue-800">Account Name:</span>
                     <span className="text-sm font-semibold text-blue-900">
-                      {selectedMethodData.accountDetails.accountTitle}
+                      {selectedMethodData.accountDetails.accountName}
                     </span>
                   </div>
                   {selectedMethodData.accountDetails.iban && (

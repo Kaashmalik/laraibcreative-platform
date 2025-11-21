@@ -31,7 +31,7 @@ const TAX_RATE = 0.05;
  * Calculate price breakdown for custom order
  */
 export function calculatePriceBreakdown(formData: CustomOrderFormData): PriceBreakdown {
-  let baseStitching = BASE_STITCHING_CHARGE;
+  const baseStitching = BASE_STITCHING_CHARGE;
   let fabricCost = 0;
   let rushOrderFee = 0;
   let complexDesignSurcharge = 0;

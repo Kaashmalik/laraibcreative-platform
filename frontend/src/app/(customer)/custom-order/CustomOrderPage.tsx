@@ -38,7 +38,17 @@ const ImageUpload = dynamic(() => import('./components/ImageUpload'), {
   ssr: false,
 });
 
+const SuitTypeSelection = dynamic(() => import('./components/SuitTypeSelection'), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
 const FabricSelection = dynamic(() => import('./components/FabricSelection'), {
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
+  ssr: false,
+});
+
+const KarhaiPatternSelection = dynamic(() => import('./components/KarhaiPatternSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
@@ -64,7 +74,7 @@ const SuccessConfirmation = dynamic(() => import('./components/SuccessConfirmati
   ssr: false,
 });
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6; // Added suit type selection as step 0
 
 function CustomOrderPage() {
   const router = useRouter();
@@ -139,12 +149,14 @@ function CustomOrderPage() {
 
       // Prepare order data
       const orderData: OrderSubmissionData = {
+        suitType: formData.suitType as 'ready-made' | 'replica' | 'karhai',
         serviceType: formData.serviceType as 'fully-custom' | 'brand-article',
         designIdea: formData.designIdea || undefined,
         referenceImages: imageUrls,
         fabricSource: formData.fabricSource as 'lc-provides' | 'customer-provides',
         selectedFabric: formData.selectedFabric || undefined,
         fabricDetails: formData.fabricDetails || undefined,
+        karhaiPattern: formData.karhaiPattern || undefined,
         useStandardSize: formData.useStandardSize,
         standardSize: formData.standardSize || undefined,
         measurements: formData.measurements,
@@ -230,6 +242,15 @@ function CustomOrderPage() {
     switch (currentStep) {
       case 1:
         return (
+          <SuitTypeSelection
+            suitType={formData.suitType}
+            onChange={(field: string, value: any) => updateFormData(field as any, value)}
+            errors={errors}
+          />
+        );
+
+      case 2:
+        return (
           <ServiceTypeSelection
             serviceType={formData.serviceType}
             designIdea={formData.designIdea}
@@ -240,15 +261,36 @@ function CustomOrderPage() {
 
       case 2:
         return (
-          <ImageUpload
-            images={formData.referenceImages}
-            onChange={(images: ReferenceImage[]) => updateFormData('referenceImages', images)}
+          <ServiceTypeSelection
             serviceType={formData.serviceType}
+            designIdea={formData.designIdea}
+            onChange={(field: string, value: any) => updateFormData(field as any, value)}
             errors={errors}
           />
         );
 
       case 3:
+        return (
+          <ImageUpload
+            images={formData.referenceImages}
+            onChange={(images: ReferenceImage[]) => updateFormData('referenceImages', images)}
+            serviceType={formData.serviceType}
+            suitType={formData.suitType}
+            errors={errors}
+          />
+        );
+
+      case 4:
+        // Show karhai pattern selection if suit type is karhai, otherwise fabric selection
+        if (formData.suitType === 'karhai') {
+          return (
+            <KarhaiPatternSelection
+              karhaiPattern={formData.karhaiPattern}
+              onChange={(field: string, value: any) => updateFormData(field as any, value)}
+              errors={errors}
+            />
+          );
+        }
         return (
           <FabricSelection
             fabricSource={formData.fabricSource}
@@ -259,7 +301,7 @@ function CustomOrderPage() {
           />
         );
 
-      case 4:
+      case 5:
         return (
           <MeasurementForm
             useStandardSize={formData.useStandardSize}
@@ -278,12 +320,35 @@ function CustomOrderPage() {
 
       case 5:
         return (
+          <MeasurementForm
+            useStandardSize={formData.useStandardSize}
+            standardSize={formData.standardSize}
+            measurements={formData.measurements}
+            saveMeasurements={formData.saveMeasurements}
+            measurementLabel={formData.measurementLabel}
+            selectedMeasurementProfile={formData.selectedMeasurementProfile}
+            onToggleStandardSize={(value: boolean) => updateFormData('useStandardSize', value)}
+            onStandardSizeChange={(value: string) => updateFormData('standardSize', value)}
+            onMeasurementChange={updateMeasurements}
+            onSaveMeasurementsChange={(value: boolean) => updateFormData('saveMeasurements', value)}
+            onLabelChange={(value: string) => updateFormData('measurementLabel', value)}
+            onProfileSelect={(profileId: string) => updateFormData('selectedMeasurementProfile', profileId)}
+            errors={errors}
+          />
+        );
+
+      case 6:
+        return (
           <OrderSummary
             formData={formData}
             onChange={(field: string, value: any) => updateFormData(field as any, value)}
             estimatedPrice={priceBreakdown?.total || 0}
             priceBreakdown={priceBreakdown}
             errors={errors}
+            onAddToCart={() => {
+              // Handle add to cart logic
+              toast.success('Order added to cart!');
+            }}
           />
         );
 
@@ -327,8 +392,10 @@ function CustomOrderPage() {
         <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         {/* Main Form Container */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
-          {renderStep()}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 mb-6 overflow-hidden">
+          <div className="min-h-[400px]">
+            {renderStep()}
+          </div>
         </div>
 
         {/* Navigation Buttons */}
@@ -337,20 +404,22 @@ function CustomOrderPage() {
             {currentStep > 1 && (
               <button
                 onClick={prevStep}
-                className="flex-1 sm:flex-none px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px]"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 flex items-center justify-center gap-2 min-h-[48px] text-sm sm:text-base"
               >
-                <ArrowLeft className="w-5 h-5" />
-                Back
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Back</span>
+                <span className="sm:hidden">←</span>
               </button>
             )}
 
             <button
               onClick={handleSaveDraft}
               disabled={isSavingDraft}
-              className="flex-1 sm:flex-none px-6 py-3 border-2 border-purple-300 text-purple-700 rounded-lg font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-3 border-2 border-purple-300 text-purple-700 rounded-lg font-medium hover:bg-purple-50 hover:border-purple-400 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] text-sm sm:text-base"
             >
-              <Save className="w-5 h-5" />
-              {isSavingDraft ? 'Saving...' : 'Save Draft'}
+              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{isSavingDraft ? 'Saving...' : 'Save Draft'}</span>
+              <span className="sm:hidden">{isSavingDraft ? 'Saving...' : 'Save'}</span>
             </button>
           </div>
 
@@ -358,26 +427,26 @@ function CustomOrderPage() {
             {currentStep < totalSteps ? (
               <button
                 onClick={nextStep}
-                className="w-full px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl min-h-[48px]"
+                className="w-full px-6 sm:px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl min-h-[48px] text-sm sm:text-base"
               >
-                Continue
-                <ArrowRight className="w-5 h-5" />
+                <span>Continue</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+                className="w-full px-6 sm:px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-lg font-medium hover:from-pink-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] text-sm sm:text-base"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Processing...
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    Submit Order
-                    <ArrowRight className="w-5 h-5" />
+                    <span>Submit Order</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </>
                 )}
               </button>

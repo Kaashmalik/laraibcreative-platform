@@ -13,26 +13,31 @@ import { Check } from 'lucide-react';
 const steps = [
   {
     number: 1,
+    title: 'Suit Type',
+    description: 'Choose suit type',
+  },
+  {
+    number: 2,
     title: 'Service Type',
     description: 'Choose your service',
   },
   {
-    number: 2,
+    number: 3,
     title: 'References',
     description: 'Upload images',
   },
   {
-    number: 3,
-    title: 'Fabric',
-    description: 'Select fabric',
+    number: 4,
+    title: 'Fabric/Pattern',
+    description: 'Select fabric or pattern',
   },
   {
-    number: 4,
+    number: 5,
     title: 'Measurements',
     description: 'Enter measurements',
   },
   {
-    number: 5,
+    number: 6,
     title: 'Review',
     description: 'Review & submit',
   },
@@ -170,10 +175,10 @@ export default function StepIndicator({ currentStep, totalSteps }) {
         {/* Current Step Info */}
         <div className="text-center">
           <p className="text-lg font-bold text-purple-700">
-            {steps[currentStep - 1].title}
+            {steps[currentStep - 1]?.title || 'Step'}
           </p>
           <p className="text-sm text-gray-600">
-            {steps[currentStep - 1].description}
+            {steps[currentStep - 1]?.description || ''}
           </p>
           <p className="text-xs text-gray-500 mt-2">
             Step {currentStep} of {totalSteps}

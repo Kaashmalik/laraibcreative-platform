@@ -249,7 +249,10 @@ export default function CheckoutPage() {
 
       // Add payment-specific fields
       if (validatedData.payment.receiptImage) {
-        paymentData.receiptImage = validatedData.payment.receiptImage;
+        // Ensure receipt image is properly formatted
+        paymentData.receiptImage = typeof validatedData.payment.receiptImage === 'string'
+          ? validatedData.payment.receiptImage
+          : validatedData.payment.receiptImage;
       }
       if (validatedData.payment.transactionId) {
         paymentData.transactionId = validatedData.payment.transactionId;
@@ -259,6 +262,12 @@ export default function CheckoutPage() {
       }
       if (validatedData.payment.method === 'cod') {
         paymentData.advanceAmount = validatedData.payment.advanceAmount || 0;
+        paymentData.remainingAmount = total - (validatedData.payment.advanceAmount || 0);
+      }
+      
+      // Add WhatsApp notification preference
+      if (formData.enableWhatsAppNotifications !== undefined) {
+        paymentData.enableWhatsAppNotifications = formData.enableWhatsAppNotifications;
       }
 
       // Prepare order payload

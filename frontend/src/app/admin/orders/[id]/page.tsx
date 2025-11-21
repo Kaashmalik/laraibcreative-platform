@@ -985,7 +985,14 @@ export default function AdminOrderDetailPage() {
                 <Clock className="w-5 h-5" />
                 Order Timeline
               </h3>
-              <OrderTimeline order={order} />
+              {order.statusHistory && order.statusHistory.length > 0 ? (
+                <OrderTimeline order={order} />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Clock className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm">No timeline events yet</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

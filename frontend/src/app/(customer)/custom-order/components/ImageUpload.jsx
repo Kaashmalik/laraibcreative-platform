@@ -22,7 +22,7 @@ const MIN_IMAGES = 2;
 const MAX_IMAGES = 6;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-export default function ImageUpload({ images, onChange, serviceType, errors }) {
+export default function ImageUpload({ images, onChange, serviceType, suitType, errors }) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef(null);
