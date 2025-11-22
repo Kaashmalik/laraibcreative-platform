@@ -2,31 +2,24 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
 import { ReactNode } from 'react'
 import './globals.css'
-import { AuthProvider } from '@/context/AuthContext'
-import { CartProvider } from '@/context/CartContext'
+import { TRPCProvider } from '@/providers/TRPCProvider'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
 import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
-import WhatsAppButton from '@/components/shared/WhatsAppButton'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
-// Font configurations with optimization
-// Preload critical fonts and use local fonts for better performance
+// Font configurations
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
-  preload: true,
-  fallback: ['system-ui', 'arial'],
-  adjustFontFallback: true,
 })
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
-  preload: true,
-  fallback: ['Georgia', 'serif'],
-  adjustFontFallback: true,
 })
 
 // Root metadata
@@ -134,34 +127,36 @@ export const viewport: Viewport = {
   maximumScale: 5,
 }
 
-/**
- * Root Layout Component
- * 
- * Features:
- * - Context Providers (Auth, Cart, Toast)
- * - Font optimization with next/font
- * - SEO metadata configuration
- * - Global styles
- * - Accessibility setup
- */
 interface RootLayoutProps {
   children: ReactNode
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html 
-      lang="en" 
+    <html
+      lang="en"
       className={`${inter.variable} ${playfair.variable}`}
       suppressHydrationWarning
     >
       <head>
+        {/* Preload critical fonts */}
+        <link
+          rel="preload"
+          href="/_next/static/media/Inter-Regular.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/_next/static/media/PlayfairDisplay-Regular.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Preconnect to external domains for performance */}
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'} />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        {/* Preload critical hero image if available */}
-        <link rel="preload" as="image" href="/images/hero.jpg" />
-        
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+
         {/* Structured Data for Organization */}
         <script
           type="application/ld+json"
@@ -200,13 +195,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
         suppressHydrationWarning
       >
         <GlobalErrorBoundary>
-          <AuthProvider>
-            <CartProvider>
-              <ThemeProvider>
-                <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
-                  Skip to content
-                </a>
-                {children}
+          <TRPCProvider>
+            <ThemeProvider>
+              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
+                Skip to content
+              </a>
+              {children}
               <Toaster
                 position="top-right"
                 toastOptions={{
@@ -268,11 +262,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   }}
                 />
               )}
-              </ThemeProvider>
-            </CartProvider>
-          </AuthProvider>
+              <Analytics />
+              <SpeedInsights />
+            </ThemeProvider>
+          </TRPCProvider>
         </GlobalErrorBoundary>
-        <WhatsAppButton />
       </body>
     </html>
   )

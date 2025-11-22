@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, devtools } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { CartStore, CartItem, CartItemCustomizations, ShippingAddress, PromoCodeResponse } from '@/types/cart';
 import type { Product } from '@/types/product';
@@ -46,8 +46,9 @@ function calculateTotals(items: CartItem[], taxRate: number = 0.05, shipping: nu
  * Cart Store with Persistence and Sync
  */
 export const useCartStore = create<CartStore>()(
-  persist(
-    subscribeWithSelector(
+  devtools(
+    persist(
+      subscribeWithSelector(
       (set, get) => ({
         // Initial State
         items: [],
@@ -441,17 +442,67 @@ export const useCartStore = create<CartStore>()(
           }
         },
       })
+      ),
+      {
+        name: 'laraibcreative-cart',
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state) => ({
+          items: state.items,
+          promoCode: state.promoCode,
+          discount: state.discount,
+        }),
+      }
     ),
-    {
-      name: 'laraibcreative-cart',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        items: state.items,
-        promoCode: state.promoCode,
-        discount: state.discount,
-      }),
-    }
+    { name: 'CartStore' }
   )
+);
+
+// Analytics middleware - track cart events
+useCartStore.subscribe(
+  (state) => state.totalItems,
+  (totalItems, prevTotalItems) => {
+    if (typeof window !== 'undefined' && totalItems !== prevTotalItems) {
+      // Track add to cart events
+      if (window.gtag) {
+        window.gtag('event', 'cart_item_count', {
+          value: totalItems,
+        });
+      }
+      
+      // Facebook Pixel
+      if (window.fbq) {
+        window.fbq('track', 'AddToCart', {
+          content_ids: state.items.map(item => item.productId),
+          value: state.subtotal,
+          currency: 'PKR',
+        });
+      }
+    }
+  }
+);
+
+// Track cart abandonment
+useCartStore.subscribe(
+  (state) => state.items.length,
+  (itemCount) => {
+    if (typeof window !== 'undefined' && itemCount > 0) {
+      // Set abandonment timer (30 minutes)
+      const abandonmentTimer = setTimeout(() => {
+        const currentItems = useCartStore.getState().items;
+        if (currentItems.length > 0) {
+          // Track abandonment
+          if (window.gtag) {
+            window.gtag('event', 'cart_abandonment', {
+              value: useCartStore.getState().subtotal,
+              currency: 'PKR',
+            });
+          }
+        }
+      }, 30 * 60 * 1000); // 30 minutes
+      
+      return () => clearTimeout(abandonmentTimer);
+    }
+  }
 );
 
 // Export as default
