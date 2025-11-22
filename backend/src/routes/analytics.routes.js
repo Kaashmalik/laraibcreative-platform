@@ -1,35 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getDashboardOverview,
-  getSalesReport,
-  getCustomerReport,
-  getProductReport,
-  getConversionFunnel,
-  getRevenueTrends,
-  getOrderDistribution,
-  getTopProducts,
-  getInventoryAlerts,
-  exportAnalytics,
-  getSuitTypeSales,
-  getReplicaConversion
-} = require('../controllers/analyticsController');
-const { protect, adminOnly } = require('../middleware/auth.middleware');
+const analyticsController = require('../controllers/analyticsController');
+const { authenticate, adminOnly } = require('../middleware/auth.middleware');
 
-// All analytics routes require admin authentication
-router.use(protect, adminOnly);
+// All routes require authentication and admin access
+router.use(authenticate);
+router.use(adminOnly);
 
-router.get('/dashboard', getDashboardOverview);
-router.get('/sales', getSalesReport);
-router.get('/customers', getCustomerReport);
-router.get('/products', getProductReport);
-router.get('/funnel', getConversionFunnel);
-router.get('/revenue-trends', getRevenueTrends);
-router.get('/order-distribution', getOrderDistribution);
-router.get('/top-products', getTopProducts);
-router.get('/inventory-alerts', getInventoryAlerts);
-router.get('/suit-type-sales', getSuitTypeSales);
-router.get('/replica-conversion', getReplicaConversion);
-router.get('/export', exportAnalytics);
+/**
+ * @route   GET /api/v1/analytics/dashboard
+ * @desc    Get comprehensive business metrics
+ * @access  Admin
+ */
+router.get('/dashboard', analyticsController.getDashboard);
+
+/**
+ * @route   GET /api/v1/analytics/revenue
+ * @desc    Get revenue metrics
+ * @access  Admin
+ */
+router.get('/revenue', analyticsController.getRevenue);
+
+/**
+ * @route   GET /api/v1/analytics/customers
+ * @desc    Get customer metrics
+ * @access  Admin
+ */
+router.get('/customers', analyticsController.getCustomers);
+
+/**
+ * @route   GET /api/v1/analytics/products
+ * @desc    Get product metrics
+ * @access  Admin
+ */
+router.get('/products', analyticsController.getProducts);
 
 module.exports = router;

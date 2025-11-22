@@ -49,6 +49,7 @@ router.use(`${API_VERSION}/settings`, settingsRoutes);
 router.use(`${API_VERSION}/production-queue`, productionQueueRoutes);
 router.use(`${API_VERSION}/referrals`, referralRoutes);
 router.use(`${API_VERSION}/loyalty`, loyaltyRoutes);
+router.use(`${API_VERSION}/alerts`, require('./alerts.routes'));
 
 // Root endpoint
 router.get('/', (req, res) => {
