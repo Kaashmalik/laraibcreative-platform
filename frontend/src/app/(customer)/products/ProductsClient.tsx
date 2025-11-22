@@ -60,12 +60,21 @@ function ProductsContent() {
       };
 
       // Add price range only if changed from defaults
+      // Don't send price filters if they're at default values (0 and 50000)
+      // This allows backend to show all products regardless of price
       const defaultMinPrice = 0;
       const defaultMaxPrice = 50000;
-      if (activeFilters.minPrice && activeFilters.minPrice > defaultMinPrice) {
+      const hasMinPriceFilter = activeFilters.minPrice !== undefined && 
+                                 activeFilters.minPrice !== null && 
+                                 activeFilters.minPrice > defaultMinPrice;
+      const hasMaxPriceFilter = activeFilters.maxPrice !== undefined && 
+                                 activeFilters.maxPrice !== null && 
+                                 activeFilters.maxPrice < defaultMaxPrice;
+      
+      if (hasMinPriceFilter) {
         params.minPrice = activeFilters.minPrice;
       }
-      if (activeFilters.maxPrice && activeFilters.maxPrice < defaultMaxPrice) {
+      if (hasMaxPriceFilter) {
         params.maxPrice = activeFilters.maxPrice;
       }
 
@@ -113,6 +122,11 @@ function ProductsContent() {
         params.type = activeFilters.suitType.join(',');
       }
 
+      // Debug logging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Fetching products with params:', params);
+      }
+
       const response = await api.products.getAll(params);
       
       let products: any[] = [];
@@ -121,6 +135,12 @@ function ProductsContent() {
         // Handle both response structures: { products, total } or { data: products, pagination: { totalProducts } }
         products = data.products || data.data || [];
         const total = data.total || data.pagination?.totalProducts || products.length;
+        
+        // Debug logging
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Products response:', { productsCount: products.length, total, data });
+        }
+        
         setProducts(products);
         setTotalProducts(total);
       } else {

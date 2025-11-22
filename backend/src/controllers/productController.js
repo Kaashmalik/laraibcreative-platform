@@ -61,14 +61,19 @@ exports.getAllProducts = async (req, res) => {
       sortOrder = sortMap[sortBy] || sort;
     }
 
+    // Collect all $or conditions that need to be combined with $and
+    const orConditions = [];
+
     // Search across multiple fields
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { sku: { $regex: search, $options: 'i' } },
-        { 'seo.keywords': { $regex: search, $options: 'i' } }
-      ];
+      orConditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { sku: { $regex: search, $options: 'i' } },
+          { 'seo.keywords': { $regex: search, $options: 'i' } }
+        ]
+      });
     }
 
     // Category filter
@@ -91,17 +96,7 @@ exports.getAllProducts = async (req, res) => {
         const fabricConditions = fabricArray.map(f => ({
           'fabric.type': { $regex: f, $options: 'i' }
         }));
-        
-        // If there's already an $or condition (from search), combine with $and
-        if (filter.$or && Array.isArray(filter.$or)) {
-          filter.$and = [
-            { $or: filter.$or },
-            { $or: fabricConditions }
-          ];
-          delete filter.$or;
-        } else {
-          filter.$or = fabricConditions;
-        }
+        orConditions.push({ $or: fabricConditions });
       }
     }
 
@@ -126,17 +121,7 @@ exports.getAllProducts = async (req, res) => {
         const occasionConditions = occasionArray.map(o => ({
           occasion: { $regex: o, $options: 'i' }
         }));
-        
-        // If there's already an $or condition (from search or fabric), combine with $and
-        if (filter.$or && Array.isArray(filter.$or)) {
-          filter.$and = filter.$and || [];
-          filter.$and.push({ $or: occasionConditions });
-        } else {
-          filter.$or = filter.$or || [];
-          filter.$or = Array.isArray(filter.$or) 
-            ? [...filter.$or, ...occasionConditions]
-            : occasionConditions;
-        }
+        orConditions.push({ $or: occasionConditions });
       }
     }
 
@@ -148,23 +133,7 @@ exports.getAllProducts = async (req, res) => {
         { colors: { $in: colorRegex } },
         { 'availableColors.name': { $in: colorRegex } }
       ];
-      
-      // If there's already an $or condition (from search), combine with $and
-      if (filter.$or && Array.isArray(filter.$or)) {
-        filter.$and = [
-          { $or: filter.$or },
-          { $or: colorConditions }
-        ];
-        delete filter.$or;
-      } else {
-        // If no existing $or, create new one
-        if (!filter.$or) {
-          filter.$or = [];
-        }
-        filter.$or = Array.isArray(filter.$or) 
-          ? [...filter.$or, ...colorConditions]
-          : colorConditions;
-      }
+      orConditions.push({ $or: colorConditions });
     }
 
     // Availability filter - handle comma-separated values for status
@@ -193,6 +162,24 @@ exports.getAllProducts = async (req, res) => {
       }
     }
 
+    // Combine all $or conditions with $and if we have multiple
+    if (orConditions.length > 0) {
+      if (orConditions.length === 1) {
+        // If only one $or condition, merge it directly
+        Object.assign(filter, orConditions[0]);
+      } else {
+        // If multiple $or conditions, combine with $and
+        filter.$and = filter.$and || [];
+        filter.$and.push(...orConditions);
+      }
+    }
+
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Product filter:', JSON.stringify(filter, null, 2));
+      console.log('Query params:', { page, limit, sortBy, minPrice, maxPrice, fabric, occasion, color, availability, type });
+    }
+
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -207,6 +194,11 @@ exports.getAllProducts = async (req, res) => {
 
     // Get total count for pagination
     const total = await Product.countDocuments(filter);
+
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Found ${products.length} products out of ${total} total`);
+    }
 
     // Calculate pagination metadata
     const totalPages = Math.ceil(total / parseInt(limit));
