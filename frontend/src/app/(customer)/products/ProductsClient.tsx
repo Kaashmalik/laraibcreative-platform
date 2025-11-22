@@ -57,9 +57,17 @@ function ProductsContent() {
         page: currentPage,
         limit: productsPerPage,
         sortBy: activeFilters.sortBy || 'newest',
-        minPrice: activeFilters.minPrice || 0,
-        maxPrice: activeFilters.maxPrice || 50000,
       };
+
+      // Add price range only if changed from defaults
+      const defaultMinPrice = 0;
+      const defaultMaxPrice = 50000;
+      if (activeFilters.minPrice && activeFilters.minPrice > defaultMinPrice) {
+        params.minPrice = activeFilters.minPrice;
+      }
+      if (activeFilters.maxPrice && activeFilters.maxPrice < defaultMaxPrice) {
+        params.maxPrice = activeFilters.maxPrice;
+      }
 
       // Add category if present
       if (activeFilters.category) {
@@ -72,28 +80,32 @@ function ProductsContent() {
       }
 
       // Add fabric filter (can be array or string)
-      if (activeFilters.fabric.length > 0) {
+      if (activeFilters.fabric && activeFilters.fabric.length > 0) {
         params.fabric = activeFilters.fabric.join(',');
       }
 
       // Add occasion filter
-      if (activeFilters.occasion.length > 0) {
+      if (activeFilters.occasion && activeFilters.occasion.length > 0) {
         params.occasion = activeFilters.occasion.join(',');
       }
 
       // Add color filter
-      if (activeFilters.color.length > 0) {
+      if (activeFilters.color && activeFilters.color.length > 0) {
         params.color = activeFilters.color.join(',');
       }
 
       // Add size filter
-      if (activeFilters.size.length > 0) {
+      if (activeFilters.size && activeFilters.size.length > 0) {
         params.size = activeFilters.size.join(',');
       }
 
-      // Add availability filter
-      if (activeFilters.availability.length > 0) {
-        params.availability = activeFilters.availability.join(',');
+      // Add availability filter (handle both array and string)
+      if (activeFilters.availability) {
+        if (Array.isArray(activeFilters.availability) && activeFilters.availability.length > 0) {
+          params.availability = activeFilters.availability.join(',');
+        } else if (typeof activeFilters.availability === 'string' && activeFilters.availability) {
+          params.availability = activeFilters.availability;
+        }
       }
 
       // Add suit type filter (NEW)

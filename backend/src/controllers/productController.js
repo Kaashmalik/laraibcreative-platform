@@ -28,12 +28,13 @@ exports.getAllProducts = async (req, res) => {
       page = 1,
       limit = 12,
       sort = '-createdAt',
+      sortBy = '', // Frontend sends sortBy, map to sort
       search = '',
       category = '',
       subcategory = '',
       fabric = '',
-      minPrice = 0,
-      maxPrice = Number.MAX_SAFE_INTEGER,
+      minPrice = '',
+      maxPrice = '',
       occasion = '',
       color = '',
       availability = '',
@@ -41,8 +42,24 @@ exports.getAllProducts = async (req, res) => {
       type = '' // NEW: Suit type filter (ready-made, replica, karhai)
     } = req.query;
 
-    // Build filter object
-    const filter = {};
+    // Build filter object - only show active, non-deleted products
+    const filter = {
+      isActive: true,
+      isDeleted: { $ne: true }
+    };
+
+    // Map sortBy to sort if provided
+    let sortOrder = sort;
+    if (sortBy) {
+      const sortMap = {
+        'newest': '-createdAt',
+        'price-low': 'pricing.basePrice',
+        'price-high': '-pricing.basePrice',
+        'popular': '-purchased',
+        'rating': '-rating.average'
+      };
+      sortOrder = sortMap[sortBy] || sort;
+    }
 
     // Search across multiple fields
     if (search) {
@@ -64,20 +81,63 @@ exports.getAllProducts = async (req, res) => {
       filter.subcategory = { $regex: subcategory, $options: 'i' };
     }
 
-    // Fabric type filter
+    // Fabric type filter - handle comma-separated values
     if (fabric) {
-      filter['fabric.type'] = { $regex: fabric, $options: 'i' };
+      const fabricArray = fabric.split(',').map(f => f.trim().toLowerCase());
+      if (fabricArray.length === 1) {
+        filter['fabric.type'] = { $regex: fabricArray[0], $options: 'i' };
+      } else {
+        // For multiple fabrics, use $or with regex for each
+        const fabricConditions = fabricArray.map(f => ({
+          'fabric.type': { $regex: f, $options: 'i' }
+        }));
+        
+        // If there's already an $or condition (from search), combine with $and
+        if (filter.$or && Array.isArray(filter.$or)) {
+          filter.$and = [
+            { $or: filter.$or },
+            { $or: fabricConditions }
+          ];
+          delete filter.$or;
+        } else {
+          filter.$or = fabricConditions;
+        }
+      }
     }
 
-    // Price range filter
-    filter['pricing.basePrice'] = {
-      $gte: parseFloat(minPrice),
-      $lte: parseFloat(maxPrice)
-    };
+    // Price range filter - only apply if values are provided
+    if (minPrice !== '' || maxPrice !== '') {
+      filter['pricing.basePrice'] = {};
+      if (minPrice !== '') {
+        filter['pricing.basePrice'].$gte = parseFloat(minPrice);
+      }
+      if (maxPrice !== '') {
+        filter['pricing.basePrice'].$lte = parseFloat(maxPrice);
+      }
+    }
 
-    // Occasion filter
+    // Occasion filter - handle comma-separated values
     if (occasion) {
-      filter.occasion = { $regex: occasion, $options: 'i' };
+      const occasionArray = occasion.split(',').map(o => o.trim().toLowerCase());
+      if (occasionArray.length === 1) {
+        filter.occasion = { $regex: occasionArray[0], $options: 'i' };
+      } else {
+        // For multiple occasions, use $or with regex for each
+        const occasionConditions = occasionArray.map(o => ({
+          occasion: { $regex: o, $options: 'i' }
+        }));
+        
+        // If there's already an $or condition (from search or fabric), combine with $and
+        if (filter.$or && Array.isArray(filter.$or)) {
+          filter.$and = filter.$and || [];
+          filter.$and.push({ $or: occasionConditions });
+        } else {
+          filter.$or = filter.$or || [];
+          filter.$or = Array.isArray(filter.$or) 
+            ? [...filter.$or, ...occasionConditions]
+            : occasionConditions;
+        }
+      }
     }
 
     // Color filter - support both colors and availableColors fields
@@ -107,9 +167,14 @@ exports.getAllProducts = async (req, res) => {
       }
     }
 
-    // Availability filter
+    // Availability filter - handle comma-separated values for status
     if (availability) {
-      filter.availability = availability;
+      const availabilityArray = availability.split(',').map(a => a.trim().toLowerCase());
+      if (availabilityArray.length === 1) {
+        filter['availability.status'] = availabilityArray[0];
+      } else {
+        filter['availability.status'] = { $in: availabilityArray };
+      }
     }
 
     // Featured products filter
@@ -135,7 +200,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.find(filter)
       .populate('category', 'name slug')
       .select('-__v')
-      .sort(sort)
+      .sort(sortOrder)
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
@@ -148,9 +213,12 @@ exports.getAllProducts = async (req, res) => {
     const hasNextPage = parseInt(page) < totalPages;
     const hasPrevPage = parseInt(page) > 1;
 
+    // Return response in format expected by frontend
     res.status(200).json({
       success: true,
-      data: products,
+      products: products,
+      total: total,
+      data: products, // Also include for backward compatibility
       pagination: {
         currentPage: parseInt(page),
         totalPages,
