@@ -59,7 +59,8 @@
     "next-intl": "^3.0.0",
     "@vercel/analytics": "^1.0.0",
     "@vercel/speed-insights": "^1.0.0",
-    "superjson": "^2.2.1"
+    "superjson": "^2.2.1",
+    "@hello-pangea/dnd": "^16.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

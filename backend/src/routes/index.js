@@ -18,6 +18,9 @@ const dashboardRoutes = require('./dashboard.routes');
 const settingsRoutes = require('./settings.routes');
 const adminProductRoutes = require('./adminProduct.routes');
 const adminOrderRoutes = require('./adminOrder.routes');
+const productionQueueRoutes = require('./productionQueue.routes');
+const referralRoutes = require('./referral.routes');
+const loyaltyRoutes = require('./loyalty.routes');
 
 // Health check routes (mounted before API version)
 const healthRoutes = require('./health.routes');
@@ -43,6 +46,9 @@ router.use(`${API_VERSION}/admin/dashboard`, dashboardRoutes);
 router.use(`${API_VERSION}/admin/products`, adminProductRoutes);
 router.use(`${API_VERSION}/admin/orders`, adminOrderRoutes);
 router.use(`${API_VERSION}/settings`, settingsRoutes);
+router.use(`${API_VERSION}/production-queue`, productionQueueRoutes);
+router.use(`${API_VERSION}/referrals`, referralRoutes);
+router.use(`${API_VERSION}/loyalty`, loyaltyRoutes);
 
 // Root endpoint
 router.get('/', (req, res) => {
