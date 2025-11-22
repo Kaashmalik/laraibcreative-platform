@@ -50,6 +50,7 @@ router.use(`${API_VERSION}/production-queue`, productionQueueRoutes);
 router.use(`${API_VERSION}/referrals`, referralRoutes);
 router.use(`${API_VERSION}/loyalty`, loyaltyRoutes);
 router.use(`${API_VERSION}/alerts`, require('./alerts.routes'));
+router.use(`${API_VERSION}/facebook`, require('./facebook-conversion.routes'));
 
 // Root endpoint
 router.get('/', (req, res) => {

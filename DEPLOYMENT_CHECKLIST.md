@@ -1,279 +1,354 @@
-# Production Deployment Checklist
-## LaraibCreative E-commerce Platform
+# 🚀 Deployment Checklist - Scaling to 100k Orders
 
-Use this checklist to ensure a smooth production deployment.
+## Pre-Deployment
 
----
+### Environment Variables
 
-## Pre-Deployment Checklist
+#### Frontend (.env.local)
+```env
+# API
+NEXT_PUBLIC_API_URL=https://api.laraibcreative.studio
 
-### Code Quality
-- [ ] All tests passing (`npm test` in both frontend and backend)
-- [ ] No linting errors (`npm run lint`)
-- [ ] Code reviewed and approved
-- [ ] Security audit completed
-- [ ] Dependencies updated (`npm update`)
-- [ ] Security vulnerabilities fixed (`npm audit fix`)
+# Analytics
+NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_FB_PIXEL_ID=1234567890123456
 
-### Configuration
-- [ ] Environment variables documented
-- [ ] Secrets stored securely (not in code)
-- [ ] `.env` files not committed to Git
-- [ ] Database migrations tested
-- [ ] Build process verified locally
+# Sentry (if using)
+NEXT_PUBLIC_SENTRY_DSN=your-sentry-dsn
+```
 
-### Documentation
-- [ ] Deployment guide reviewed
-- [ ] Rollback procedures documented
-- [ ] Monitoring setup complete
-- [ ] Team notified of deployment
+#### Backend (.env)
+```env
+# Server
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=mongodb://...
 
----
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRE=7d
+REFRESH_TOKEN_EXPIRE=30d
 
-## Environment Setup
+# Facebook Conversion API
+FB_PIXEL_ID=1234567890123456
+FB_CONVERSION_API_ACCESS_TOKEN=your-access-token
 
-### MongoDB Atlas
-- [ ] Cluster created and running
-- [ ] Database user created
-- [ ] Network access configured
-- [ ] Connection string obtained
-- [ ] Backup strategy configured
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+ADMIN_EMAIL=admin@laraibcreative.studio
 
-### Render (Backend)
-- [ ] Account created
-- [ ] Service created
-- [ ] Environment variables set
-- [ ] Health check path configured
-- [ ] Auto-deploy enabled (optional)
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 
-### Vercel (Frontend)
-- [ ] Account created
-- [ ] Project imported
-- [ ] Environment variables set
-- [ ] Custom domain configured
-- [ ] SSL certificate active
+# WhatsApp (if using)
+TWILIO_ACCOUNT_SID=your-sid
+TWILIO_AUTH_TOKEN=your-token
+TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
+```
 
-### Cloudinary
-- [ ] Account created
-- [ ] API credentials obtained
-- [ ] Transformations configured
-- [ ] CDN enabled
+### Database Setup
 
----
+1. **Create Indexes**
+   ```bash
+   cd backend
+   npm run verify-indexes
+   ```
+
+2. **Verify Models**
+   - Tailor
+   - FabricInventory
+   - Referral
+   - LoyaltyPoints
+   - ProductionQueue
+   - FestiveCollection
+   - MeasurementProfile
+   - DraftOrder
+
+3. **Seed Initial Data** (if needed)
+   ```bash
+   npm run seed
+   ```
+
+### Build & Test
+
+#### Frontend
+```bash
+cd frontend
+npm run build
+npm run type-check
+npm run lint
+```
+
+#### Backend
+```bash
+cd backend
+npm run build
+npm run type-check
+npm run lint
+```
 
 ## Deployment Steps
 
-### Step 1: Database Setup
-- [ ] MongoDB Atlas cluster ready
-- [ ] Connection string added to Render
-- [ ] Test connection successful
-- [ ] Indexes will be created on first startup
+### 1. Vercel (Frontend)
 
-### Step 2: Backend Deployment
-- [ ] Push code to GitHub
-- [ ] Render auto-deploys (or manual deploy)
-- [ ] Monitor deployment logs
-- [ ] Verify health check: `GET /api/health`
-- [ ] Verify detailed health: `GET /api/health/detailed`
+1. **Connect Repository**
+   - Link GitHub repo to Vercel
+   - Select `frontend` as root directory
 
-### Step 3: Frontend Deployment
-- [ ] Push code to GitHub
-- [ ] Vercel auto-deploys (or manual deploy)
-- [ ] Monitor build logs
-- [ ] Verify site loads: `https://www.laraibcreative.studio`
-- [ ] Check browser console for errors
+2. **Environment Variables**
+   - Add all `NEXT_PUBLIC_*` variables
+   - Configure build settings
 
-### Step 4: Domain Configuration
-- [ ] DNS records configured
-- [ ] SSL certificates active
-- [ ] Domain verified in Vercel
-- [ ] Domain verified in Render (if custom domain)
+3. **Build Settings**
+   ```
+   Framework Preset: Next.js
+   Root Directory: frontend
+   Build Command: npm run build
+   Output Directory: .next
+   Install Command: npm install --legacy-peer-deps
+   ```
 
-### Step 5: Service Configuration
-- [ ] Email service configured (Gmail/SendGrid)
-- [ ] WhatsApp service configured (Twilio)
-- [ ] Error tracking configured (Sentry)
-- [ ] Analytics configured (Google Analytics)
+4. **Deploy**
+   - Push to main branch triggers auto-deploy
+   - Or deploy manually from Vercel dashboard
 
----
+### 2. Backend (Render/Railway/Heroku)
 
-## Post-Deployment Verification
+#### Render Setup
+1. **Create Web Service**
+   - Connect GitHub repo
+   - Select `backend` as root directory
 
-### Backend Checks
-- [ ] Health check responds: `200 OK`
-- [ ] API endpoints accessible
-- [ ] Database connected
-- [ ] Authentication working
-- [ ] File uploads working
-- [ ] Email sending working
-- [ ] WhatsApp notifications working
+2. **Environment Variables**
+   - Add all backend env variables
+   - Set `NODE_ENV=production`
 
-### Frontend Checks
-- [ ] Homepage loads
-- [ ] No console errors
-- [ ] API calls working
-- [ ] Images loading from Cloudinary
-- [ ] Authentication flow working
-- [ ] Cart functionality working
-- [ ] Checkout process working
+3. **Build Settings**
+   ```
+   Build Command: npm install && npm run build
+   Start Command: npm start
+   ```
 
-### Integration Checks
-- [ ] Frontend can connect to backend
+4. **Health Check**
+   - Endpoint: `/health`
+   - Interval: 30s
+
+#### Railway Setup
+1. **New Project**
+   - Connect GitHub repo
+   - Select `backend` directory
+
+2. **Configure**
+   - Add environment variables
+   - Set start command: `npm start`
+
+### 3. Database (MongoDB Atlas)
+
+1. **Create Cluster**
+   - Choose region closest to backend
+   - Enable backup
+
+2. **Network Access**
+   - Add backend server IP
+   - Or allow from anywhere (0.0.0.0/0) for cloud
+
+3. **Database Access**
+   - Create user with read/write permissions
+   - Save credentials securely
+
+4. **Connection String**
+   - Copy connection string
+   - Add to backend `.env` as `MONGODB_URI`
+
+### 4. Scheduled Jobs (Cron)
+
+#### Option 1: Render Cron Jobs
+```bash
+# Alert checks (every hour)
+0 * * * * curl https://api.laraibcreative.studio/api/v1/alerts/check
+
+# Festive collection auto-publish (every 15 minutes)
+*/15 * * * * node backend/scripts/check-festive-collections.js
+```
+
+#### Option 2: Node-cron in Backend
+```javascript
+// backend/src/cron/index.js
+const cron = require('node-cron');
+const alertService = require('../services/alertService');
+
+// Run every hour
+cron.schedule('0 * * * *', async () => {
+  await alertService.runAllChecks();
+});
+```
+
+## Post-Deployment
+
+### 1. Verify Endpoints
+
+```bash
+# Health check
+curl https://api.laraibcreative.studio/health
+
+# API root
+curl https://api.laraibcreative.studio/api/v1
+
+# Frontend
+curl https://laraibcreative.studio
+```
+
+### 2. Test Critical Features
+
+- [ ] User registration/login
+- [ ] Product browsing
+- [ ] Add to cart
+- [ ] Checkout flow
+- [ ] Order creation
+- [ ] Payment processing
+- [ ] Production queue
+- [ ] Referral system
+- [ ] Loyalty points
+- [ ] i18n switching
+- [ ] Currency conversion
+
+### 3. Monitor
+
+#### Vercel Analytics
+- Check Speed Insights
+- Monitor Core Web Vitals
+- Review error logs
+
+#### Backend Monitoring
+- Check server logs
+- Monitor API response times
+- Verify database connections
+
+#### Sentry (if configured)
+- Check error tracking
+- Review performance metrics
+- Set up alerts
+
+### 4. Configure Alerts
+
+#### Email Alerts
+- Failed payments
+- Stockouts
+- High abandonment rate
+- System errors
+
+#### Slack/Discord (optional)
+- Set up webhook for critical alerts
+- Configure notification channels
+
+## Performance Optimization
+
+### 1. CDN Setup
+- Configure Cloudinary CDN
+- Enable image optimization
+- Set up caching headers
+
+### 2. Database Optimization
+- Verify all indexes are created
+- Monitor slow queries
+- Set up connection pooling
+
+### 3. Caching
+- Enable Redis for sessions (if needed)
+- Configure ISR revalidation
+- Set up API response caching
+
+## Security Checklist
+
+- [ ] All environment variables set
+- [ ] JWT secrets are strong and unique
 - [ ] CORS configured correctly
-- [ ] API responses correct
-- [ ] Error handling working
-- [ ] Loading states working
-
-### Performance Checks
-- [ ] Page load times acceptable
-- [ ] API response times acceptable
-- [ ] Images optimized
-- [ ] Bundle sizes acceptable
-
----
-
-## Monitoring Setup
-
-### Error Tracking
-- [ ] Sentry configured (backend)
-- [ ] Sentry configured (frontend)
-- [ ] Error alerts set up
-- [ ] Test error reporting
-
-### Analytics
-- [ ] Google Analytics configured
-- [ ] Vercel Analytics enabled
-- [ ] Key events tracked
-- [ ] Conversion tracking working
-
-### Uptime Monitoring
-- [ ] UptimeRobot/Pingdom configured
-- [ ] Health checks monitored
-- [ ] Alert notifications working
-- [ ] Status page updated
-
-### Logs
-- [ ] Backend logs accessible (Render)
-- [ ] Frontend logs accessible (Vercel)
-- [ ] Log retention configured
-- [ ] Log search working
-
----
-
-## Security Verification
-
-### Security Headers
-- [ ] Helmet.js configured
-- [ ] CORS configured correctly
+- [ ] Rate limiting enabled
+- [ ] Helmet security headers active
+- [ ] File upload validation working
+- [ ] SQL injection protection (MongoDB safe)
+- [ ] XSS protection enabled
 - [ ] HTTPS enforced
-- [ ] Security headers present
+- [ ] Admin routes protected
 
-### Authentication
-- [ ] JWT tokens working
-- [ ] Password hashing verified
-- [ ] Session management working
-- [ ] Authorization checks working
+## Scaling Considerations
 
-### Input Validation
-- [ ] Input sanitization working
-- [ ] XSS protection active
-- [ ] SQL/NoSQL injection protection
-- [ ] File upload security verified
+### For 100k Monthly Orders
 
----
+1. **Database**
+   - Enable MongoDB Atlas auto-scaling
+   - Set up read replicas if needed
+   - Monitor connection pool size
 
-## Performance Verification
+2. **Backend**
+   - Enable auto-scaling on Render/Railway
+   - Set up load balancing
+   - Monitor memory/CPU usage
 
-### Frontend Performance
-- [ ] Lighthouse score > 90
-- [ ] Core Web Vitals within targets
-- [ ] Bundle sizes acceptable
-- [ ] Images optimized
+3. **Frontend**
+   - Vercel automatically scales
+   - Monitor bandwidth usage
+   - Check build times
 
-### Backend Performance
-- [ ] API response times < targets
-- [ ] Database query times < targets
-- [ ] Resource usage acceptable
-- [ ] No memory leaks
+4. **CDN**
+   - Cloudinary handles image scaling
+   - Monitor bandwidth limits
+   - Optimize image sizes
 
----
+## Rollback Plan
 
-## Business Functionality
+1. **Frontend**
+   - Vercel: Previous deployment in dashboard
+   - Click "Promote to Production"
 
-### User Flows
-- [ ] User registration works
-- [ ] User login works
-- [ ] Product browsing works
-- [ ] Product search works
-- [ ] Add to cart works
-- [ ] Checkout process works
-- [ ] Order placement works
-- [ ] Custom order submission works
+2. **Backend**
+   - Render: Previous deployment in dashboard
+   - Railway: Previous deployment in dashboard
 
-### Admin Functions
-- [ ] Admin login works
-- [ ] Product management works
-- [ ] Order management works
-- [ ] Dashboard loads
-- [ ] Analytics working
+3. **Database**
+   - MongoDB Atlas: Point-in-time restore
+   - Or restore from backup
 
----
+## Maintenance
 
-## Final Checks
+### Daily
+- Check error logs
+- Monitor alert emails
+- Review order processing
 
-### Documentation
-- [ ] Deployment documented
-- [ ] Issues logged
-- [ ] Team notified
-- [ ] Status page updated
+### Weekly
+- Review analytics dashboard
+- Check production queue
+- Verify inventory levels
 
-### Backup
-- [ ] Database backup created
-- [ ] Backup verified
-- [ ] Backup location documented
+### Monthly
+- Update dependencies
+- Review performance metrics
+- Optimize slow queries
+- Update exchange rates
 
-### Rollback Plan
-- [ ] Rollback procedure documented
-- [ ] Previous deployment identified
-- [ ] Rollback tested (if possible)
+## Support
 
----
+- **Documentation**: See `SCALING_COMPLETE.md`
+- **Issues**: Check GitHub issues
+- **Logs**: Vercel/Render dashboards
+- **Monitoring**: Sentry, Vercel Analytics
 
-## Deployment Sign-Off
+## Success Criteria
 
-**Deployed By:** _________________  
-**Date:** _________________  
-**Time:** _________________  
-**Version:** _________________  
-**Git Commit:** _________________  
-
-**Verified By:** _________________  
-**Date:** _________________  
-
-**Notes:**
-_________________________________
-_________________________________
-_________________________________
+- ✅ All tests passing
+- ✅ No critical errors in logs
+- ✅ API response time < 200ms
+- ✅ Frontend Lighthouse score > 95
+- ✅ All features working
+- ✅ Alerts configured
+- ✅ Monitoring active
 
 ---
 
-## Quick Reference
-
-### Health Check URLs
-- Backend: `https://your-backend-url.com/api/health`
-- Frontend: `https://www.laraibcreative.studio`
-
-### Deployment Scripts
-- Backend: `./scripts/deploy-backend.sh`
-- Frontend: `./scripts/deploy-frontend.sh`
-- Verify: `./scripts/verify-deployment.sh`
-
-### Documentation
-- Deployment Guide: `PRODUCTION_DEPLOYMENT_GUIDE.md`
-- Rollback: `ROLLBACK_PROCEDURES.md`
-- Monitoring: `MONITORING_SETUP_GUIDE.md`
-
----
-
-**Last Updated:** December 2024
-
+**Ready to deploy!** 🚀
