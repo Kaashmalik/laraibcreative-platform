@@ -4,8 +4,6 @@ import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
-import Header from '@/components/customer/Header'
-import Footer from '@/components/customer/Footer'
 import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
 
 // Font configurations
@@ -194,9 +192,7 @@ export default function RootLayout({ children }) {
                 <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
                   Skip to content
                 </a>
-                <Header />
-                <main id="main-content" className="pt-16">{children}</main>
-                <Footer />
+                {children}
               <Toaster
                 position="top-right"
                 toastOptions={{

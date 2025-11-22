@@ -408,13 +408,13 @@ export default function Footer() {
               </p>
               <nav className="flex items-center space-x-6 text-sm text-gray-400" aria-label="Legal links">
                 <Link 
-                  href="/policies/privacy" 
+                  href="/privacy-policy" 
                   className="hover:text-primary-400 transition-colors focus:outline-none focus:underline"
                 >
                   Privacy Policy
                 </Link>
                 <Link 
-                  href="/policies/terms" 
+                  href="/terms-of-service" 
                   className="hover:text-primary-400 transition-colors focus:outline-none focus:underline"
                 >
                   Terms of Service

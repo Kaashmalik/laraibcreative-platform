@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import HomePageClient from './(customer)/HomePageClient';
+import HomePageClient from './HomePageClient';
 import api from '@/lib/api';
 import { SITE_URL } from '@/lib/constants';
 import { generateOrganizationStructuredData } from '@/lib/seo-config';
@@ -54,6 +54,7 @@ export async function generateMetadata() {
 /**
  * Homepage - Server Component
  * Fetches data and passes to client component
+ * Now inside customer route group to use customer layout with Header/Footer
  */
 export default async function HomePage() {
   try {

@@ -21,7 +21,7 @@ const api = {
       return await axios.post('/auth/logout');
     },
     async verifyToken() {
-      return await axios.get('/auth/verify-token');
+      return await axios.get('/auth/me');
     },
     async refreshToken() {
       return await axios.post('/auth/refresh-token');
@@ -39,7 +39,7 @@ const api = {
       });
     },
     async verifyEmail(token) {
-      return await axios.post('/auth/verify-email', { token });
+      return await axios.get(`/auth/verify-email/${token}`);
     },
     async resendVerification() {
       return await axios.post('/auth/resend-verification');

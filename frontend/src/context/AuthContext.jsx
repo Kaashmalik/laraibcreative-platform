@@ -33,9 +33,13 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Verify token with backend
+      // Verify token with backend (uses /auth/me endpoint)
       const response = await api.auth.verifyToken();
-      setUser(response.user);
+      // Backend returns: { success: true, data: { user: {...} } }
+      const user = response.data?.user || response.user;
+      if (user) {
+        setUser(user);
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
       clearAuthToken();
@@ -47,13 +51,21 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const data = await api.auth.login(email, password);
+      const response = await api.auth.login(email, password);
+
+      // Backend returns: { success: true, data: { user: {...}, tokens: { accessToken, refreshToken } } }
+      const user = response.data?.user || response.user;
+      const token = response.data?.tokens?.accessToken || response.tokens?.accessToken || response.token;
 
       // Store token
-      setAuthToken(data.token);
-      setUser(data.user);
+      if (token) {
+        setAuthToken(token);
+      }
+      if (user) {
+        setUser(user);
+      }
 
-      return { success: true, user: data.user };
+      return { success: true, user };
     } catch (error) {
       console.error('Login error:', error);
       const message = error.response?.data?.message || error.message || 'Login failed';
@@ -63,16 +75,39 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
-      const data = await api.auth.register(userData);
+      const response = await api.auth.register(userData);
+
+      // Backend returns: { success: true, data: { user: {...}, tokens: { accessToken, refreshToken } } }
+      const user = response.data?.user || response.user;
+      const token = response.data?.tokens?.accessToken || response.tokens?.accessToken || response.token;
 
       // Auto login after registration
-      setAuthToken(data.token);
-      setUser(data.user);
+      if (token) {
+        setAuthToken(token);
+      }
+      if (user) {
+        setUser(user);
+      }
 
-      return { success: true, user: data.user };
+      return { success: true, user };
     } catch (error) {
       console.error('Registration error:', error);
-      const message = error.response?.data?.message || error.message || 'Registration failed';
+      
+      // Handle specific error cases
+      const status = error.response?.status;
+      const errorData = error.response?.data;
+      let message = errorData?.message || error.message || 'Registration failed';
+      
+      // Check for email/phone conflicts (409 status)
+      if (status === 409) {
+        return { 
+          success: false, 
+          error: message,
+          conflictType: errorData?.conflictType || 'email', // 'email' or 'phone'
+          conflictField: errorData?.conflictField || 'email'
+        };
+      }
+      
       return { success: false, error: message };
     }
   };

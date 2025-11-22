@@ -37,7 +37,9 @@ const register = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'An account with this email already exists. Please login or use a different email.'
+        message: 'An account with this email already exists. Please login or use a different email.',
+        conflictType: 'email',
+        conflictField: 'email'
       });
     }
 
@@ -46,7 +48,9 @@ const register = async (req, res) => {
     if (existingPhone) {
       return res.status(409).json({
         success: false,
-        message: 'This phone number is already registered. Please use a different number.'
+        message: 'This phone number is already registered. Please use a different number.',
+        conflictType: 'phone',
+        conflictField: 'phone'
       });
     }
 
