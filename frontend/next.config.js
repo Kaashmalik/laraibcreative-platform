@@ -18,6 +18,10 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
     esmExternals: true,
+    // Partial Prerendering (PPR) - Next.js 15
+    ppr: 'incremental',
+    // React Compiler support
+    reactCompiler: true,
   },
 
   // ==================================================
@@ -35,12 +39,22 @@ const nextConfig = {
       { protocol: 'https', hostname: 'laraibcreative-backend.onrender.com' },
       { protocol: 'https', hostname: 'api.laraibcreative.com' },
     ],
+    // Cloudinary loader for automatic optimization
+    loader: 'custom',
+    loaderFile: './src/lib/image-loader.ts',
     // Optimize images on-demand (ISR)
     unoptimized: false,
     // Cache optimized images for 1 year
     minimumCacheTTL: 31536000,
-    // Use AVIF format for smaller sizes
+    // Use AVIF format for smaller sizes (better compression)
     formats: ['image/avif', 'image/webp'],
+    // Device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    // Image sizes for different breakpoints
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Content Disposition
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // ==================================================
@@ -194,4 +208,9 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Bundle analyzer
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer(nextConfig);

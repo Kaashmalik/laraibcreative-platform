@@ -1070,14 +1070,86 @@ const api = {
     async getSavedMeasurements() {
       return await axios.get('/measurements');
     },
+  },
+
+  /**
+   * Measurement Profiles endpoints
+   * Multiple measurement profiles per user
+   */
+  measurementProfiles: {
+    /**
+     * Get all measurement profiles
+     * @returns {Promise<{ data: Array }>}
+     */
+    async getAll() {
+      return await axios.get('/measurement-profiles');
+    },
 
     /**
-     * Save measurements
-     * @param {Object} measurementData - Measurement data
-     * @returns {Promise<{ success: boolean, measurementId: string }>}
+     * Get single profile
+     * @param {string} id - Profile ID
+     * @returns {Promise<{ data: Object }>}
      */
-    async saveMeasurements(measurementData) {
-      return await axios.post('/measurements', measurementData);
+    async getById(id) {
+      return await axios.get(`/measurement-profiles/${id}`);
+    },
+
+    /**
+     * Get default profile
+     * @returns {Promise<{ data: Object }>}
+     */
+    async getDefault() {
+      return await axios.get('/measurement-profiles/default');
+    },
+
+    /**
+     * Create profile
+     * @param {Object} profileData - Profile data
+     * @returns {Promise<{ data: Object }>}
+     */
+    async create(profileData) {
+      return await axios.post('/measurement-profiles', profileData);
+    },
+
+    /**
+     * Update profile
+     * @param {string} id - Profile ID
+     * @param {Object} profileData - Profile data
+     * @returns {Promise<{ data: Object }>}
+     */
+    async update(id, profileData) {
+      return await axios.put(`/measurement-profiles/${id}`, profileData);
+    },
+
+    /**
+     * Delete profile
+     * @param {string} id - Profile ID
+     * @returns {Promise<{ success: boolean }>}
+     */
+    async delete(id) {
+      return await axios.delete(`/measurement-profiles/${id}`);
+    },
+  },
+
+  /**
+   * Price Calculator endpoints
+   */
+  priceCalculator: {
+    /**
+     * Calculate custom order price
+     * @param {Object} orderData - Order data
+     * @returns {Promise<{ data: PriceBreakdown }>}
+     */
+    async calculate(orderData) {
+      return await axios.post('/price-calculator/calculate', orderData);
+    },
+
+    /**
+     * Get pricing rules from settings
+     * @returns {Promise<{ data: Object }>}
+     */
+    async getPricingRules() {
+      return await axios.get('/price-calculator/rules');
     },
   },
 

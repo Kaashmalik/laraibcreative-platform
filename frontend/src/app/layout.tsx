@@ -7,18 +7,26 @@ import { CartProvider } from '@/context/CartContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
 import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
+import WhatsAppButton from '@/components/shared/WhatsAppButton'
 
-// Font configurations
+// Font configurations with optimization
+// Preload critical fonts and use local fonts for better performance
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: true,
 })
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
+  preload: true,
+  fallback: ['Georgia', 'serif'],
+  adjustFontFallback: true,
 })
 
 // Root metadata
@@ -149,10 +157,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     >
       <head>
         {/* Preconnect to external domains for performance */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'} />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        {/* Preload critical hero image if available */}
+        <link rel="preload" as="image" href="/images/hero.jpg" />
         
         {/* Structured Data for Organization */}
         <script
@@ -264,6 +272,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </CartProvider>
           </AuthProvider>
         </GlobalErrorBoundary>
+        <WhatsAppButton />
       </body>
     </html>
   )

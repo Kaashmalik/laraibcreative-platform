@@ -1,14 +1,22 @@
+import { Suspense } from 'react';
 import { generateProductMetadata } from '@/lib/seo-config';
 import { SITE_URL } from '@/lib/constants';
 import api from '@/lib/api';
 import ProductDetailClient from './ProductDetailClient';
+import ProductDetailLoading from './loading';
 
 /**
- * ISR Configuration
+ * ISR Configuration with Partial Prerendering (PPR)
  * Revalidate product pages every 3600 seconds (1 hour)
  * This ensures product data stays fresh while maintaining fast page loads
  */
 export const revalidate = 3600;
+
+/**
+ * Partial Prerendering (PPR) - Next.js 15
+ * Enables streaming for dynamic parts while keeping static shell
+ */
+export const experimental_ppr = true;
 
 /**
  * Generate static params for product pages at build time
@@ -141,9 +149,14 @@ export async function generateMetadata({ params }) {
 }
 
 /**
- * Product Detail Page - Server Component Wrapper
- * Renders client component for interactivity
+ * Product Detail Page - Server Component with Streaming
+ * Uses Suspense for progressive loading
+ * Static shell with dynamic content streamed in
  */
 export default async function ProductDetailPage({ params }) {
-  return <ProductDetailClient params={params} />;
+  return (
+    <Suspense fallback={<ProductDetailLoading />}>
+      <ProductDetailClient params={params} />
+    </Suspense>
+  );
 }

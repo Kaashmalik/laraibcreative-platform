@@ -19,7 +19,10 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "ANALYZE=true BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "ANALYZE=true BUNDLE_ANALYZE=browser next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -75,7 +78,8 @@
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.1",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "@next/bundle-analyzer": "^14.2.15"
   },
   "engines": {
     "node": "22.x",

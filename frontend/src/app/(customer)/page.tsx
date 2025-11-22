@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import HomePageClient from './HomePageClient';
+import HomePageLoading from './loading';
 import api from '@/lib/api';
 import { SITE_URL } from '@/lib/constants';
 import { generateOrganizationStructuredData } from '@/lib/seo-config';
@@ -107,11 +109,13 @@ export default async function HomePage(): Promise<JSX.Element> {
             __html: JSON.stringify(organizationSchema),
           }}
         />
-        <HomePageClient
-          featuredProducts={featuredProducts}
-          categories={categories}
-          testimonials={[]} // Add when testimonials API is available
-        />
+        <Suspense fallback={<HomePageLoading />}>
+          <HomePageClient
+            featuredProducts={featuredProducts}
+            categories={categories}
+            testimonials={[]} // Add when testimonials API is available
+          />
+        </Suspense>
       </>
     );
   } catch (error: unknown) {
@@ -130,11 +134,13 @@ export default async function HomePage(): Promise<JSX.Element> {
             __html: JSON.stringify(organizationSchema),
           }}
         />
-        <HomePageClient
-          featuredProducts={[]}
-          categories={[]}
-          testimonials={[]}
-        />
+        <Suspense fallback={<HomePageLoading />}>
+          <HomePageClient
+            featuredProducts={[]}
+            categories={[]}
+            testimonials={[]}
+          />
+        </Suspense>
       </>
     );
   }
