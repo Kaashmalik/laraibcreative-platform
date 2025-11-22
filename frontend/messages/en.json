@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "shipping": "Shipping",
+    "discount": "Discount"
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "categories": "Categories",
+    "customOrder": "Custom Order",
+    "account": "Account",
+    "cart": "Cart",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "product": {
+    "title": "Products",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "description": "Description",
+    "specifications": "Specifications",
+    "reviews": "Reviews",
+    "related": "Related Products"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "checkout": "Checkout",
+    "continueShopping": "Continue Shopping"
+  },
+  "account": {
+    "title": "My Account",
+    "orders": "Orders",
+    "profile": "Profile",
+    "addresses": "Addresses",
+    "measurements": "Measurements",
+    "referrals": "Referrals",
+    "loyalty": "Loyalty Points"
+  },
+  "referral": {
+    "title": "Refer & Earn",
+    "code": "Your Referral Code",
+    "share": "Share",
+    "copy": "Copy",
+    "stats": "Statistics",
+    "totalReferrals": "Total Referrals",
+    "completed": "Completed",
+    "totalEarned": "Total Earned"
+  },
+  "loyalty": {
+    "title": "Loyalty Points",
+    "balance": "Current Balance",
+    "totalEarned": "Total Earned",
+    "totalRedeemed": "Total Redeemed",
+    "redeem": "Redeem Points",
+    "transactions": "Transaction History"
+  }
+}
+

@@ -10,6 +10,8 @@ import { orderRouter } from './order';
 import { measurementProfileRouter } from './measurementProfile';
 import { priceCalculatorRouter } from './priceCalculator';
 import { productionQueueRouter } from './productionQueue';
+import { referralRouter } from './referral';
+import { loyaltyRouter } from './loyalty';
 
 export const appRouter = router({
   auth: authRouter,
@@ -18,6 +20,8 @@ export const appRouter = router({
   measurementProfile: measurementProfileRouter,
   priceCalculator: priceCalculatorRouter,
   productionQueue: productionQueueRouter,
+  referral: referralRouter,
+  loyalty: loyaltyRouter,
 });
 
 export type AppRouter = typeof appRouter;

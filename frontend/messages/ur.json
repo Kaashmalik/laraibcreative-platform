@@ -1,0 +1,78 @@
+{
+  "common": {
+    "welcome": "خوش آمدید",
+    "loading": "لوڈ ہو رہا ہے...",
+    "error": "خرابی",
+    "success": "کامیابی",
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ کریں",
+    "delete": "حذف کریں",
+    "edit": "ترمیم",
+    "add": "شامل کریں",
+    "search": "تلاش",
+    "filter": "فلٹر",
+    "sort": "ترتیب",
+    "price": "قیمت",
+    "quantity": "مقدار",
+    "total": "کل",
+    "subtotal": "ذیلی کل",
+    "tax": "ٹیکس",
+    "shipping": "شپنگ",
+    "discount": "رعایت"
+  },
+  "nav": {
+    "home": "ہوم",
+    "products": "مصنوعات",
+    "categories": "اقسام",
+    "customOrder": "کسٹم آرڈر",
+    "account": "اکاؤنٹ",
+    "cart": "ٹوکری",
+    "login": "لاگ ان",
+    "logout": "لاگ آؤٹ"
+  },
+  "product": {
+    "title": "مصنوعات",
+    "addToCart": "ٹوکری میں شامل کریں",
+    "buyNow": "ابھی خریدیں",
+    "inStock": "دستیاب",
+    "outOfStock": "دستیاب نہیں",
+    "description": "تفصیل",
+    "specifications": "تفصیلات",
+    "reviews": "جائزے",
+    "related": "متعلقہ مصنوعات"
+  },
+  "cart": {
+    "title": "خریداری کی ٹوکری",
+    "empty": "آپ کی ٹوکری خالی ہے",
+    "checkout": "چیک آؤٹ",
+    "continueShopping": "خریداری جاری رکھیں"
+  },
+  "account": {
+    "title": "میرا اکاؤنٹ",
+    "orders": "آرڈرز",
+    "profile": "پروفائل",
+    "addresses": "پتے",
+    "measurements": "پیمائش",
+    "referrals": "حوالہ جات",
+    "loyalty": "وفاداری پوائنٹس"
+  },
+  "referral": {
+    "title": "حوالہ دیں اور کمائیں",
+    "code": "آپ کا حوالہ کوڈ",
+    "share": "شیئر کریں",
+    "copy": "کاپی کریں",
+    "stats": "اعداد و شمار",
+    "totalReferrals": "کل حوالہ جات",
+    "completed": "مکمل",
+    "totalEarned": "کل کمائی"
+  },
+  "loyalty": {
+    "title": "وفاداری پوائنٹس",
+    "balance": "موجودہ بیلنس",
+    "totalEarned": "کل کمائی",
+    "totalRedeemed": "کل استعمال",
+    "redeem": "پوائنٹس استعمال کریں",
+    "transactions": "لین دین کی تاریخ"
+  }
+}
+
