@@ -47,15 +47,33 @@
 - **File**: `backend/src/models/LoyaltyPoints.js`
 - **Features**: 1 point = Rs.1, tier system, expiry management
 
+## ✅ Completed (Phase 2: Operations)
+
+### 8. Production Queue Dashboard ✅
+- **Status**: Complete
+- **Files**: 
+  - Model (`backend/src/models/ProductionQueue.js`)
+  - Controller (`backend/src/controllers/productionQueueController.js`)
+  - Routes (`backend/src/routes/productionQueue.routes.js`)
+  - Dashboard (`frontend/src/app/(admin)/production-queue/page.tsx`)
+  - tRPC router (`frontend/src/server/routers/productionQueue.ts`)
+- **Features**: Drag-drop Kanban, bulk actions, tailor assignment, status tracking
+
+### 9. Referral System (Controllers) ✅
+- **Status**: Complete
+- **Files**: Controller, routes
+- **Features**: Code generation, application, completion, dual rewards
+
+### 10. Loyalty Points System (Controllers) ✅
+- **Status**: Complete
+- **Files**: Controller, routes
+- **Features**: Account management, transactions, redemption, point awarding
+
 ## 🚧 In Progress
 
-### 8. Production Queue Dashboard
-- **Status**: Pending
-- **Needed**: Drag-drop component, admin UI, bulk actions
-
-### 9. Express to tRPC Migration
-- **Status**: Pending
-- **Needed**: Migrate all routes, connect to controllers
+### 11. Express to tRPC Migration
+- **Status**: Partial (Auth router enhanced)
+- **Needed**: Migrate remaining routes, connect to controllers
 
 ### 10. Remove React Context
 - **Status**: In Progress
@@ -78,15 +96,17 @@
 
 ## 📊 Progress Summary
 
-**Completed**: 7/16 tasks (44%)
+**Completed**: 11/16 tasks (69%)
 - ✅ Infrastructure: tRPC, Zustand, Analytics
-- ✅ Models: Tailor, Fabric, Referral, Loyalty
+- ✅ Models: Tailor, Fabric, Referral, Loyalty, ProductionQueue
+- ✅ Controllers: Production Queue, Referral, Loyalty
+- ✅ Dashboard: Production Queue with drag-drop
 
 **In Progress**: 1/16 tasks (6%)
-- 🚧 Context removal
+- 🚧 Express to tRPC migration (partial)
 
-**Pending**: 8/16 tasks (50%)
-- 📋 Production queue, Migration, Marketing, i18n, Monitoring
+**Pending**: 4/16 tasks (25%)
+- 📋 Marketing features, i18n, Monitoring
 
 ## 🚀 Next Steps (Priority Order)
 
