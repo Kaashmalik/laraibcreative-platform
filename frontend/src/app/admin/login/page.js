@@ -20,9 +20,13 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setError('');
 
+    console.log('🔐 Attempting admin login...', { email: credentials.email });
+
     try {
       // Call admin login endpoint
+      console.log('📡 Calling API:', 'POST /api/v1/auth/admin-login');
       const response = await api.auth.adminLogin(credentials.email, credentials.password);
+      console.log('✅ API Response:', response);
       
       if (response.data?.success) {
         const { user, tokens } = response.data.data;
@@ -50,7 +54,12 @@ export default function AdminLoginPage() {
         toast.error(errorMessage);
       }
     } catch (err) {
-      console.error('Admin login error:', err);
+      console.error('❌ Admin login error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       const errorMessage = err.response?.data?.message || 'Invalid email or password.';
       setError(errorMessage);
       toast.error(errorMessage);
