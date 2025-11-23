@@ -11,25 +11,25 @@ export const revalidate = 1800;
 
 /**
  * Generate static params for category pages at build time
- * Pre-generates pages for active categories
+ * TEMPORARILY DISABLED: Backend deployment pending on Render
+ * Pages will be generated on-demand via ISR (revalidate: 1800s)
  */
 export async function generateStaticParams() {
+  // Return empty array - all pages generated on-demand until backend is available
+  return [];
+  
+  /* Uncomment when backend is deployed and stable:
   try {
-    // Fetch all active categories to pre-generate
     const response = await api.categories.getAll();
     const categories = response?.data || response || [];
-    
-    // Return array of params for static generation
     return categories
       .filter(category => category.slug && category.isActive !== false)
-      .map((category) => ({
-        slug: category.slug,
-      }));
+      .map((category) => ({ slug: category.slug }));
   } catch (error) {
     console.error('Error generating static params for categories:', error);
-    // Return empty array on error - pages will be generated on-demand
     return [];
   }
+  */
 }
 
 /**

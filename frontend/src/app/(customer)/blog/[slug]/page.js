@@ -18,33 +18,27 @@ export const dynamicParams = true;
 
 /**
  * Generate static params for blog posts at build time
- * Pre-generates pages for published blog posts
+ * TEMPORARILY DISABLED: Backend deployment pending on Render
+ * Pages will be generated on-demand via ISR (revalidate: 86400s)
  */
 export async function generateStaticParams() {
+  // Return empty array - all pages generated on-demand until backend is available
+  return [];
+  
+  /* Uncomment when backend is deployed and stable:
   try {
-    // Fetch all published blog posts to pre-generate
-    const response = await api.blog.getAll({ 
-      limit: 100, // Get up to 100 blog posts
-      page: 1 
-    });
-    
+    const response = await api.blog.getAll({ limit: 100, page: 1 });
     const posts = response?.data?.blogs || response?.blogs || response || [];
-    
-    // Return array of params for static generation
     return posts
       .filter(post => post.slug && post.status === 'published')
-      .map((post) => ({
-        slug: post.slug,
-      }));
+      .map((post) => ({ slug: post.slug }));
   } catch (error) {
-    // Silently handle API errors during build - pages will be generated on-demand
-    // Only log in development to avoid build failures
     if (process.env.NODE_ENV === 'development') {
       console.warn('Blog API not available during build. Pages will be generated on-demand:', error.message);
     }
-    // Return empty array on error - pages will be generated on-demand via ISR
     return [];
   }
+  */
 }
 
 /**

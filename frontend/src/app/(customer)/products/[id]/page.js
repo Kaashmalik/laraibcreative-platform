@@ -20,26 +20,28 @@ export const experimental_ppr = true;
 
 /**
  * Generate static params for product pages at build time
- * Pre-generates pages for popular products, others generated on-demand
+ * TEMPORARILY DISABLED: Backend deployment pending on Render
+ * Pages will be generated on-demand via ISR (revalidate: 3600s)
  */
 export async function generateStaticParams() {
+  // Return empty array - all pages generated on-demand until backend is available
+  return [];
+  
+  /* Uncomment when backend is deployed and stable:
   try {
-    // Fetch featured/popular products to pre-generate
     const response = await api.products.getFeatured(50);
     const products = response?.products || response?.data?.products || response || [];
-    
-    // Return array of params for static generation
     return products
       .filter(product => product._id || product.id || product.slug)
       .map((product) => ({
         id: product.slug || product._id?.toString() || product.id?.toString(),
       }))
-      .slice(0, 50); // Limit to 50 most popular products
+      .slice(0, 50);
   } catch (error) {
     console.error('Error generating static params for products:', error);
-    // Return empty array on error - pages will be generated on-demand
     return [];
   }
+  */
 }
 
 /**
