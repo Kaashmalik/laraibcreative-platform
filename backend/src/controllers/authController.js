@@ -808,6 +808,64 @@ const adminLogin = async (req, res) => {
   }
 };
 
+/**
+ * Update user profile
+ * @route PUT /api/auth/profile
+ * @access Private
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { fullName, phone } = req.body;
+    const userId = req.user._id;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update fields
+    if (fullName) user.fullName = fullName;
+    if (phone) {
+      // Check if phone is already taken by another user
+      const existingPhone = await User.findOne({ phone, _id: { $ne: userId } });
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: 'This phone number is already registered to another account'
+        });
+      }
+      user.phone = phone;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          emailVerified: user.emailVerified
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile. Please try again later.'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -819,5 +877,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getCurrentUser,
-  changePassword
+  changePassword,
+  updateProfile
 };

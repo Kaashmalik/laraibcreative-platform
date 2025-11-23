@@ -11,6 +11,7 @@ const {
   resetPassword,
   getCurrentUser,
   changePassword,
+  updateProfile,
   adminLogin
 } = require('../controllers/authController');
 const { protect, verifyRefreshToken, admin } = require('../middleware/auth.middleware');
@@ -28,6 +29,7 @@ router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.get('/me', protect, getCurrentUser);
+router.put('/profile', protect, updateProfile);
 router.put('/change-password', protect, changePassword);
 
 module.exports = router;

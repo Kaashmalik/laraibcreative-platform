@@ -26,6 +26,9 @@ const api = {
     async verifyToken() {
       return await axios.get('/auth/me');
     },
+    async updateProfile(profileData) {
+      return await axios.put('/auth/profile', profileData);
+    },
     async refreshToken() {
       return await axios.post('/auth/refresh-token');
     },
@@ -36,7 +39,7 @@ const api = {
       return await axios.post('/auth/reset-password', { token, password });
     },
     async changePassword(currentPassword, newPassword) {
-      return await axios.post('/auth/change-password', { 
+      return await axios.put('/auth/change-password', { 
         currentPassword, 
         newPassword 
       });
