@@ -10,7 +10,7 @@
 const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
-const { authenticate, adminOnly } = require('../middleware/auth.middleware');
+const { protect, adminOnly } = require('../middleware/auth.middleware');
 const { uploadSingle } = require('../middleware/upload.middleware');
 
 // ==================== PUBLIC ROUTES ====================
@@ -45,7 +45,7 @@ router.get('/slug/:slug', categoryController.getCategoryBySlug);
  */
 router.post(
   '/',
-  authenticate,
+  protect,
   adminOnly,
   uploadSingle('image'),
   categoryController.createCategory
@@ -58,7 +58,7 @@ router.post(
  */
 router.put(
   '/:id',
-  authenticate,
+  protect,
   adminOnly,
   uploadSingle('image'),
   categoryController.updateCategory
@@ -71,7 +71,7 @@ router.put(
  */
 router.delete(
   '/:id',
-  authenticate,
+  protect,
   adminOnly,
   categoryController.deleteCategory
 );

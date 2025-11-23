@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const productionQueueController = require('../controllers/productionQueueController');
-const { authenticate, adminOnly } = require('../middleware/auth.middleware');
+const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 // All routes require authentication and admin access
-router.use(authenticate);
+router.use(protect);
 router.use(adminOnly);
 
 /**

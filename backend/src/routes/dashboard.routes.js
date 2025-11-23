@@ -7,10 +7,10 @@ const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
 const analyticsController = require('../controllers/analyticsController');
-const { authenticate, adminOnly } = require('../middleware/auth.middleware');
+const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 // All dashboard routes require admin authentication
-router.use(authenticate, adminOnly);
+router.use(protect, adminOnly);
 
 /**
  * @route GET /api/admin/dashboard

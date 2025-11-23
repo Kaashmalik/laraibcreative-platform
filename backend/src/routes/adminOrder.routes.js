@@ -9,10 +9,10 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
-const { authenticate, adminOnly } = require('../middleware/auth.middleware');
+const { protect, adminOnly } = require('../middleware/auth.middleware');
 
 // All routes require admin authentication
-router.use(authenticate, adminOnly);
+router.use(protect, adminOnly);
 
 /**
  * @route   GET /api/v1/admin/orders

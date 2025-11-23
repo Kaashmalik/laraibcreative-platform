@@ -35,10 +35,10 @@ router.post(
 
 /**
  * @route   GET /api/v1/admin/products/:id/edit
- * @desc    Get product data for editing
+const { protect, adminOnly } = require('../middleware/auth.middleware');
  * @access  Private (Admin)
  */
-router.get('/:id/edit', productController.getProductForEdit);
+router.use(protect, adminOnly);
 
 /**
  * @route   PUT /api/v1/admin/products/:id
