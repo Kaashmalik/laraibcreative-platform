@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,7 +21,7 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 import { useCart } from '@/context/CartContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useScrollDirection } from '@/hooks/useScrollDirection';

@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * Success Confirmation Component
  * Displays order confirmation with order number and next steps
@@ -9,7 +10,7 @@
 
 import { CheckCircle, ShoppingBag, Package, MessageSquare, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+// import Link from 'next/link'; // Unused for now
 
 interface SuccessConfirmationProps {
   orderNumber: string;
@@ -20,7 +21,7 @@ interface SuccessConfirmationProps {
 
 export default function SuccessConfirmation({
   orderNumber,
-  orderId,
+  orderId: _orderId, // Reserved for future use
   onContinueShopping,
   onViewOrder,
 }: SuccessConfirmationProps) {

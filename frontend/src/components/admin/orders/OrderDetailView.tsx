@@ -5,10 +5,11 @@
 
 'use client';
 
+
 import Image from 'next/image';
 import { Package, Ruler, Image as ImageIcon, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type { Order } from '@/types/order-management';
 
 interface OrderDetailViewProps {

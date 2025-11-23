@@ -1,14 +1,14 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 import Link from 'next/link';
 import { Eye, EyeOff, CheckCircle, XCircle, Mail, AlertCircle } from 'lucide-react';
 import { checkPasswordStrength, getStrengthColor, getStrengthTextColor } from '@/lib/passwordStrength';
 import { registerSchema } from '@/lib/validations';
-
-export const dynamic = 'force-dynamic';
 
 export default function RegisterPage() {
   const { register: registerUser, loading, isAuthenticated } = useAuth();

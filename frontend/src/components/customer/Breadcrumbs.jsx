@@ -1,4 +1,5 @@
 'use client';
+
 import Link from 'next/link';
 import { Home, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';

@@ -1,9 +1,10 @@
 'use client';
 
+
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, X } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import ProductCard from '@/components/customer/ProductCard';
 import ProductFilters from '@/components/customer/ProductFilters';
 import MobileFilterDrawer from '@/components/customer/MobileFilterDrawer';

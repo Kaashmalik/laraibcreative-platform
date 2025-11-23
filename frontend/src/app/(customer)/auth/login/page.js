@@ -1,11 +1,11 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 import Link from 'next/link';
-
-export const dynamic = 'force-dynamic';
 
 function LoginForm() {
   const { login, loading, isAuthenticated } = useAuth();
@@ -22,13 +22,18 @@ function LoginForm() {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-    const result = await login(email, password);
-    if (result.success) {
-      router.replace(returnUrl);
-    } else {
-      setError(result.error || 'Login failed');
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        router.replace(returnUrl);
+      } else {
+        setError(result.error || 'Login failed');
+      }
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   if (isAuthenticated) {

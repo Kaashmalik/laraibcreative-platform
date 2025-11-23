@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * CartSummary Component - Production Ready
  * Order summary with pricing breakdown, promo code, and checkout CTA
@@ -31,7 +32,7 @@ export default function CartSummary() {
     promoCode,
     applyPromoCode,
     removePromoCode,
-    calculateShipping,
+    calculateShipping: _calculateShipping,
     isLoading,
   } = useCart();
 

@@ -1,7 +1,6 @@
 'use client';
 
 // components/customer/OrderStatusWidget.jsx
-'use client';
 
 import { Package, CheckCircle, Clock, Truck } from 'lucide-react';
 

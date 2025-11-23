@@ -5,7 +5,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 

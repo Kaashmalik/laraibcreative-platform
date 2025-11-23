@@ -1,7 +1,6 @@
 'use client';
 
 // components/customer/RatingStars.jsx
-'use client';
 
 /**
  * RatingStars Component

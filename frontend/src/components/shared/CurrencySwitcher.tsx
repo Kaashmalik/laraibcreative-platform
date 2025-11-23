@@ -5,9 +5,9 @@
 
 'use client';
 
+
 import { useState, useEffect } from 'react';
 import { DollarSign } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
 
 const currencies = {
   PKR: { symbol: 'Rs.', name: 'Pakistani Rupee', rate: 1 },

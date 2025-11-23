@@ -5,9 +5,10 @@
 
 'use client';
 
+
 import { useState } from 'react';
 import Image from 'next/image';
-import { Heart, Upload, CheckCircle, X } from 'lucide-react';
+import { Heart, Upload, X } from 'lucide-react';
 import type { Product } from '@/types/product';
 
 interface CustomerPhoto {
@@ -199,8 +200,8 @@ function PhotoModal({
  * Photo Upload Modal Component
  */
 function PhotoUploadModal({
-  productId,
-  product,
+  productId: _productId,
+  product: _product,
   onClose,
   onSuccess
 }: {

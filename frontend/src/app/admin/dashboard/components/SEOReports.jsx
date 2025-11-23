@@ -12,6 +12,7 @@
 
 'use client';
 
+
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Search, Globe, Eye, Clock, Users } from 'lucide-react';
 import Badge from '@/components/ui/Badge';

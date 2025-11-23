@@ -1,13 +1,14 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, XCircle, Mail, Loader2, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 
-export const dynamic = 'force-dynamic';
 
 function VerifyEmailContent() {
   const router = useRouter();

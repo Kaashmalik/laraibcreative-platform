@@ -2,7 +2,7 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
 import { ReactNode } from 'react'
 import './globals.css'
-import { AuthProvider } from '@/context/AuthContext'
+// AuthProvider removed - using Zustand store which doesn't need a provider
 import { CartProvider } from '@/context/CartContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
@@ -192,9 +192,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         suppressHydrationWarning
       >
         <GlobalErrorBoundary>
-          <AuthProvider>
-            <CartProvider>
-              <ThemeProvider>
+          <CartProvider>
+            <ThemeProvider>
                 <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
                   Skip to content
                 </a>
@@ -262,7 +261,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
               )}
               </ThemeProvider>
             </CartProvider>
-          </AuthProvider>
         </GlobalErrorBoundary>
       </body>
     </html>

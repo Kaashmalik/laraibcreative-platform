@@ -18,10 +18,8 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
     esmExternals: true,
-    // Partial Prerendering (PPR) - Next.js 15
-    ppr: 'incremental',
-    // React Compiler support
-    reactCompiler: true,
+    // Partial Prerendering (PPR) - Only available in Next.js 15 canary
+    // ppr: true, // Disabled for Next.js 14 compatibility
   },
 
   // ==================================================

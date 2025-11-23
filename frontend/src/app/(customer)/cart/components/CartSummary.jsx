@@ -6,7 +6,7 @@
  * @location src/app/(customer)/cart/components/CartSummary.jsx
  */
 
-'use client';
+
 
 import { useState } from 'react';
 import Link from 'next/link';

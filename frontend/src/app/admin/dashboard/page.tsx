@@ -28,7 +28,7 @@ import QuickActions from './components/QuickActions';
 import DateRangePicker from './components/DateRangePicker';
 import ExportButton from './components/ExportButton';
 import type { DateRange } from '@/types/dashboard';
-import { RefreshCw, Download, Calendar } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -321,4 +321,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

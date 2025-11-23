@@ -1,6 +1,5 @@
 'use client';
 
-
 /**
  * Avatar Component
  * 

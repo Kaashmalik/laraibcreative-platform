@@ -1,7 +1,8 @@
 'use client';
 
+
 import React from 'react';
-import type { Product, ProductStructuredDataInput } from '@/types/product';
+import type { ProductStructuredDataInput } from '@/types/product';
 import { SITE_URL } from '@/lib/constants';
 
 /**

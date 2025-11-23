@@ -1,7 +1,7 @@
 "use client";
 
 // app/(customer)/track-order/[orderNumber]/page.js
-'use client';
+
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';

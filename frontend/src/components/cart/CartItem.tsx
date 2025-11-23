@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * CartItem Component - Production Ready
  * Individual cart item with quantity controls, customization details, and remove functionality

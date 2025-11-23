@@ -147,7 +147,7 @@ export const authRouter = router({
    */
   logout: protectedProcedure.mutation(async ({ ctx }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/logout`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

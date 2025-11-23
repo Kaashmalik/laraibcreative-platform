@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { router, publicProcedure, adminProcedure } from '../trpc';
+import { router, publicProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
 const productFilterSchema = z.object({

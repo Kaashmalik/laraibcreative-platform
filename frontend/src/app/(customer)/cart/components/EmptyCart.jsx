@@ -6,6 +6,7 @@
 
 'use client';
 
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, ArrowRight, Sparkles } from 'lucide-react';

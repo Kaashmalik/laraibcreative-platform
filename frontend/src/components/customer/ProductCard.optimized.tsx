@@ -5,12 +5,13 @@
 
 'use client';
 
+
 // @react-compiler
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import type { Product } from '@/types/product';
 import { generateBlurPlaceholder } from '@/lib/image-loader';
 
@@ -32,7 +33,10 @@ export default function ProductCard({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const productImage = product.primaryImage || product.images?.[0] || '/images/placeholder.png';
+  const productImageRaw = product.primaryImage || product.images?.[0] || '/images/placeholder.png';
+  const productImage = typeof productImageRaw === 'string' 
+    ? productImageRaw 
+    : (productImageRaw as any)?.url || '/images/placeholder.png';
   const productTitle = product.title || product.name || 'Product';
   const productPrice = product.pricing?.basePrice || product.price || 0;
   const productId = product._id || product.id;

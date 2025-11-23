@@ -77,13 +77,31 @@ const initialState = {
   error: null,
 };
 
-export const usePriceCalculator = create<PriceCalculatorState>((set, get) => ({
-  ...initialState,
+export const usePriceCalculator = typeof window === 'undefined'
+  ? // Server-side: return mock
+    ((selector?: any) => {
+      const defaultState: PriceCalculatorState = {
+        ...initialState,
+        setServiceType: () => {},
+        setFabric: () => {},
+        setEmbroidery: () => {},
+        addAddOn: () => {},
+        removeAddOn: () => {},
+        setRushOrder: () => {},
+        setMeasurements: () => {},
+        calculatePrice: async () => {},
+        reset: () => {},
+      };
+      return selector ? selector(defaultState) : defaultState;
+    }) as any
+  : // Client-side: create actual store
+    create<PriceCalculatorState>((set, get) => ({
+      ...initialState,
 
-  setServiceType: (type) => {
-    set({ serviceType: type });
-    get().calculatePrice();
-  },
+      setServiceType: (type) => {
+        set({ serviceType: type });
+        get().calculatePrice();
+      },
 
   setFabric: (fabric) => {
     set({ fabric });

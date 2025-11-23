@@ -17,7 +17,7 @@ import {
   Settings,
   MessageCircle
 } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import useAuth from '@/hooks/useAuth'
 import { useCart } from '@/context/CartContext'
 import MobileMenu from './MobileMenu'
 import SearchBar from './SearchBar'

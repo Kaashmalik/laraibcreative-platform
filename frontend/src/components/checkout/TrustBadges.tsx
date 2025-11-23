@@ -7,6 +7,7 @@
 
 'use client';
 
+
 export default function TrustBadges() {
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 mb-6">

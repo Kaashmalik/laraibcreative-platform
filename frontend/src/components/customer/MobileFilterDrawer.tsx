@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Filter } from 'lucide-react';
 import { useFilters } from '@/hooks/useFilters';
@@ -63,16 +64,16 @@ export default function MobileFilterDrawer({
 
   // Close on escape key
   useEffect(() => {
+    if (!isOpen) return;
+    
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
   return (

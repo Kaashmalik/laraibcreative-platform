@@ -5,6 +5,7 @@
 
 'use client';
 
+
 import { useLocale } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { locales, localeNames } from '@/i18n/config';

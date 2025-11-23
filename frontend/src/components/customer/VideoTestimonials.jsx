@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState } from 'react';
 import { Play, X, Star, MapPin, Calendar, CheckCircle } from 'lucide-react';
 

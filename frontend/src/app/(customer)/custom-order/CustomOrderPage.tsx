@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * Custom Order Wizard - Main Page
  * Production-ready multi-step custom order wizard
@@ -206,9 +207,10 @@ function CustomOrderPage() {
         localStorage.removeItem('laraibcreative-custom-order-draft');
         
         // Trigger WhatsApp notification (if phone provided)
-        if (formData.customerInfo.phone) {
-          triggerWhatsAppNotification(response.orderNumber, formData.customerInfo.phone);
-        }
+        // TODO: Implement WhatsApp notification
+        // if (formData.customerInfo.phone) {
+        //   triggerWhatsAppNotification(response.orderNumber, formData.customerInfo.phone);
+        // }
 
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -225,20 +227,19 @@ function CustomOrderPage() {
 
   /**
    * Trigger WhatsApp notification
+   * TODO: Implement WhatsApp notification
    */
-  const triggerWhatsAppNotification = (orderNumber: string, phone: string) => {
-    const whatsappNumber = formData.customerInfo.whatsapp || phone;
-    const message = encodeURIComponent(
-      `Thank you for your custom order! Your order number is ${orderNumber}. We'll contact you soon with more details.`
-    );
-    const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
-    
-    // Open WhatsApp in new tab (optional)
-    // window.open(whatsappUrl, '_blank');
-    
-    // Or trigger backend notification
-    // api.notifications.sendWhatsApp({ phone: whatsappNumber, message });
-  };
+  // const triggerWhatsAppNotification = (orderNumber: string, phone: string) => {
+  //   const whatsappNumber = formData.customerInfo.whatsapp || phone;
+  //   const message = encodeURIComponent(
+  //     `Thank you for your custom order! Your order number is ${orderNumber}. We'll contact you soon with more details.`
+  //   );
+  //   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${message}`;
+  //   // Open WhatsApp in new tab (optional)
+  //   // window.open(whatsappUrl, '_blank');
+  //   // Or trigger backend notification
+  //   // api.notifications.sendWhatsApp({ phone: whatsappNumber, message });
+  // };
 
   /**
    * Render current step component

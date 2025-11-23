@@ -1,8 +1,9 @@
 'use client';
 
+
 import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useFilters } from '@/hooks/useFilters';
 import type { ProductFilters as ProductFiltersType, FilterOption } from '@/types/filters';
 

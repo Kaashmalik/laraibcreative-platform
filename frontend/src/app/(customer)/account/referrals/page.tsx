@@ -5,13 +5,15 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Copy, Share2, Gift, Users, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ReferralsPage() {
-  const [copied, setCopied] = useState(false);
+  const [, setCopied] = useState(false);
   
   const { data: referralData, isLoading } = trpc.referral.getCode.useQuery();
   const { data: stats } = trpc.referral.getStats.useQuery();

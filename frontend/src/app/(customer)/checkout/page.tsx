@@ -7,6 +7,8 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
@@ -22,6 +24,7 @@ import { checkoutFormSchema, type CheckoutFormInput, type CustomerInfoInput } fr
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import type { OrderSubmissionResponse } from '@/types/checkout';
+import type { CartItem } from '@/types/cart';
 
 const CHECKOUT_STEPS: Array<{ number: number; title: string }> = [
   { number: 1, title: 'Customer Info' },
@@ -189,12 +192,12 @@ export default function CheckoutPage() {
   /**
    * Navigate to specific step
    */
-  const goToStep = (step: number) => {
-    if (step >= 1 && step <= CHECKOUT_STEPS.length && step <= currentStep) {
-      setCurrentStep(step);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
+  // const goToStep = (step: number) => {
+  //   if (step >= 1 && step <= CHECKOUT_STEPS.length && step <= currentStep) {
+  //     setCurrentStep(step);
+  //     window.scrollTo({ top: 0, behavior: 'smooth' });
+  //   }
+  // };
 
   /**
    * Submit order
@@ -221,7 +224,7 @@ export default function CheckoutPage() {
       const validatedData = validationResult.data;
 
       // Prepare order items from cart
-      const orderItems = items.map(item => ({
+      const orderItems = items.map((item: CartItem) => ({
         product: item.productId,
         quantity: item.quantity,
         isCustom: item.isCustom || false,
@@ -433,7 +436,7 @@ export default function CheckoutPage() {
                   onSubmit={handleSubmitOrder}
                   isSubmitting={isSubmitting}
                   cartData={{
-                    items: items.map(item => ({
+                    items: items.map((item: CartItem) => ({
                       id: item.id,
                       title: item.product.name || 'Product',
                       image: item.product.image || '',

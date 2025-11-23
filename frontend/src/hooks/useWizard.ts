@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { CustomOrderFormData, WizardState, PriceBreakdown } from '@/types/custom-order';
+import type { CustomOrderFormData, PriceBreakdown } from '@/types/custom-order';
 import { validateStep } from '@/lib/validations/custom-order-schemas';
 import { calculatePriceBreakdown } from '@/lib/utils/price-calculation';
 import { saveDraft, loadDraft, clearDraft } from '@/lib/utils/draft-manager';

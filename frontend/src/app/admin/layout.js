@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Head from 'next/head';
@@ -10,7 +12,6 @@ import useAuth from '@/hooks/useAuth';
 import ProtectedRoute from '@/components/shared/ProtectedRoute';
 
 // Disable static generation for all admin pages
-export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();

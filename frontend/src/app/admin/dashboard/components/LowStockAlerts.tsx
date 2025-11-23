@@ -5,6 +5,7 @@
 
 'use client';
 
+
 import Link from 'next/link';
 import { AlertTriangle, Package } from 'lucide-react';
 import type { LowStockAlert } from '@/types/dashboard';

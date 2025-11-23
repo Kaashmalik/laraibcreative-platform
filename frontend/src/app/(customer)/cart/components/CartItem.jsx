@@ -6,7 +6,7 @@
  * @location src/app/(customer)/cart/components/CartItem.jsx
  */
 
-'use client';
+
 
 import { useState } from 'react';
 import Image from 'next/image';

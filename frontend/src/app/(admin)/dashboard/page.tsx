@@ -5,11 +5,12 @@
 
 'use client';
 
+
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { 
   DollarSign, Users, ShoppingCart, TrendingUp, 
-  Package, AlertCircle, RefreshCw 
+  AlertCircle, RefreshCw 
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -197,7 +198,10 @@ export default function DashboardPage() {
             System Alerts
           </h3>
           <button
-            onClick={() => trpc.alerts.checkAll.mutate()}
+            onClick={() => {
+              // TODO: Implement alert check mutation
+              console.log('Run alert checks');
+            }}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
           >
             Run Checks

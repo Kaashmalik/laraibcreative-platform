@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { useState } from 'react';
 import { Mail, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 

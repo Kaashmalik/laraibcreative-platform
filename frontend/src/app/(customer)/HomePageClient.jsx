@@ -1,5 +1,6 @@
 'use client';
 
+
 import { Suspense } from 'react';
 import Link from 'next/link';
 import dynamicImport from 'next/dynamic';

@@ -5,10 +5,11 @@
 
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
+import type { CartStore, CartItem } from '@/types/cart';
 
 export function useFacebookConversion() {
-  const user = useAuthStore((state) => state.user);
-  const cart = useCartStore((state) => state);
+  const user = useAuthStore((state: any) => state.user);
+  const cart = useCartStore((state: CartStore) => state);
 
   const getUserData = () => {
     if (!user) return undefined;
@@ -34,7 +35,7 @@ export function useFacebookConversion() {
           customData: {
             currency,
             value,
-            contentIds: cart.items.map((item) => item.productId),
+            contentIds: cart.items.map((item: CartItem) => item.productId),
             contentType: 'product',
           },
           eventSourceUrl: window.location.href,
@@ -82,7 +83,7 @@ export function useFacebookConversion() {
           customData: {
             currency,
             value: cart.subtotal,
-            contentIds: cart.items.map((item) => item.productId),
+            contentIds: cart.items.map((item: CartItem) => item.productId),
             contentType: 'product',
           },
           eventSourceUrl: window.location.href,

@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -23,7 +24,7 @@ import {
   MessageCircle,
   Settings
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 import type { MobileMenuProps } from '@/types/navigation';
 
 interface User {
@@ -82,16 +83,16 @@ export default function MobileMenu({ isOpen, onClose, navLinks }: MobileMenuProp
 
   // Close menu on escape key
   useEffect(() => {
+    if (!isOpen) return;
+    
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
   // Focus trap - keep focus within menu when open

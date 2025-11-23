@@ -1,5 +1,6 @@
 'use client';
 
+
 export default function PaymentMethod({ formData, updateFormData, onNext, onBack }) {
   const handleSubmit = (e) => {
     e.preventDefault();

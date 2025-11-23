@@ -80,10 +80,10 @@ export default async function HomePage(): Promise<JSX.Element> {
       api.categories.getAll().catch(() => ({ data: [] }))
     ]);
 
-    const featuredProducts: Product[] = Array.isArray(featuredProductsResponse?.products) 
-      ? featuredProductsResponse.products
-      : Array.isArray(featuredProductsResponse?.data?.products)
-      ? featuredProductsResponse.data.products
+    const featuredProducts: Product[] = Array.isArray((featuredProductsResponse as any)?.products)
+      ? (featuredProductsResponse as any).products
+      : Array.isArray((featuredProductsResponse as any)?.data?.products)
+      ? (featuredProductsResponse as any).data.products
       : Array.isArray(featuredProductsResponse)
       ? featuredProductsResponse
       : [];

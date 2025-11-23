@@ -41,7 +41,7 @@ export const priceCalculatorRouter = router({
    */
   calculate: publicProcedure
     .input(calculatePriceSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async () => {
       // TODO: Call price calculator service
       // For now, return mock data
       return {

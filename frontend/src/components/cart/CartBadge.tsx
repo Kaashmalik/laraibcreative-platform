@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * CartBadge Component - Production Ready
  * Animated cart badge showing item count

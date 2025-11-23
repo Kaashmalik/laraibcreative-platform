@@ -5,8 +5,9 @@
 
 'use client';
 
+
 import { Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+// import { Button } from '@/components/ui/Button'; // Unused for now
 import type { DateRange } from '@/types/dashboard';
 
 interface DateRangePickerProps {
@@ -18,8 +19,8 @@ interface DateRangePickerProps {
 
 export default function DateRangePicker({
   value,
-  customStartDate,
-  customEndDate,
+  customStartDate: _customStartDate,
+  customEndDate: _customEndDate,
   onChange
 }: DateRangePickerProps) {
   const ranges: { label: string; value: DateRange }[] = [

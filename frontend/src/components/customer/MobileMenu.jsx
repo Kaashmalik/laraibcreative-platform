@@ -24,7 +24,7 @@ import {
   MapPin,
   MessageCircle
 } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import useAuth from '@/hooks/useAuth'
 
 /**
  * MobileMenu Component - Production Ready

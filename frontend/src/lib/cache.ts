@@ -32,8 +32,7 @@ export const cachedFetch = cache(async (
  * Cached API call wrapper
  */
 export const cachedApiCall = cache(async <T>(
-  apiCall: () => Promise<T>,
-  revalidate: number = 3600
+  apiCall: () => Promise<T>
 ): Promise<T> => {
   // This will be deduplicated within the same request
   return apiCall();

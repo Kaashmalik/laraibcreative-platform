@@ -16,9 +16,10 @@
 
 'use client';
 
+
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle, Clipboard, Share2, Home, ShoppingBag, MessageSquare, Printer, Copy, Mail, HelpCircle } from 'lucide-react';
+import { CheckCircle, Clipboard, Home, ShoppingBag, MessageSquare, Printer, Copy, Mail, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { toast } from 'react-hot-toast';
 

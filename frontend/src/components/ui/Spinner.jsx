@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 function Spinner({ size = 'md', className = '' }) {
   const sizes = {
     sm: 'w-4 h-4 border-2',

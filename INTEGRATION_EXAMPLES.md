@@ -8,6 +8,8 @@
 // frontend/src/components/ProductList.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { trpc } from '@/lib/trpc';
 
 export function ProductList() {
@@ -34,6 +36,8 @@ export function ProductList() {
 ```typescript
 // frontend/src/components/UserProfile.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
@@ -66,6 +70,8 @@ export function UserProfile() {
 // frontend/src/components/ReferralCode.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { trpc } from '@/lib/trpc';
 import { Copy } from 'lucide-react';
 
@@ -94,6 +100,8 @@ export function ReferralCode() {
 // frontend/src/components/LoyaltyBalance.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { trpc } from '@/lib/trpc';
 
 export function LoyaltyBalance() {
@@ -120,6 +128,8 @@ export function LoyaltyBalance() {
 // frontend/src/components/PriceDisplay.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useCurrency } from '@/components/shared/CurrencySwitcher';
 
 export function PriceDisplay({ price }: { price: number }) {
@@ -134,6 +144,8 @@ export function PriceDisplay({ price }: { price: number }) {
 ```typescript
 // frontend/src/components/ProductCard.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import { useTranslations } from 'next-intl';
 
@@ -154,6 +166,8 @@ export function ProductCard() {
 ```typescript
 // frontend/src/components/CheckoutButton.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import { useFacebookConversion } from '@/hooks/useFacebookConversion';
 
@@ -176,6 +190,8 @@ export function CheckoutButton({ orderId, total }: { orderId: string; total: num
 ```typescript
 // frontend/src/app/(admin)/production/page.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import { trpc } from '@/lib/trpc';
 
@@ -218,6 +234,8 @@ export default function ProductionPage() {
 // frontend/src/app/(admin)/analytics/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { trpc } from '@/lib/trpc';
 
 export default function AnalyticsPage() {
@@ -241,6 +259,8 @@ export default function AnalyticsPage() {
 ```typescript
 // frontend/src/app/(admin)/alerts/page.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import { trpc } from '@/lib/trpc';
 

@@ -42,7 +42,7 @@ export const measurementProfileRouter = router({
   /**
    * Get all profiles
    */
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getAll: protectedProcedure.query(async () => {
     // TODO: Fetch from database
     return [];
   }),
@@ -52,7 +52,7 @@ export const measurementProfileRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async () => {
       // TODO: Fetch from database
       return null;
     }),
@@ -62,7 +62,7 @@ export const measurementProfileRouter = router({
    */
   create: protectedProcedure
     .input(profileSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async () => {
       // TODO: Create in database
       return { success: true, id: '' };
     }),
@@ -76,7 +76,7 @@ export const measurementProfileRouter = router({
         id: z.string(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async () => {
       // TODO: Update in database
       return { success: true };
     }),
@@ -86,7 +86,7 @@ export const measurementProfileRouter = router({
    */
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async () => {
       // TODO: Delete from database
       return { success: true };
     }),
@@ -94,7 +94,7 @@ export const measurementProfileRouter = router({
   /**
    * Get default profile
    */
-  getDefault: protectedProcedure.query(async ({ ctx }) => {
+  getDefault: protectedProcedure.query(async () => {
     // TODO: Fetch default profile
     return null;
   }),

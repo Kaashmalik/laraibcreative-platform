@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { Component, ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';

@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 
 export const orderRouter = router({
   /**
@@ -18,7 +18,7 @@ export const orderRouter = router({
         status: z.string().optional(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       // TODO: Implement order fetching
       return {
         orders: [],
@@ -32,7 +32,7 @@ export const orderRouter = router({
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async () => {
       // TODO: Implement order fetching with ownership check
       return null;
     }),
@@ -48,7 +48,7 @@ export const orderRouter = router({
         payment: z.any(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async () => {
       // TODO: Implement order creation
       return { success: true, orderId: '' };
     }),

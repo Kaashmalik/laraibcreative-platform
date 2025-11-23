@@ -5,9 +5,10 @@
 
 'use client';
 
+
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import type { Order, StatusHistoryItem, OrderStatus } from '@/types/order-management';
+import type { Order, OrderStatus } from '@/types/order-management';
 
 interface OrderTimelineProps {
   order: Order;

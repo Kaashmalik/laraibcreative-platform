@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * Enhanced CartContext - Production Ready
  * Provides cart state and actions with backend sync
@@ -7,13 +8,12 @@
  * @module context/CartContext
  */
 
-'use client';
 
-import { createContext, useContext, useEffect, useCallback } from 'react';
+
+import { createContext, useContext, useEffect } from 'react';
 import { useCartStore } from '@/store/cartStore';
 import { useCartSync } from '@/hooks/useCartSync';
-import type { CartContextValue, CartItemCustomizations } from '@/types/cart';
-import type { Product } from '@/types/product';
+import type { CartContextValue } from '@/types/cart';
 
 const CartContext = createContext<CartContextValue | null>(null);
 

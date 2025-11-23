@@ -7,6 +7,7 @@
 
 'use client';
 
+
 import { useState, useEffect } from 'react';
 import { MapPin, Plus, Check } from 'lucide-react';
 import api from '@/lib/api';
@@ -30,7 +31,7 @@ export default function ShippingAddressForm({
   const [errors, setErrors] = useState(propErrors);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
-  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [, setIsLoadingAddresses] = useState(false);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     formData.shippingAddress?.addressId || null

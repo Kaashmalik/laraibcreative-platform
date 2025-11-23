@@ -23,6 +23,7 @@
 
 'use client';
 
+
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 

@@ -5,8 +5,9 @@
 
 'use client';
 
+
 import Link from 'next/link';
-import { Plus, Package, Clock, TrendingUp, ShoppingBag, Users } from 'lucide-react';
+import { Plus, Clock, TrendingUp, ShoppingBag } from 'lucide-react';
 
 export default function QuickActions() {
   const actions = [

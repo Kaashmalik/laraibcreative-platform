@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { CartStore, CartItem, CartItemCustomizations, ShippingAddress, PromoCodeResponse } from '@/types/cart';
+import type { CartStore, CartItem, CartItemCustomizations, ShippingAddress } from '@/types/cart';
 import type { Product } from '@/types/product';
 import api from '@/lib/api';
 
@@ -44,12 +44,44 @@ function calculateTotals(items: CartItem[], taxRate: number = 0.05, shipping: nu
 
 /**
  * Cart Store with Persistence and Sync
+ * SSR-safe: Only creates store on client side
  */
-export const useCartStore = create<CartStore>()(
-  devtools(
-    persist(
-      subscribeWithSelector(
-      (set, get) => ({
+export const useCartStore = typeof window === 'undefined'
+  ? // Server-side: return a mock function that returns default values
+    ((selector?: any) => {
+      const defaultState: CartStore = {
+        items: [],
+        totalItems: 0,
+        subtotal: 0,
+        tax: 0,
+        shipping: 0,
+        discount: 0,
+        total: 0,
+        isLoading: false,
+        error: null,
+        lastSynced: undefined,
+        addItem: async () => {},
+        removeItem: async () => {},
+        updateQuantity: async () => {},
+        clearCart: async () => {},
+        isInCart: () => false,
+        getItem: () => undefined,
+        getProductQuantity: () => 0,
+        applyPromoCode: async () => ({ success: false, discount: 0, message: 'SSR' }),
+        removePromoCode: () => {},
+        calculateShipping: async () => 0,
+        syncCart: async () => {},
+        loadCart: async () => {},
+        validateCart: async () => ({ valid: false, errors: [] }),
+      };
+      return selector ? selector(defaultState) : defaultState;
+    }) as any
+  : // Client-side: create the actual Zustand store
+    create<CartStore>()(
+      devtools(
+        persist(
+          subscribeWithSelector(
+          (set, get) => ({
         // Initial State
         items: [],
         totalItems: 0,
@@ -457,53 +489,58 @@ export const useCartStore = create<CartStore>()(
   )
 );
 
-// Analytics middleware - track cart events
-useCartStore.subscribe(
-  (state) => state.totalItems,
-  (totalItems, prevTotalItems) => {
-    if (typeof window !== 'undefined' && totalItems !== prevTotalItems) {
-      // Track add to cart events
-      if (window.gtag) {
-        window.gtag('event', 'cart_item_count', {
-          value: totalItems,
-        });
-      }
-      
-      // Facebook Pixel
-      if (window.fbq) {
-        window.fbq('track', 'AddToCart', {
-          content_ids: state.items.map(item => item.productId),
-          value: state.subtotal,
-          currency: 'PKR',
-        });
-      }
-    }
-  }
-);
-
-// Track cart abandonment
-useCartStore.subscribe(
-  (state) => state.items.length,
-  (itemCount) => {
-    if (typeof window !== 'undefined' && itemCount > 0) {
-      // Set abandonment timer (30 minutes)
-      const abandonmentTimer = setTimeout(() => {
-        const currentItems = useCartStore.getState().items;
-        if (currentItems.length > 0) {
-          // Track abandonment
-          if (window.gtag) {
-            window.gtag('event', 'cart_abandonment', {
-              value: useCartStore.getState().subtotal,
-              currency: 'PKR',
-            });
-          }
+// Analytics middleware - track cart events (client-side only)
+if (typeof window !== 'undefined') {
+  useCartStore.subscribe(
+    (state: CartStore) => state.totalItems,
+    (totalItems: number, prevTotalItems: number) => {
+      if (totalItems !== prevTotalItems) {
+        // Track add to cart events
+        if ((window as any).gtag) {
+          (window as any).gtag('event', 'cart_item_count', {
+            value: totalItems,
+          });
         }
-      }, 30 * 60 * 1000); // 30 minutes
-      
-      return () => clearTimeout(abandonmentTimer);
+        
+        // Facebook Pixel
+        if ((window as any).fbq) {
+          const state = useCartStore.getState();
+          (window as any).fbq('track', 'AddToCart', {
+            content_ids: state.items.map((item: CartItem) => item.productId),
+            value: state.subtotal,
+            currency: 'PKR',
+          });
+        }
+      }
     }
-  }
-);
+  );
+
+  // Track cart abandonment
+  let abandonmentTimer: NodeJS.Timeout;
+
+  useCartStore.subscribe(
+    (state: CartStore) => state.items.length,
+    (itemCount: number) => {
+      if (abandonmentTimer) clearTimeout(abandonmentTimer);
+      
+      if (itemCount > 0) {
+        // Set abandonment timer (30 minutes)
+        abandonmentTimer = setTimeout(() => {
+          const currentItems = useCartStore.getState().items;
+          if (currentItems.length > 0) {
+            // Track abandonment
+            if ((window as any).gtag) {
+              (window as any).gtag('event', 'cart_abandonment', {
+                value: useCartStore.getState().subtotal,
+                currency: 'PKR',
+              });
+            }
+          }
+        }, 30 * 60 * 1000); // 30 minutes
+      }
+    }
+  );
+}
 
 // Export as default
 export default useCartStore;

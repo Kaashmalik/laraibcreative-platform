@@ -132,12 +132,8 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-  // This layout is now just a wrapper - actual layout is in [locale]/layout.tsx
-  return children;
-}
-
-// Keep the old layout for backward compatibility, but move content to [locale]/layout.tsx
-export function RootLayoutContent({ children }: RootLayoutProps) {
+  // For now, keep the original layout structure
+  // i18n will be handled via middleware and [locale] routes
   return (
     <html
       lang="en"
@@ -275,5 +271,5 @@ export function RootLayoutContent({ children }: RootLayoutProps) {
         </GlobalErrorBoundary>
       </body>
     </html>
-  )
+  );
 }

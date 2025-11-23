@@ -3,7 +3,7 @@
  * Types for admin product management system
  */
 
-import { Product, ProductImage, ProductPricing } from './product';
+import { Product, ProductImage } from './product';
 
 /**
  * Product Form Data

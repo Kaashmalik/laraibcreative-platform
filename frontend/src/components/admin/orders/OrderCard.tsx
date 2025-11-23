@@ -5,12 +5,13 @@
 
 'use client';
 
-import { useState } from 'react';
+
+// import { useState } from 'react'; // Unused for now
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  Package, Clock, CreditCard, MapPin, 
-  ChevronRight, Eye, Phone, MessageCircle,
+  Package, Clock, MapPin, 
+  Eye, Phone, MessageCircle,
   CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
@@ -43,7 +44,7 @@ const paymentStatusConfig = {
   refunded: { label: 'Refunded', color: 'text-gray-700', bgColor: 'bg-gray-100', icon: AlertCircle },
 };
 
-export default function OrderCard({ order, onUpdate }: OrderCardProps) {
+export default function OrderCard({ order, onUpdate: _onUpdate }: OrderCardProps) {
   const status = statusConfig[order.status] || statusConfig['pending-payment'];
   const paymentStatus = paymentStatusConfig[order.payment.status] || paymentStatusConfig.pending;
   const PaymentIcon = paymentStatus.icon;

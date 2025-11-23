@@ -1,5 +1,6 @@
 'use client';
 
+
 /**
  * App-Level Error Boundary
  * Wraps the entire application to catch errors

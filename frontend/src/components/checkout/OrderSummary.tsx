@@ -7,6 +7,7 @@
 
 'use client';
 
+
 import { useState } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { Tag, X, AlertCircle } from 'lucide-react';

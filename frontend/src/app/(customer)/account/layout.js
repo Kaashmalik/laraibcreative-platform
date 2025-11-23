@@ -1,8 +1,9 @@
 // app/(customer)/account/layout.js
 'use client';
 
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import useAuth from '@/hooks/useAuth';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 

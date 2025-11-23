@@ -1,6 +1,5 @@
 'use client';
 
-'use client';
 import { useState, useRef, useEffect } from 'react';
 
 function DropdownMenu({ trigger, children, align = 'right' }) {

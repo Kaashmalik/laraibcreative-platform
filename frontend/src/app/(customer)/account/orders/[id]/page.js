@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 export default function OrderDetailPage({ params }) {
   return (
     <div className="p-6">

@@ -5,8 +5,10 @@
 
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Download, RefreshCw, Filter } from 'lucide-react';
+import { Download, RefreshCw, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import OrderCard from '@/components/admin/orders/OrderCard';
 import OrderFilters from '@/components/admin/orders/OrderFilters';

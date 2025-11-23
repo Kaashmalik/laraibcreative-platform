@@ -5,6 +5,7 @@
 
 'use client';
 
+
 import { DollarSign, ShoppingCart, Users, Package, TrendingUp, TrendingDown } from 'lucide-react';
 import type { DashboardStats } from '@/types/dashboard';
 import { Skeleton } from '@/components/ui/Skeleton';
