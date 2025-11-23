@@ -55,9 +55,9 @@ export default function AdminLayout({ children }) {
 
   // Handle logout
   const handleLogout = () => {
-    // Clear auth data
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    // Clear auth data (use correct token keys)
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     // Redirect to admin login
     router.push('/admin/login');

@@ -49,9 +49,9 @@ export default function AdminLoginPage() {
           return;
         }
 
-        // Store tokens and user data
-        localStorage.setItem('token', tokens.accessToken);
-        localStorage.setItem('refreshToken', tokens.refreshToken);
+        // Store tokens and user data (use 'auth_token' to match axios interceptor)
+        localStorage.setItem('auth_token', tokens.accessToken);
+        localStorage.setItem('refresh_token', tokens.refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
 
         toast.success(`Welcome back, ${user.fullName || user.email}!`);

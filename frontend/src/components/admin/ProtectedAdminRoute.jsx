@@ -17,7 +17,7 @@ export default function ProtectedAdminRoute({ children }) {
     const checkAuth = () => {
       try {
         // Get token and user from localStorage
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         const userStr = localStorage.getItem('user');
 
         if (!token || !userStr) {
