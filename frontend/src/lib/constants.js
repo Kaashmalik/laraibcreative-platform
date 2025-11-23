@@ -13,16 +13,19 @@ export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // API and Site URLs
 const getApiBaseUrl = () => {
-  let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
   
   // Remove trailing slash
   url = url.replace(/\/$/, '');
   
-  // If it already ends with /api, return it (no version needed)
-  if (url.endsWith('/api')) return url;
+  // If it already contains /api/v1, return it
+  if (url.includes('/api/v1')) return url;
   
-  // Otherwise, append /api
-  return `${url}/api`;
+  // If it ends with /api, append /v1
+  if (url.endsWith('/api')) return `${url}/v1`;
+  
+  // Otherwise, append /api/v1
+  return `${url}/api/v1`;
 };
 
 export const API_BASE_URL = getApiBaseUrl();

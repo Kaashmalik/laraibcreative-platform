@@ -26,20 +26,6 @@ const productController = require('../controllers/productController');
 router.get('/', productController.getAllProducts);
 
 /**
- * @route   GET /api/v1/products/:id
- * @desc    Get single product by ID
- * @access  Public
- */
-router.get('/:id', productController.getProductById);
-
-/**
- * @route   GET /api/v1/products/slug/:slug
- * @desc    Get product by SEO-friendly slug
- * @access  Public
- */
-router.get('/slug/:slug', productController.getProductBySlug);
-
-/**
  * @route   GET /api/v1/products/featured
  * @desc    Get featured products
  * @access  Public
@@ -59,6 +45,20 @@ router.get('/new-arrivals', productController.getNewArrivals);
  * @access  Public
  */
 router.get('/best-sellers', productController.getBestSellers);
+
+/**
+ * @route   GET /api/v1/products/slug/:slug
+ * @desc    Get product by SEO-friendly slug
+ * @access  Public
+ */
+router.get('/slug/:slug', productController.getProductBySlug);
+
+/**
+ * @route   GET /api/v1/products/:id
+ * @desc    Get single product by ID
+ * @access  Public
+ */
+router.get('/:id', productController.getProductById);
 
 /**
  * @route   GET /api/v1/products/:id/related

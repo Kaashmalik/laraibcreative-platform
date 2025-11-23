@@ -26,9 +26,8 @@ const loyaltyRoutes = require('./loyalty.routes');
 const healthRoutes = require('./health.routes');
 router.use('/health', healthRoutes);
 
-// API version prefix - empty for compatibility
-// Routes are mounted at /api/ level, version is handled by server.js
-const API_VERSION = '';
+// API version prefix
+const API_VERSION = '/v1';
 
 // Mount routes WITHOUT API version (server.js already adds /api prefix)
 router.use(`${API_VERSION}/auth`, authRoutes);
@@ -61,18 +60,18 @@ router.get('/', (req, res) => {
     version: 'v1',
     documentation: '/api/docs',
     endpoints: {
-      auth: '/api/auth',
-      products: '/api/products',
-      categories: '/api/categories',
-      orders: '/api/orders',
-      customers: '/api/customers',
-      reviews: '/api/reviews',
-      blog: '/api/blog',
-      measurements: '/api/measurements',
-      upload: '/api/upload',
-      analytics: '/api/analytics',
-      dashboard: '/api/admin/dashboard',
-      settings: '/api/settings'
+      auth: '/api/v1/auth',
+      products: '/api/v1/products',
+      categories: '/api/v1/categories',
+      orders: '/api/v1/orders',
+      customers: '/api/v1/customers',
+      reviews: '/api/v1/reviews',
+      blog: '/api/v1/blog',
+      measurements: '/api/v1/measurements',
+      upload: '/api/v1/upload',
+      analytics: '/api/v1/analytics',
+      dashboard: '/api/v1/admin/dashboard',
+      settings: '/api/v1/settings'
     }
   });
 });
@@ -83,18 +82,18 @@ router.use('*', (req, res) => {
     status: 'error',
     message: `Route ${req.originalUrl} not found`,
     availableRoutes: [
-      '/api/auth',
-      '/api/products',
-      '/api/categories',
-      '/api/orders',
-      '/api/customers',
-      '/api/reviews',
-      '/api/blog',
-      '/api/measurements',
-      '/api/upload',
-      '/api/analytics',
-      '/api/admin/dashboard',
-      '/api/settings'
+      '/api/v1/auth',
+      '/api/v1/products',
+      '/api/v1/categories',
+      '/api/v1/orders',
+      '/api/v1/customers',
+      '/api/v1/reviews',
+      '/api/v1/blog',
+      '/api/v1/measurements',
+      '/api/v1/upload',
+      '/api/v1/analytics',
+      '/api/v1/admin/dashboard',
+      '/api/v1/settings'
     ]
   });
 });
