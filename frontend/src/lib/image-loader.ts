@@ -9,7 +9,8 @@ interface ImageLoaderProps {
   quality?: number;
 }
 
-export const cloudinaryLoader = ({ src, width, quality = 75 }: ImageLoaderProps): string => {
+// Default export required by Next.js
+const cloudinaryLoader = ({ src, width, quality = 75 }: ImageLoaderProps): string => {
   // If it's already a Cloudinary URL, optimize it
   if (src.includes('res.cloudinary.com')) {
     // Extract the path from Cloudinary URL
@@ -39,6 +40,9 @@ export const cloudinaryLoader = ({ src, width, quality = 75 }: ImageLoaderProps)
   // This will be handled by Next.js Image component
   return src;
 };
+
+// Export as default for Next.js
+export default cloudinaryLoader;
 
 /**
  * Generate blur placeholder for images
