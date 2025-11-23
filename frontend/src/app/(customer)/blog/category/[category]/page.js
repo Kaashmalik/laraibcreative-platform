@@ -18,7 +18,7 @@ export default function BlogCategoryPage() {
       try {
         setLoading(true);
         // TODO: Replace with actual API call
-        const response = await fetch(`/api/blog?category=${params.category}`);
+        const response = await fetch(`/api/blogs?category=${params.category}`);
         if (response.ok) {
           const data = await response.json();
           setPosts(data.posts || []);

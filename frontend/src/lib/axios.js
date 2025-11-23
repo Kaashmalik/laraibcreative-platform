@@ -19,6 +19,12 @@ const axiosInstance = axios.create({
   withCredentials: false
 });
 
+const isBrowser = typeof window !== 'undefined';
+const safeToastError = (message, options) => {
+  if (!isBrowser) return;
+  toast.error(message, options);
+};
+
 // Track ongoing requests for retry logic and cancellation
 const ongoingRequests = new Map();
 const MAX_RETRIES = 2;
@@ -114,7 +120,7 @@ axiosInstance.interceptors.response.use(
       if (requestInfo && requestInfo.retryCount < MAX_RETRIES) {
         requestInfo.retryCount++;
         
-        toast.error(`Connection failed. Retrying... (${requestInfo.retryCount}/${MAX_RETRIES})`);
+        safeToastError(`Connection failed. Retrying... (${requestInfo.retryCount}/${MAX_RETRIES})`);
         
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * requestInfo.retryCount));
@@ -122,7 +128,7 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       }
 
-      toast.error('Unable to connect. Please check your internet connection.');
+      safeToastError('Unable to connect. Please check your internet connection.');
       ongoingRequests.delete(requestId);
       return Promise.reject(error);
     }
@@ -150,7 +156,7 @@ axiosInstance.interceptors.response.use(
     // Handle specific HTTP status codes
     switch (status) {
       case 400: // Bad Request
-        toast.error(errorMessage);
+        safeToastError(errorMessage);
         break;
 
       case 401: // Unauthorized
@@ -158,18 +164,18 @@ axiosInstance.interceptors.response.use(
         break;
 
       case 403: // Forbidden
-        toast.error('Access denied. You do not have permission for this action.');
+        safeToastError('Access denied. You do not have permission for this action.');
         break;
 
       case 404: // Not Found
         // Only show toast for non-GET requests or if explicitly requested
         if (originalRequest.method !== 'get' || originalRequest.showNotFoundToast) {
-          toast.error('The requested resource was not found.');
+          safeToastError('The requested resource was not found.');
         }
         break;
 
       case 409: // Conflict
-        toast.error(errorMessage || 'A conflict occurred. Please refresh and try again.');
+        safeToastError(errorMessage || 'A conflict occurred. Please refresh and try again.');
         break;
 
       case 422: // Validation Error
@@ -178,7 +184,7 @@ axiosInstance.interceptors.response.use(
 
       case 429: // Too Many Requests
         const retryAfter = error.response.headers['retry-after'];
-        toast.error(
+        safeToastError(
           retryAfter 
             ? `Too many requests. Please try again in ${retryAfter} seconds.`
             : 'Too many requests. Please try again later.'
@@ -186,7 +192,7 @@ axiosInstance.interceptors.response.use(
         break;
 
       case 500: // Internal Server Error
-        toast.error('Server error. Our team has been notified.');
+        safeToastError('Server error. Our team has been notified.');
         // Log to error tracking service in production
         if (process.env.NODE_ENV === 'production') {
           logErrorToService(error);
@@ -196,11 +202,11 @@ axiosInstance.interceptors.response.use(
       case 502: // Bad Gateway
       case 503: // Service Unavailable
       case 504: // Gateway Timeout
-        toast.error('Service temporarily unavailable. Please try again in a moment.');
+        safeToastError('Service temporarily unavailable. Please try again in a moment.');
         break;
 
       default:
-        toast.error(errorMessage);
+        safeToastError(errorMessage);
     }
 
     return Promise.reject(error);
@@ -223,7 +229,7 @@ function handleUnauthorized(originalRequest) {
   );
   
   if (!isAuthEndpoint) {
-    toast.error('Session expired. Please login again.');
+    safeToastError('Session expired. Please login again.');
   }
   
   // Redirect to login if not already there
@@ -251,7 +257,7 @@ function handleValidationError(data) {
     if (errors.length > 0) {
       const firstError = errors[0];
       const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
-      toast.error(errorMessage);
+      safeToastError(errorMessage);
       
       // Log all errors in development
       if (process.env.NODE_ENV === 'development') {
@@ -259,7 +265,7 @@ function handleValidationError(data) {
       }
     }
   } else {
-    toast.error(data?.message || 'Validation failed. Please check your input.');
+    safeToastError(data?.message || 'Validation failed. Please check your input.');
   }
 }
 

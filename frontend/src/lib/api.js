@@ -879,22 +879,22 @@ const api = {
    */
   blog: {
     async getAll(params = {}) {
-      return await axios.get('/blog', { params });
+      return await axios.get('/blogs', { params });
     },
     async getBySlug(slug) {
-      return await axios.get(`/blog/${slug}`);
+      return await axios.get(`/blogs/${slug}`);
     },
     async getRelated(slug, limit = 3) {
-      return await axios.get(`/blog/${slug}/related`, { params: { limit } });
+      return await axios.get(`/blogs/${slug}/related`, { params: { limit } });
     },
     async incrementView(slug) {
-      return await axios.post(`/blog/${slug}/view`);
+      return await axios.post(`/blogs/${slug}/view`);
     },
     async getCategories() {
-      return await axios.get('/blog/categories');
+      return await axios.get('/blogs/categories');
     },
     async getTags() {
-      return await axios.get('/blog/tags');
+      return await axios.get('/blogs/tags');
     },
     /**
      * Create blog post (admin)
@@ -902,7 +902,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async create(postData) {
-      return await axios.post('/blog', postData);
+      return await axios.post('/blogs', postData);
     },
     /**
      * Update blog post (admin)
@@ -911,7 +911,7 @@ const api = {
      * @returns {Promise<Object>}
      */
     async update(id, postData) {
-      return await axios.put(`/blog/${id}`, postData);
+      return await axios.put(`/blogs/${id}`, postData);
     },
     /**
      * Delete blog post (admin)
@@ -919,7 +919,7 @@ const api = {
      * @returns {Promise<{ message: string }>}
      */
     async delete(id) {
-      return await axios.delete(`/blog/${id}`);
+      return await axios.delete(`/blogs/${id}`);
     }
   },
 
