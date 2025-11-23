@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
-import type { DashboardData, DashboardResponse, DateRange } from '@/types/dashboard';
+import type { DashboardData, DateRange } from '@/types/dashboard';
 import toast from 'react-hot-toast';
 
 interface UseDashboardOptions {
