@@ -44,15 +44,16 @@ export function useDashboard(options: UseDashboardOptions = {}) {
       if (endDate) params.endDate = endDate;
 
       const response = await api.dashboard.getDashboard(params);
-      const result: DashboardResponse = response as unknown as DashboardResponse;
+      // Axios interceptor already unwraps response.data, so response is the backend's object
+      const result: any = response;
 
-      if (result && result.success) {
+      if (result && result.success && result.data) {
         setData(result.data);
-      } else if (result && result.data) {
-        // Handle case where response is just data object
-        setData(result.data);
+      } else if (result && !result.success) {
+        throw new Error(result.message || 'Failed to fetch dashboard data');
       } else {
-        throw new Error(result?.message || 'Failed to fetch dashboard data');
+        // Fallback: treat entire response as data if structure is different
+        setData(result);
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load dashboard data';

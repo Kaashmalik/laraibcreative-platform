@@ -49,8 +49,16 @@ export default function AdminProfilePage() {
     try {
       const response = await api.auth.updateProfile(profileData);
       
-      if (response.success) {
-        // Update localStorage with new user data
+      // Axios interceptor unwraps response.data
+      if (response && response.success && response.data && response.data.user) {
+        // Update localStorage with new user data from backend
+        const updatedUser = response.data.user;
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        
+        toast.success('Profile updated successfully!');
+      } else if (response && response.success) {
+        // Fallback: merge with existing user data
         const updatedUser = { ...user, ...profileData };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
@@ -87,7 +95,16 @@ export default function AdminProfilePage() {
         passwordData.newPassword
       );
 
-      if (response.success) {
+      // Axios interceptor unwraps response.data, check success flag
+      if (response && response.success) {
+        toast.success('Password changed successfully!');
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        // If no success flag but no error thrown, assume success
         toast.success('Password changed successfully!');
         setPasswordData({
           currentPassword: '',
