@@ -9,6 +9,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "dev:watch": "nodemon --exec ts-node src/server.ts",
     "seed": "ts-node src/seeds/index.ts",
+    "seed:admin": "node src/seeds/adminUser.js",
     "seed:categories": "ts-node src/seeds/categories.seed.ts",
     "seed:products": "ts-node src/seeds/products.seed.ts",
     "seed:settings": "ts-node src/seeds/settings.seed.ts",

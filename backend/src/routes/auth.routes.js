@@ -10,13 +10,15 @@ const {
   forgotPassword,
   resetPassword,
   getCurrentUser,
-  changePassword
+  changePassword,
+  adminLogin
 } = require('../controllers/authController');
-const { protect, verifyRefreshToken } = require('../middleware/auth.middleware');
+const { protect, verifyRefreshToken, admin } = require('../middleware/auth.middleware');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.post('/admin-login', adminLogin);
 router.post('/logout', logout);
 router.post('/refresh-token', verifyRefreshToken, refreshToken);
 router.get('/verify-email/:token', verifyEmail);

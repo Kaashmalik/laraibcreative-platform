@@ -14,6 +14,9 @@ const api = {
     async login(email, password) {
       return await axios.post('/auth/login', { email, password });
     },
+    async adminLogin(email, password) {
+      return await axios.post('/auth/admin-login', { email, password });
+    },
     async register(userData) {
       return await axios.post('/auth/register', userData);
     },

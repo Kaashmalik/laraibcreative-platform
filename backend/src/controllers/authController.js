@@ -684,9 +684,134 @@ const changePassword = async (req, res) => {
   }
 };
 
+/**
+ * Admin login with role verification
+ * @route POST /api/auth/admin-login
+ * @access Public
+ */
+const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and password.'
+      });
+    }
+
+    // Find user with password field (normally excluded)
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.'
+      });
+    }
+
+    // Verify user has admin privileges
+    if (user.role !== 'admin' && user.role !== 'super-admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    // Check if account is locked
+    if (user.isLocked) {
+      return res.status(423).json({
+        success: false,
+        message: 'Your account is temporarily locked due to multiple failed login attempts. Please try again later or reset your password.',
+        lockUntil: user.lockUntil
+      });
+    }
+
+    // Check if account is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact support for assistance.'
+      });
+    }
+
+    // Verify password
+    const isPasswordCorrect = await user.comparePassword(password);
+
+    if (!isPasswordCorrect) {
+      // Increment failed login attempts
+      await user.incLoginAttempts();
+
+      // Check if account should be locked after this attempt
+      const updatedUser = await User.findById(user._id);
+      if (updatedUser.isLocked) {
+        // Send account locked email
+        try {
+          await sendAccountLockedEmail(user.email, user.fullName, updatedUser.lockUntil);
+        } catch (emailError) {
+          console.error('Failed to send account locked email:', emailError);
+        }
+
+        return res.status(423).json({
+          success: false,
+          message: 'Too many failed login attempts. Your account has been locked for 2 hours.',
+          lockUntil: updatedUser.lockUntil
+        });
+      }
+
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.',
+        attemptsRemaining: Math.max(0, 5 - updatedUser.loginAttempts)
+      });
+    }
+
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
+
+    // Update last login timestamp
+    await user.updateLastLogin();
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Set cookies
+    setAuthCookies(res, accessToken, refreshToken, true); // Always remember admin sessions
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin login successful!',
+      data: {
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          emailVerified: user.emailVerified,
+          profileImage: user.profileImage
+        },
+        tokens: {
+          accessToken,
+          refreshToken
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Admin login failed. Please try again later.'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
+  adminLogin,
   logout,
   refreshToken,
   verifyEmail,

@@ -8,50 +8,27 @@ import Head from 'next/head';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import LoadingScreen from '@/components/shared/LoadingScreen';
-import useAuth from '@/hooks/useAuth';
-import ProtectedRoute from '@/components/shared/ProtectedRoute';
-
-// Disable static generation for all admin pages
+import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading: authLoading } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Wait for auth to load
-    if (authLoading) {
-      return;
+    // Get user from localStorage
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        setUser(JSON.parse(userStr));
+      }
+    } catch (error) {
+      console.error('Error loading user:', error);
     }
 
-    // Skip auth check for login page
-    if (pathname === '/admin/login') {
-      setIsLoading(false);
-      return;
-    }
-
-    // Check if user is authenticated and has admin role
-    if (!user) {
-      router.push('/admin/login');
-      return;
-    }
-
-    // Enhanced role-based access control
-    const allowedRoles = ['admin', 'super-admin', 'manager'];
-    if (!allowedRoles.includes(user.role)) {
-      // Not authorized - redirect to customer area
-      router.push('/');
-      return;
-    }
-
-    setIsLoading(false);
-  }, [pathname, router, user, authLoading]);
-
-  // Load dark mode preference from localStorage
-  useEffect(() => {
+    // Load dark mode preference from localStorage
     const savedTheme = localStorage.getItem('adminTheme');
     if (savedTheme === 'dark') {
       setIsDarkMode(true);
@@ -78,16 +55,13 @@ export default function AdminLayout({ children }) {
 
   // Handle logout
   const handleLogout = () => {
-    // Clear admin token
-    localStorage.removeItem('adminToken');
+    // Clear auth data
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
     // Redirect to admin login
     router.push('/admin/login');
   };
-
-  // Show loading screen while checking authentication
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   // Don't show sidebar/header on login page
   if (pathname === '/admin/login') {
@@ -104,7 +78,7 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <ProtectedRoute adminOnly requiredRoles={['admin', 'super-admin', 'manager']}>
+    <ProtectedAdminRoute>
       <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
       <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Sidebar */}
@@ -146,6 +120,6 @@ export default function AdminLayout({ children }) {
         />
       )}
       </div>
-    </ProtectedRoute>
+    </ProtectedAdminRoute>
   );
 }
