@@ -37,7 +37,7 @@ router.use(`${API_VERSION}/orders`, orderRoutes);
 router.use(`${API_VERSION}/orders/custom`, require('./customOrder.routes'));
 router.use(`${API_VERSION}/customers`, customerRoutes);
 router.use(`${API_VERSION}/reviews`, reviewRoutes);
-router.use(`${API_VERSION}/blog`, blogRoutes);
+router.use(`${API_VERSION}/blogs`, blogRoutes);
 router.use(`${API_VERSION}/measurements`, measurementRoutes);
 router.use(`${API_VERSION}/measurement-profiles`, measurementProfileRoutes);
 router.use(`${API_VERSION}/upload`, uploadRoutes);
@@ -66,7 +66,7 @@ router.get('/', (req, res) => {
       orders: '/api/v1/orders',
       customers: '/api/v1/customers',
       reviews: '/api/v1/reviews',
-      blog: '/api/v1/blog',
+      blogs: '/api/v1/blogs',
       measurements: '/api/v1/measurements',
       upload: '/api/v1/upload',
       analytics: '/api/v1/analytics',
@@ -88,7 +88,7 @@ router.use('*', (req, res) => {
       '/api/v1/orders',
       '/api/v1/customers',
       '/api/v1/reviews',
-      '/api/v1/blog',
+      '/api/v1/blogs',
       '/api/v1/measurements',
       '/api/v1/upload',
       '/api/v1/analytics',

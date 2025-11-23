@@ -413,7 +413,7 @@ try {
   loadRoute('./src/routes/customer.routes.js', '/api/v1/customers');
   loadRoute('./src/routes/category.routes.js', '/api/v1/categories');
   loadRoute('./src/routes/review.routes.js', '/api/v1/reviews');
-  loadRoute('./src/routes/blog.routes.js', '/api/v1/blog');
+  loadRoute('./src/routes/blog.routes.js', '/api/v1/blogs');
   loadRoute('./src/routes/upload.routes.js', '/api/v1/upload');
   loadRoute('./src/routes/measurement.routes.js', '/api/v1/measurements');
   loadRoute('./src/routes/analytics.routes.js', '/api/v1/analytics');

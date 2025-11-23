@@ -28,8 +28,11 @@ export default function AdminLoginPage() {
       const response = await api.auth.adminLogin(credentials.email, credentials.password);
       console.log('✅ API Response:', response);
       
-      if (response.data?.success) {
-        const { user, tokens } = response.data.data;
+      // Axios wraps response in data, so backend's {success, data} becomes response.data
+      const apiResponse = response.data || response;
+      
+      if (apiResponse.success) {
+        const { user, tokens } = apiResponse.data;
         
         // Verify user is admin
         if (user.role !== 'admin' && user.role !== 'super-admin') {
@@ -49,7 +52,7 @@ export default function AdminLoginPage() {
         // Redirect to admin dashboard
         router.push('/admin/dashboard');
       } else {
-        const errorMessage = response.data?.message || 'Login failed. Please try again.';
+        const errorMessage = apiResponse.message || 'Login failed. Please try again.';
         setError(errorMessage);
         toast.error(errorMessage);
       }
