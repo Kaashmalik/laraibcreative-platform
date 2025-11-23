@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import './globals.css'
 import { TRPCProvider } from '@/providers/TRPCProvider'
 import { ThemeProvider } from '@/context/ThemeContext'
+import CartProvider from '@/context/CartContext'
 import { Toaster } from 'react-hot-toast'
 import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
 import { Analytics } from '@vercel/analytics/react'
@@ -199,33 +200,35 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <GlobalErrorBoundary>
           <TRPCProvider>
             <ThemeProvider>
-              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
-                Skip to content
-              </a>
-              {children}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: '#333',
-                    color: '#fff',
-                    borderRadius: '8px',
-                  },
-                  success: {
-                    iconTheme: {
-                      primary: '#10B981',
-                      secondary: '#fff',
+              <CartProvider>
+                <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
+                  Skip to content
+                </a>
+                {children}
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                    style: {
+                      background: '#333',
+                      color: '#fff',
+                      borderRadius: '8px',
                     },
-                  },
-                  error: {
-                    iconTheme: {
-                      primary: '#EF4444',
-                      secondary: '#fff',
+                    success: {
+                      iconTheme: {
+                        primary: '#10B981',
+                        secondary: '#fff',
+                      },
                     },
-                  },
-                }}
-              />
+                    error: {
+                      iconTheme: {
+                        primary: '#EF4444',
+                        secondary: '#fff',
+                      },
+                    },
+                  }}
+                />
+              </CartProvider>
               {process.env.NEXT_PUBLIC_GA_ID && (
                 <>
                   <script

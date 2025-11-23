@@ -4,6 +4,9 @@ import Header from '@/components/customer/Header'
 import Footer from '@/components/customer/Footer'
 import WhatsAppButton from '@/components/customer/WhatsAppButton'
 
+// Force dynamic rendering for all customer pages since Header uses CartContext
+export const dynamic = 'force-dynamic';
+
 /**
  * Customer Layout Component
  * 
