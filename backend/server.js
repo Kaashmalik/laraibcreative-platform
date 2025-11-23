@@ -400,13 +400,14 @@ try {
   app.use('/api', apiRoutes);
   // Apply rate limiting to auth routes
   app.use('/api/v1/auth/login', authLimiter);
+  app.use('/api/v1/auth/admin-login', authLimiter);
   app.use('/api/v1/auth/register', authLimiter);
   console.log('✅ All routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading routes:', error.message);
   // Fallback to individual route loading
   console.log('⚠️  Falling back to individual route loading...');
-  loadRoute('./src/routes/auth.routes.js', '/api/v1/auth') && app.use('/api/v1/auth/login', authLimiter) && app.use('/api/v1/auth/register', authLimiter);
+  loadRoute('./src/routes/auth.routes.js', '/api/v1/auth') && app.use('/api/v1/auth/login', authLimiter) && app.use('/api/v1/auth/admin-login', authLimiter) && app.use('/api/v1/auth/register', authLimiter);
   loadRoute('./src/routes/product.routes.js', '/api/v1/products');
   loadRoute('./src/routes/order.routes.js', '/api/v1/orders');
   loadRoute('./src/routes/customer.routes.js', '/api/v1/customers');
