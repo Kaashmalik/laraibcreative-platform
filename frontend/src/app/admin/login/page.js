@@ -21,18 +21,25 @@ export default function AdminLoginPage() {
     setError('');
 
     try {
-      // Call admin login endpoint
+      // Call admin login endpoint - axios interceptor returns response.data
       const response = await api.auth.adminLogin(credentials.email, credentials.password);
       
-      // Axios response structure: response.data contains the backend response
-      const { success, message, data } = response.data;
+      console.log('🔍 Full response:', response);
       
-      console.log('🔍 Response structure:', { success, message, hasData: !!data });
+      // Handle response - axios interceptor already unwrapped response.data
+      // So response is already the backend's {success, message, data} object
+      const { success, message, data } = response;
+      
+      console.log('📦 Extracted:', { success, hasMessage: !!message, hasData: !!data });
       
       if (success && data) {
         const { user, tokens } = data;
         
-        console.log('✅ Login successful:', { userId: user.id, role: user.role });
+        console.log('✅ Login successful:', { 
+          userId: user._id || user.id, 
+          role: user.role,
+          email: user.email 
+        });
         
         // Verify user is admin
         if (user.role !== 'admin' && user.role !== 'super-admin') {
@@ -47,7 +54,7 @@ export default function AdminLoginPage() {
         localStorage.setItem('refreshToken', tokens.refreshToken);
         localStorage.setItem('user', JSON.stringify(user));
 
-        toast.success(`Welcome back, ${user.fullName}!`);
+        toast.success(`Welcome back, ${user.fullName || user.email}!`);
         
         // Small delay to ensure toast is visible before redirect
         setTimeout(() => {
@@ -55,12 +62,17 @@ export default function AdminLoginPage() {
         }, 500);
       } else {
         const errorMessage = message || 'Login failed. Please try again.';
-        console.error('❌ Login failed:', errorMessage);
+        console.error('❌ Login failed:', { success, message, data });
         setError(errorMessage);
         toast.error(errorMessage);
       }
     } catch (err) {
       console.error('❌ Admin login error:', err);
+      console.error('❌ Error details:', {
+        message: err.message,
+        response: err.response,
+        stack: err.stack
+      });
       const errorMessage = err.response?.data?.message || err.message || 'Invalid email or password.';
       setError(errorMessage);
       toast.error(errorMessage);
