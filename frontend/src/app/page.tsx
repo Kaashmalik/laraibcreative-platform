@@ -81,19 +81,30 @@ export default async function RootHomePage(): Promise<JSX.Element> {
       api.categories.getAll().catch(() => ({ data: [] }))
     ]);
 
-    const featuredProducts: Product[] = Array.isArray(featuredProductsResponse?.products) 
-      ? featuredProductsResponse.products
-      : Array.isArray(featuredProductsResponse?.data?.products)
-      ? featuredProductsResponse.data.products
-      : Array.isArray(featuredProductsResponse)
-      ? featuredProductsResponse
-      : [];
+    // Type-safe extraction of products
+    let featuredProducts: Product[] = [];
+    if (featuredProductsResponse && typeof featuredProductsResponse === 'object') {
+      if ('products' in featuredProductsResponse && Array.isArray(featuredProductsResponse.products)) {
+        featuredProducts = featuredProductsResponse.products;
+      } else if ('data' in featuredProductsResponse && featuredProductsResponse.data && 
+                 typeof featuredProductsResponse.data === 'object' && 
+                 'products' in featuredProductsResponse.data && 
+                 Array.isArray(featuredProductsResponse.data.products)) {
+        featuredProducts = featuredProductsResponse.data.products;
+      } else if (Array.isArray(featuredProductsResponse)) {
+        featuredProducts = featuredProductsResponse;
+      }
+    }
     
-    const categories: Category[] = Array.isArray(categoriesResponse?.data)
-      ? categoriesResponse.data
-      : Array.isArray(categoriesResponse)
-      ? categoriesResponse
-      : [];
+    // Type-safe extraction of categories
+    let categories: Category[] = [];
+    if (categoriesResponse && typeof categoriesResponse === 'object') {
+      if ('data' in categoriesResponse && Array.isArray(categoriesResponse.data)) {
+        categories = categoriesResponse.data;
+      } else if (Array.isArray(categoriesResponse)) {
+        categories = categoriesResponse;
+      }
+    }
 
     // Generate Organization structured data for SEO
     const organizationSchema = generateOrganizationStructuredData();
