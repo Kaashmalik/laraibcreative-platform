@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 import HomePageClient from './HomePageClient';
-import HomePageLoading from './loading';
 import api from '@/lib/api';
 import { SITE_URL } from '@/lib/constants';
 import { generateOrganizationStructuredData } from '@/lib/seo-config';
@@ -80,10 +78,10 @@ export default async function HomePage(): Promise<JSX.Element> {
       api.categories.getAll().catch(() => ({ data: [] }))
     ]);
 
-    const featuredProducts: Product[] = Array.isArray((featuredProductsResponse as any)?.products)
-      ? (featuredProductsResponse as any).products
-      : Array.isArray((featuredProductsResponse as any)?.data?.products)
-      ? (featuredProductsResponse as any).data.products
+    const featuredProducts: Product[] = Array.isArray(featuredProductsResponse?.products) 
+      ? featuredProductsResponse.products
+      : Array.isArray(featuredProductsResponse?.data?.products)
+      ? featuredProductsResponse.data.products
       : Array.isArray(featuredProductsResponse)
       ? featuredProductsResponse
       : [];
@@ -109,13 +107,11 @@ export default async function HomePage(): Promise<JSX.Element> {
             __html: JSON.stringify(organizationSchema),
           }}
         />
-        <Suspense fallback={<HomePageLoading />}>
-          <HomePageClient
-            featuredProducts={featuredProducts}
-            categories={categories}
-            testimonials={[]} // Add when testimonials API is available
-          />
-        </Suspense>
+        <HomePageClient
+          featuredProducts={featuredProducts}
+          categories={categories}
+          testimonials={[]} // Add when testimonials API is available
+        />
       </>
     );
   } catch (error: unknown) {
@@ -134,13 +130,11 @@ export default async function HomePage(): Promise<JSX.Element> {
             __html: JSON.stringify(organizationSchema),
           }}
         />
-        <Suspense fallback={<HomePageLoading />}>
-          <HomePageClient
-            featuredProducts={[]}
-            categories={[]}
-            testimonials={[]}
-          />
-        </Suspense>
+        <HomePageClient
+          featuredProducts={[]}
+          categories={[]}
+          testimonials={[]}
+        />
       </>
     );
   }
