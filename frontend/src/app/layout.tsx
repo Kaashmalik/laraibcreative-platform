@@ -5,6 +5,7 @@ import './globals.css'
 import { TRPCProvider } from '@/providers/TRPCProvider'
 import { ThemeProvider } from '@/context/ThemeContext'
 import CartProvider from '@/context/CartContext'
+import { SupabaseAuthProvider } from '@/context/SupabaseAuthContext'
 import { Toaster } from 'react-hot-toast'
 import GlobalErrorBoundary from '@/components/shared/GlobalErrorBoundary'
 import { Analytics } from '@vercel/analytics/react'
@@ -198,7 +199,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         suppressHydrationWarning
       >
         <GlobalErrorBoundary>
-          <TRPCProvider>
+          <SupabaseAuthProvider>
+            <TRPCProvider>
             <ThemeProvider>
               <CartProvider>
                 <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50">
@@ -271,6 +273,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <SpeedInsights />
             </ThemeProvider>
           </TRPCProvider>
+          </SupabaseAuthProvider>
         </GlobalErrorBoundary>
       </body>
     </html>
