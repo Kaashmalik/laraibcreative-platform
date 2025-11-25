@@ -78,7 +78,10 @@ PROVIDE_YOUR_INFO.txt
 .cache/
 
 # Database backups (may contain sensitive data)
-*.sql
 *.dump
 backups/
 *.backup
+
+# SQL files (except Supabase migrations)
+*.sql
+!supabase/migrations/*.sql
