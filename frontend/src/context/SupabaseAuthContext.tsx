@@ -104,7 +104,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     })
 
     if (!error && data.user) {
-      await supabase.from('profiles').upsert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('profiles') as any).upsert({
         id: data.user.id,
         email,
         full_name: fullName,
@@ -138,8 +139,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error('Not authenticated') }
 
-    const { error } = await supabase
-      .from('profiles')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('profiles') as any)
       .update(updates)
       .eq('id', user.id)
 
