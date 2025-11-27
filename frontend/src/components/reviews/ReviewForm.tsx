@@ -44,8 +44,9 @@ export function ReviewForm({ productId, productTitle, orderId, onSuccess, onCanc
     setError('')
 
     try {
-      const uploadPromises = Array.from(files).map(file => 
-        uploadReviewImage(file, productId)
+      const tempId = `temp-${productId}-${Date.now()}`
+      const uploadPromises = Array.from(files).map((file, index) => 
+        uploadReviewImage(tempId, file, images.length + index)
       )
       
       const results = await Promise.all(uploadPromises)

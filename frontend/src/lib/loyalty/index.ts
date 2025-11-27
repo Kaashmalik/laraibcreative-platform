@@ -58,7 +58,7 @@ export async function getLoyaltyBalance(userId: string): Promise<LoyaltyBalance>
     .from('profiles')
     .select('loyalty_points, lifetime_points')
     .eq('id', userId)
-    .single()
+    .single() as { data: { loyalty_points?: number; lifetime_points?: number } | null }
 
   const availablePoints = profile?.loyalty_points || 0
   const lifetimePoints = profile?.lifetime_points || availablePoints
@@ -186,14 +186,16 @@ export async function redeemPoints(
     .eq('id', userId)
     .single()
 
-  if (!profile || profile.loyalty_points < points) {
+  const currentPoints = (profile as { loyalty_points?: number } | null)?.loyalty_points || 0
+  if (!profile || currentPoints < points) {
     return { success: false, error: 'Insufficient points' }
   }
 
   // Deduct points
-  const { error: updateError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
     .from('profiles')
-    .update({ loyalty_points: profile.loyalty_points - points })
+    .update({ loyalty_points: currentPoints - points })
     .eq('id', userId)
 
   if (updateError) {
@@ -208,7 +210,7 @@ export async function redeemPoints(
     source: 'order',
     description: `Redeemed for order discount`,
     order_id: orderId,
-  })
+  } as any)
 
   return { success: true }
 }
@@ -235,14 +237,14 @@ export async function getReferralStats(userId: string): Promise<ReferralStats | 
     .from('profiles')
     .select('referral_code')
     .eq('id', userId)
-    .single()
+    .single() as { data: { referral_code?: string } | null }
 
   if (!profile?.referral_code) return null
 
   const { data: referrals } = await supabase
     .from('referrals')
     .select('status, points_awarded')
-    .eq('referrer_id', userId)
+    .eq('referrer_id', userId) as { data: Array<{ status: string; points_awarded?: number }> | null }
 
   const stats = (referrals || []).reduce(
     (acc, ref) => {

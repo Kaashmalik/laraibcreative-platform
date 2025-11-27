@@ -11,7 +11,6 @@ import Link from 'next/link'
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, type CartItem } from '@/store/cart-store'
-import { cn } from '@/lib/utils'
 
 export function CartDrawer() {
   const { 

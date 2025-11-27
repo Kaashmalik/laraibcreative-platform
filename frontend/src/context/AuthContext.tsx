@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.rpc('process_referral', {
           referral_code: data.referralCode,
           new_user_id: authData.user.id
-        })
+        } as any)
       } catch (e) {
         console.error('Referral processing failed:', e)
       }
@@ -228,7 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return { error: new Error('Not authenticated') }
 
-    const { error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
       .from('profiles')
       .update(data)
       .eq('id', user.id)

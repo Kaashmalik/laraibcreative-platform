@@ -155,7 +155,7 @@ export async function syncCartToSupabase(userId: string) {
         variant_id: item.variantId || null,
         quantity: item.quantity,
         customization: item.customization || null,
-      }))
+      })) as any
     )
   }
 }
@@ -166,7 +166,6 @@ export async function loadCartFromSupabase(userId: string) {
   const { createClient } = await import('@/lib/supabase/client')
   const supabase = createClient()
 
-  // @ts-expect-error - Types will be available after running: npx supabase gen types
   const { data: cartItems } = await supabase
     .from('cart_items')
     .select('*')

@@ -27,7 +27,7 @@ interface StepConfig {
 }
 
 export function CheckoutWizard() {
-  const { items, getSubtotal, getStitchingTotal, getTotal, clearCart } = useCartStore()
+  const { items, getSubtotal, getStitchingTotal, clearCart } = useCartStore()
   
   const [currentStep, setCurrentStep] = useState<Step>('shipping')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -176,7 +176,7 @@ export function CheckoutWizard() {
           {steps.map((step, index) => {
             const isCompleted = index < currentIndex
             const isCurrent = step.id === currentStep
-            const Icon = step.icon
+            // Icon is used in the JSX via step.icon
 
             return (
               <li key={step.id} className="flex items-center">

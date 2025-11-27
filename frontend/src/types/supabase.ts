@@ -28,6 +28,9 @@ export type Database = {
           total_orders: number
           total_spent: number
           loyalty_points: number
+          lifetime_points: number
+          referral_code: string | null
+          referred_by: string | null
           preferences: Json | null
           created_at: string
           updated_at: string
@@ -45,6 +48,9 @@ export type Database = {
           total_orders?: number
           total_spent?: number
           loyalty_points?: number
+          lifetime_points?: number
+          referral_code?: string | null
+          referred_by?: string | null
           preferences?: Json | null
           created_at?: string
           updated_at?: string
@@ -62,6 +68,9 @@ export type Database = {
           total_orders?: number
           total_spent?: number
           loyalty_points?: number
+          lifetime_points?: number
+          referral_code?: string | null
+          referred_by?: string | null
           preferences?: Json | null
           created_at?: string
           updated_at?: string
@@ -118,6 +127,176 @@ export type Database = {
           type?: 'shipping' | 'billing'
           created_at?: string
           updated_at?: string
+        }
+      }
+      cart_items: {
+        Row: {
+          id: string
+          user_id: string | null
+          session_id: string | null
+          product_id: string
+          variant_id: string | null
+          quantity: number
+          customization: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          session_id?: string | null
+          product_id: string
+          variant_id?: string | null
+          quantity?: number
+          customization?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          session_id?: string | null
+          product_id?: string
+          variant_id?: string | null
+          quantity?: number
+          customization?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      measurements: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          is_default: boolean
+          bust: number | null
+          waist: number | null
+          hips: number | null
+          shoulder: number | null
+          sleeve_length: number | null
+          shirt_length: number | null
+          trouser_length: number | null
+          trouser_waist: number | null
+          neck: number | null
+          arm_hole: number | null
+          wrist: number | null
+          notes: string | null
+          reference_images: string[] | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name?: string
+          is_default?: boolean
+          bust?: number | null
+          waist?: number | null
+          hips?: number | null
+          shoulder?: number | null
+          sleeve_length?: number | null
+          shirt_length?: number | null
+          trouser_length?: number | null
+          trouser_waist?: number | null
+          neck?: number | null
+          arm_hole?: number | null
+          wrist?: number | null
+          notes?: string | null
+          reference_images?: string[] | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          is_default?: boolean
+          bust?: number | null
+          waist?: number | null
+          hips?: number | null
+          shoulder?: number | null
+          sleeve_length?: number | null
+          shirt_length?: number | null
+          trouser_length?: number | null
+          trouser_waist?: number | null
+          neck?: number | null
+          arm_hole?: number | null
+          wrist?: number | null
+          notes?: string | null
+          reference_images?: string[] | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      loyalty_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          points: number
+          type: 'earned' | 'redeemed' | 'expired' | 'adjusted' | 'bonus'
+          source: string
+          description: string | null
+          order_id: string | null
+          expires_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          points: number
+          type: 'earned' | 'redeemed' | 'expired' | 'adjusted' | 'bonus'
+          source: string
+          description?: string | null
+          order_id?: string | null
+          expires_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          points?: number
+          type?: 'earned' | 'redeemed' | 'expired' | 'adjusted' | 'bonus'
+          source?: string
+          description?: string | null
+          order_id?: string | null
+          expires_at?: string | null
+          created_at?: string
+        }
+      }
+      referrals: {
+        Row: {
+          id: string
+          referrer_id: string
+          referred_id: string
+          referral_code: string
+          status: 'pending' | 'completed' | 'expired' | 'cancelled'
+          points_awarded: number
+          order_id: string | null
+          completed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          referrer_id: string
+          referred_id: string
+          referral_code: string
+          status?: 'pending' | 'completed' | 'expired' | 'cancelled'
+          points_awarded?: number
+          order_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          referrer_id?: string
+          referred_id?: string
+          referral_code?: string
+          status?: 'pending' | 'completed' | 'expired' | 'cancelled'
+          points_awarded?: number
+          order_id?: string | null
+          completed_at?: string | null
+          created_at?: string
         }
       }
       categories: {
@@ -475,32 +654,6 @@ export type Database = {
           created_at?: string
         }
       }
-      measurements: {
-        Row: {
-          id: string
-          user_id: string
-          label: string
-          measurements: Json
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          label?: string
-          measurements: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          label?: string
-          measurements?: Json
-          created_at?: string
-          updated_at?: string
-        }
-      }
       reviews: {
         Row: {
           id: string
@@ -686,38 +839,6 @@ export type Database = {
           description?: string | null
           expires_at?: string | null
           created_at?: string
-        }
-      }
-      referrals: {
-        Row: {
-          id: string
-          referrer_id: string
-          referred_id: string
-          referral_code: string
-          status: 'pending' | 'completed' | 'rewarded'
-          reward_points: number
-          created_at: string
-          completed_at: string | null
-        }
-        Insert: {
-          id?: string
-          referrer_id: string
-          referred_id: string
-          referral_code: string
-          status?: 'pending' | 'completed' | 'rewarded'
-          reward_points?: number
-          created_at?: string
-          completed_at?: string | null
-        }
-        Update: {
-          id?: string
-          referrer_id?: string
-          referred_id?: string
-          referral_code?: string
-          status?: 'pending' | 'completed' | 'rewarded'
-          reward_points?: number
-          created_at?: string
-          completed_at?: string | null
         }
       }
     }

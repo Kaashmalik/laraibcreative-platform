@@ -142,6 +142,17 @@ export const cloudinaryPresets = {
 /**
  * Upload image to Cloudinary (server-side only)
  */
+interface CloudinaryUploadResult {
+  public_id: string
+  secure_url: string
+  width: number
+  height: number
+}
+
+/**
+ * Server-side upload to Cloudinary
+ * Requires cloudinary package: npm install cloudinary
+ */
 export async function uploadToCloudinary(
   file: Buffer | string,
   options: {
@@ -149,10 +160,18 @@ export async function uploadToCloudinary(
     public_id?: string
     resource_type?: 'image' | 'video' | 'raw'
   } = {}
-): Promise<{ public_id: string; secure_url: string; width: number; height: number }> {
-  const cloudinary = await import('cloudinary')
+): Promise<CloudinaryUploadResult> {
+  // Dynamic import for server-side only
+  // Install: npm install cloudinary
+  const cloudinaryModule = await import('cloudinary').catch(() => null)
   
-  cloudinary.v2.config({
+  if (!cloudinaryModule) {
+    throw new Error('Cloudinary package not installed. Run: npm install cloudinary')
+  }
+  
+  const cloudinary = cloudinaryModule.v2
+  
+  cloudinary.config({
     cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -169,14 +188,16 @@ export async function uploadToCloudinary(
     }
 
     if (typeof file === 'string') {
-      cloudinary.v2.uploader.upload(file, uploadOptions, (error, result) => {
+      cloudinary.uploader.upload(file, uploadOptions, (error: unknown, result: unknown) => {
         if (error) reject(error)
-        else resolve(result as any)
+        else if (result) resolve(result as CloudinaryUploadResult)
+        else reject(new Error('Upload failed'))
       })
     } else {
-      cloudinary.v2.uploader.upload_stream(uploadOptions, (error, result) => {
+      cloudinary.uploader.upload_stream(uploadOptions, (error: unknown, result: unknown) => {
         if (error) reject(error)
-        else resolve(result as any)
+        else if (result) resolve(result as CloudinaryUploadResult)
+        else reject(new Error('Upload failed'))
       }).end(file)
     }
   })

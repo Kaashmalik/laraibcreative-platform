@@ -68,6 +68,12 @@ export default function ProductFilters({
   });
 
   // Filter options with counts
+  // Check if filterCounts has actual data
+  const hasFabricCounts = filterCounts.fabric && Object.keys(filterCounts.fabric).length > 0;
+  const hasOccasionCounts = filterCounts.occasion && Object.keys(filterCounts.occasion).length > 0;
+  const hasColorCounts = filterCounts.color && Object.keys(filterCounts.color).length > 0;
+  const hasSizeCounts = filterCounts.size && Object.keys(filterCounts.size).length > 0;
+
   const fabricOptions: FilterOption[] = useMemo(() => [
     { value: 'Lawn', label: 'Lawn', count: filterCounts.fabric?.Lawn || 0 },
     { value: 'Chiffon', label: 'Chiffon', count: filterCounts.fabric?.Chiffon || 0 },
@@ -78,7 +84,7 @@ export default function ProductFilters({
     { value: 'Georgette', label: 'Georgette', count: filterCounts.fabric?.Georgette || 0 },
     { value: 'Jacquard', label: 'Jacquard', count: filterCounts.fabric?.Jacquard || 0 },
     { value: 'Linen', label: 'Linen', count: filterCounts.fabric?.Linen || 0 },
-  ].filter(opt => opt.count > 0 || !filterCounts.fabric), [filterCounts.fabric]);
+  ].filter(opt => opt.count > 0 || !hasFabricCounts), [filterCounts.fabric, hasFabricCounts]);
 
   const occasionOptions: FilterOption[] = useMemo(() => [
     { value: 'bridal', label: 'Bridal', icon: '👰', count: filterCounts.occasion?.bridal || 0 },
@@ -86,7 +92,7 @@ export default function ProductFilters({
     { value: 'casual', label: 'Casual', icon: '👕', count: filterCounts.occasion?.casual || 0 },
     { value: 'formal', label: 'Formal', icon: '💼', count: filterCounts.occasion?.formal || 0 },
     { value: 'festive', label: 'Festive', icon: '🎊', count: filterCounts.occasion?.festive || 0 },
-  ].filter(opt => opt.count > 0 || !filterCounts.occasion), [filterCounts.occasion]);
+  ].filter(opt => opt.count > 0 || !hasOccasionCounts), [filterCounts.occasion, hasOccasionCounts]);
 
   const colorOptions: FilterOption[] = useMemo(() => [
     { value: 'red', hexCode: '#EF4444', label: 'Red', count: filterCounts.color?.red || 0 },
@@ -99,7 +105,7 @@ export default function ProductFilters({
     { value: 'white', hexCode: '#FFFFFF', label: 'White', count: filterCounts.color?.white || 0 },
     { value: 'beige', hexCode: '#D4C5B9', label: 'Beige', count: filterCounts.color?.beige || 0 },
     { value: 'gold', hexCode: '#FFD700', label: 'Gold', count: filterCounts.color?.gold || 0 },
-  ].filter(opt => opt.count > 0 || !filterCounts.color), [filterCounts.color]);
+  ].filter(opt => opt.count > 0 || !hasColorCounts), [filterCounts.color, hasColorCounts]);
 
   const sizeOptions: FilterOption[] = useMemo(() => [
     { value: 'XS', label: 'XS', count: filterCounts.size?.XS || 0 },
@@ -109,7 +115,7 @@ export default function ProductFilters({
     { value: 'XL', label: 'XL', count: filterCounts.size?.XL || 0 },
     { value: 'XXL', label: 'XXL', count: filterCounts.size?.XXL || 0 },
     { value: 'Custom', label: 'Custom', count: filterCounts.size?.Custom || 0 },
-  ].filter(opt => opt.count > 0 || !filterCounts.size), [filterCounts.size]);
+  ].filter(opt => opt.count > 0 || !hasSizeCounts), [filterCounts.size, hasSizeCounts]);
 
   // Handlers
   const handleCheckboxChange = useCallback((filterType: 'fabric' | 'occasion' | 'color' | 'size' | 'availability', value: string) => {

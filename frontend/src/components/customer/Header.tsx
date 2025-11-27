@@ -365,6 +365,7 @@ export default function Header() {
                 }}
                 priority
                 quality={75}
+                unoptimized
               />
               <span className="font-playfair text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent truncate">
                 <span className="hidden sm:inline">LaraibCreative</span>

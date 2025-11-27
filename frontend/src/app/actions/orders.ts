@@ -2,10 +2,8 @@
 
 /**
  * Order Server Actions - Phase 4-5
- * Handles order creation, updates, and retrieval
- */
-
-import { createOrder, getOrderByNumber, getOrdersByCustomer, updateOrderStatus, type CreateOrderInput, type OrderStatus } from '@/lib/tidb/orders'
+ * Order creation, management, and related operations
+ */import { createOrder, getOrderByNumber, getOrdersByCustomer, updateOrderStatus, type CreateOrderInput, type OrderStatus } from '@/lib/tidb/orders'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
@@ -110,7 +108,7 @@ export async function createNewOrder(data: CheckoutData) {
 
     // Award loyalty points if logged in
     if (user?.id) {
-      awardLoyaltyPoints(user.id, data.total).catch(console.error)
+      awardLoyaltyPoints(user.id, data.total, result.orderNumber).catch(console.error)
     }
 
     return {
@@ -179,7 +177,8 @@ export async function updateOrder(orderId: string, status: OrderStatus, note?: s
       .eq('id', user.id)
       .single()
 
-    if (!profile || !['admin', 'super-admin'].includes(profile.role)) {
+    const userRole = (profile as { role?: string } | null)?.role
+    if (!profile || !['admin', 'super-admin'].includes(userRole || '')) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -274,7 +273,7 @@ export async function validateDiscountCode(code: string, subtotal: number) {
 
 // Helper functions
 
-async function sendNotifications(orderNumber: string, data: CheckoutData) {
+async function sendNotifications(orderNumber: string, _data: CheckoutData) {
   // TODO: Implement email and WhatsApp notifications
   console.log(`Sending notifications for order ${orderNumber}`)
   
@@ -293,7 +292,7 @@ async function sendNotifications(orderNumber: string, data: CheckoutData) {
   // })
 }
 
-async function awardLoyaltyPoints(userId: string, orderTotal: number) {
+async function awardLoyaltyPoints(userId: string, orderTotal: number, orderNumber: string) {
   const supabase = await createSupabaseServerClient()
   const pointsEarned = Math.floor(orderTotal) // 1 point per PKR
   
@@ -303,12 +302,12 @@ async function awardLoyaltyPoints(userId: string, orderTotal: number) {
     points: pointsEarned,
     type: 'earned',
     source: 'order',
-    description: 'Points earned from order',
-  })
+    description: `Points earned from order #${orderNumber}`,
+  } as any)
   
   // Update profile total
   await supabase.rpc('increment_loyalty_points', {
     user_id: userId,
     points_to_add: pointsEarned,
-  })
+  } as any)
 }

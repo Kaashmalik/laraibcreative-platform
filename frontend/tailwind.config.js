@@ -16,6 +16,10 @@ const config = {
     extend: {
       colors: {
         // LaraibCreative Design System
+        'brand-pink': '#D946A6',
+        'brand-purple': '#7C3AED',
+        'brand-rose-gold': '#E8B4B8',
+        
         'primary-gold': {
           DEFAULT: '#D4AF37',
           light: '#E8C84A',

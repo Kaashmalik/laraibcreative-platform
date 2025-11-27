@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@tidbcloud/serverless": "^0.2.0",
+    "cloudinary": "^2.5.0",
     "@hello-pangea/dnd": "^16.3.0",
     "@hookform/resolvers": "^3.9.0",
     "@sentry/nextjs": "^8.0.0",

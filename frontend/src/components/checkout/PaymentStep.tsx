@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CreditCard, Smartphone, Building2, Truck } from 'lucide-react'
+import { Smartphone, Building2, Truck } from 'lucide-react'
 import { validateDiscountCode } from '@/app/actions/orders'
 import type { CheckoutData } from '@/app/actions/orders'
 import { cn } from '@/lib/utils'

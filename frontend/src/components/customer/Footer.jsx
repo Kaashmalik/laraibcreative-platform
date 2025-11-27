@@ -237,6 +237,7 @@ export default function Footer() {
                   width={48}
                   height={48}
                   className="brightness-0 invert"
+                  unoptimized
                 />
               </Link>
               <h3 className="font-playfair text-2xl font-bold text-white mb-3">
