@@ -402,7 +402,7 @@ userSchema.methods.setDefaultAddress = async function(addressId) {
                   {
                     isDefault: {
                       $cond: [
-                        { $eq: ['$$addr._id', mongoose.Types.ObjectId(addressId)] },
+                        { $eq: ['$$addr._id', new mongoose.Types.ObjectId(addressId)] },
                         true,
                         false
                       ]

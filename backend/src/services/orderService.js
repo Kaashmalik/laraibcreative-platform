@@ -252,12 +252,10 @@ exports.getOrderStats = async () => {
       Order.countDocuments({ 'payment.status': 'pending' }),
       Order.countDocuments({
         status: {
-          $in: ['payment-verified', 'fabric-arranged', 'stitching-in-progress', 'quality-check', 'ready-for-dispatch']
+          $in: ['payment-verified', 'material-arranged', 'in-progress', 'quality-check', 'ready-dispatch']
         }
       }),
       Order.countDocuments({ status: 'delivered' }),
-      
-      // Revenue calculations
       Order.aggregate([
         { $match: { status: { $ne: 'cancelled' }, 'payment.status': 'verified' } },
         { $group: { _id: null, total: { $sum: '$pricing.total' } } }
@@ -327,58 +325,38 @@ exports.getDetailedStats = async (period = 'month') => {
         startDate.setMonth(now.getMonth() - 1);
     }
 
-    // Order status distribution
     const statusDistribution = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate } } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
-    // Payment method distribution
     const paymentMethodDistribution = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate } } },
       { $group: { _id: '$payment.method', count: { $sum: 1 }, total: { $sum: '$pricing.total' } } },
       { $sort: { count: -1 } }
     ]);
 
-    // Custom vs Ready orders
     const orderTypeDistribution = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate } } },
       { $unwind: '$items' },
-      { $group: {
-        _id: '$items.isCustom',
-        count: { $sum: 1 },
-        revenue: { $sum: '$items.price' }
-      }}
+      { $group: { _id: '$items.isCustom', count: { $sum: 1 }, revenue: { $sum: '$items.price' } }}
     ]);
 
-    // Average order value
     const avgOrderValue = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate }, status: { $ne: 'cancelled' } } },
       { $group: { _id: null, avg: { $avg: '$pricing.total' } } }
     ]);
 
-    // Daily revenue trend (for charts)
-    const revenuetrend = await Order.aggregate([
+    const revenueTrend = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate }, 'payment.status': 'verified' } },
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          revenue: { $sum: '$pricing.total' },
-          orders: { $sum: 1 }
-        }
-      },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, revenue: { $sum: '$pricing.total' }, orders: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
 
-    // Top cities by orders
     const topCities = await Order.aggregate([
       { $match: { createdAt: { $gte: startDate } } },
-      { $group: {
-        _id: '$shippingAddress.city',
-        orders: { $sum: 1 },
-        revenue: { $sum: '$pricing.total' }
-      }},
+      { $group: { _id: '$shippingAddress.city', orders: { $sum: 1 }, revenue: { $sum: '$pricing.total' } }},
       { $sort: { orders: -1 } },
       { $limit: 10 }
     ]);
@@ -394,7 +372,7 @@ exports.getDetailedStats = async (period = 'month') => {
         ready: orderTypeDistribution.find(d => d._id === false) || { count: 0, revenue: 0 }
       },
       averageOrderValue: avgOrderValue[0]?.avg || 0,
-      revenuetrend,
+      revenueTrend,
       topCities
     };
 
@@ -409,14 +387,13 @@ exports.getDetailedStats = async (period = 'month') => {
  */
 exports.canCustomerCancel = (order) => {
   const nonCancellableStatuses = [
-    'stitching-in-progress',
+    'in-progress',
     'quality-check',
-    'ready-for-dispatch',
-    'out-for-delivery',
+    'ready-dispatch',
+    'dispatched',
     'delivered',
     'cancelled'
   ];
-
   return !nonCancellableStatuses.includes(order.status);
 };
 
@@ -424,16 +401,18 @@ exports.canCustomerCancel = (order) => {
  * Get next valid status transitions
  */
 exports.getValidStatusTransitions = (currentStatus) => {
+  // Status values must match Order model enum
   const transitions = {
     'pending-payment': ['payment-verified', 'cancelled'],
-    'payment-verified': ['fabric-arranged', 'cancelled'],
-    'fabric-arranged': ['stitching-in-progress', 'cancelled'],
-    'stitching-in-progress': ['quality-check'],
-    'quality-check': ['ready-for-dispatch', 'stitching-in-progress'], // Can go back for rework
-    'ready-for-dispatch': ['out-for-delivery'],
-    'out-for-delivery': ['delivered'],
+    'payment-verified': ['material-arranged', 'cancelled'],
+    'material-arranged': ['in-progress', 'cancelled'],
+    'in-progress': ['quality-check'],
+    'quality-check': ['ready-dispatch', 'in-progress'], // Can go back for rework
+    'ready-dispatch': ['dispatched'],
+    'dispatched': ['delivered'],
     'delivered': [],
-    'cancelled': []
+    'cancelled': [],
+    'refunded': []
   };
 
   return transitions[currentStatus] || [];

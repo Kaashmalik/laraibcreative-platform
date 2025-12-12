@@ -31,20 +31,20 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
  * @param {OrderDistribution[]} [props.data]
  */
 
-// Color palette for order statuses
+// Color palette for order statuses - vibrant colors for dark mode
 const STATUS_COLORS = {
-  'pending-payment': '#f59e0b', // yellow
-  'payment-verified': '#3b82f6', // blue
-  'fabric-arranged': '#8b5cf6', // purple
-  'stitching-in-progress': '#6366f1', // indigo
-  'quality-check': '#06b6d4', // cyan
-  'ready-for-dispatch': '#10b981', // green
-  'dispatched': '#14b8a6', // teal
-  'delivered': '#22c55e', // green-500
-  'cancelled': '#ef4444' // red
+  'pending-payment': '#fbbf24', // amber-400
+  'payment-verified': '#60a5fa', // blue-400
+  'fabric-arranged': '#a78bfa', // purple-400
+  'stitching-in-progress': '#818cf8', // indigo-400
+  'quality-check': '#22d3ee', // cyan-400
+  'ready-for-dispatch': '#34d399', // emerald-400
+  'dispatched': '#2dd4bf', // teal-400
+  'delivered': '#4ade80', // green-400
+  'cancelled': '#f87171' // red-400
 };
 
-const DEFAULT_COLORS = ['#ec4899', '#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#06b6d4', '#6366f1', '#14b8a6'];
+const DEFAULT_COLORS = ['#f472b6', '#a78bfa', '#34d399', '#60a5fa', '#fbbf24', '#22d3ee', '#818cf8', '#2dd4bf'];
 
 export default function OrdersPieChart({ data: propData }) {
   // Transform order distribution data for pie chart
@@ -59,11 +59,11 @@ export default function OrdersPieChart({ data: propData }) {
         color: STATUS_COLORS[item.status] || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
       }))
     : [
-        { name: 'Pending Payment', value: 45, orders: 125, color: '#f59e0b' },
-        { name: 'In Progress', value: 30, orders: 83, color: '#3b82f6' },
-        { name: 'Completed', value: 15, orders: 42, color: '#10b981' },
-        { name: 'Delivered', value: 7, orders: 19, color: '#22c55e' },
-        { name: 'Cancelled', value: 3, orders: 8, color: '#ef4444' }
+        { name: 'Pending Payment', value: 45, orders: 125, color: '#fbbf24' },
+        { name: 'In Progress', value: 30, orders: 83, color: '#60a5fa' },
+        { name: 'Completed', value: 15, orders: 42, color: '#34d399' },
+        { name: 'Delivered', value: 7, orders: 19, color: '#4ade80' },
+        { name: 'Cancelled', value: 3, orders: 8, color: '#f87171' }
       ];
 
   // Custom label to show percentages

@@ -68,6 +68,71 @@ SENTRY_DSN=
 # ===========================================
 NEXTAUTH_SECRET=generate_a_random_32_char_string
 ENCRYPTION_KEY=generate_a_random_32_char_string
+
+# ===========================================
+# AI CONTENT GENERATION (Google Gemini - FREE!)
+# ===========================================
+GEMINI_API_KEY=AIza-your-key-from-google-ai-studio
+GEMINI_MODEL=gemini-1.5-flash
+```
+
+---
+
+## Backend Environment Variables (`.env` in backend/)
+
+```env
+# ===========================================
+# SERVER
+# ===========================================
+NODE_ENV=development
+PORT=5000
+FRONTEND_URL=http://localhost:3000
+
+# ===========================================
+# TIDB CLOUD DATABASE
+# ===========================================
+TIDB_HOST=gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+TIDB_PORT=4000
+TIDB_USER=your_username
+TIDB_PASSWORD=your_password
+TIDB_DATABASE=laraibcreative
+
+# ===========================================
+# JWT AUTHENTICATION
+# ===========================================
+JWT_SECRET=your_super_secret_jwt_key_at_least_32_chars_long
+JWT_REFRESH_SECRET=your_refresh_secret_key_at_least_32_chars
+JWT_EXPIRE=7d
+JWT_REFRESH_EXPIRE=30d
+
+# ===========================================
+# CLOUDINARY
+# ===========================================
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# ===========================================
+# AI CONTENT GENERATION (Google Gemini)
+# ===========================================
+GEMINI_API_KEY=AIza-your-key-from-google-ai-studio
+GEMINI_MODEL=gemini-1.5-flash
+
+# ===========================================
+# EMAIL (Optional)
+# ===========================================
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+EMAIL_FROM=LaraibCreative <noreply@laraibcreative.com>
+
+# ===========================================
+# WHATSAPP (Optional)
+# ===========================================
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_NUMBER=
 ```
 
 ---

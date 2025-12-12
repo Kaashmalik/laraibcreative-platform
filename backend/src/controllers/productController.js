@@ -566,6 +566,70 @@ exports.getFeaturedProducts = async (req, res) => {
 };
 
 /**
+ * GET /api/products/new-arrivals
+ * Get new arrival products
+ * Public access
+ */
+exports.getNewArrivals = async (req, res) => {
+  try {
+    const { limit = 8 } = req.query;
+
+    const products = await Product.find({
+      status: 'published',
+      isDeleted: { $ne: true }
+    })
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .select('title slug price salePrice images category rating reviewCount');
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products
+    });
+  } catch (error) {
+    console.error('Error fetching new arrivals:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch new arrivals',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * GET /api/products/best-sellers
+ * Get best selling products
+ * Public access
+ */
+exports.getBestSellers = async (req, res) => {
+  try {
+    const { limit = 8 } = req.query;
+
+    const products = await Product.find({
+      status: 'published',
+      isDeleted: { $ne: true }
+    })
+      .sort({ salesCount: -1, rating: -1 })
+      .limit(parseInt(limit))
+      .select('title slug price salePrice images category rating reviewCount salesCount');
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products
+    });
+  } catch (error) {
+    console.error('Error fetching best sellers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch best sellers',
+      error: error.message
+    });
+  }
+};
+
+/**
  * POST /api/products/:id/view
  * Increment product view count
  * Public access
@@ -912,25 +976,90 @@ exports.createProductAdmin = async (req, res) => {
 
     // Parse nested objects if they're strings
     if (typeof productData.pricing === 'string') {
-      productData.pricing = JSON.parse(productData.pricing);
+      try {
+        productData.pricing = JSON.parse(productData.pricing);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
     if (typeof productData.fabric === 'string') {
-      productData.fabric = JSON.parse(productData.fabric);
+      try {
+        productData.fabric = JSON.parse(productData.fabric);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
     if (typeof productData.inventory === 'string') {
-      productData.inventory = JSON.parse(productData.inventory);
+      try {
+        productData.inventory = JSON.parse(productData.inventory);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
     if (typeof productData.availability === 'string') {
-      productData.availability = JSON.parse(productData.availability);
+      try {
+        productData.availability = JSON.parse(productData.availability);
+      } catch (e) {
+        // Convert string to object format (e.g., "in-stock" -> { status: "in-stock" })
+        const validStatuses = ['in-stock', 'made-to-order', 'out-of-stock', 'discontinued', 'custom-only'];
+        const statusValue = productData.availability.toLowerCase().trim();
+        // Map frontend values to backend schema values
+        const statusMap = {
+          'in-stock': 'in-stock',
+          'custom-only': 'made-to-order',
+          'out-of-stock': 'out-of-stock'
+        };
+        productData.availability = { 
+          status: statusMap[statusValue] || (validStatuses.includes(statusValue) ? statusValue : 'made-to-order')
+        };
+      }
+    }
+    // Ensure availability is always an object with status
+    if (productData.availability && typeof productData.availability !== 'object') {
+      productData.availability = { status: 'made-to-order' };
     }
     if (typeof productData.seo === 'string') {
-      productData.seo = JSON.parse(productData.seo);
+      try {
+        productData.seo = JSON.parse(productData.seo);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
     if (typeof productData.sizeAvailability === 'string') {
-      productData.sizeAvailability = JSON.parse(productData.sizeAvailability);
+      try {
+        productData.sizeAvailability = JSON.parse(productData.sizeAvailability);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
     if (typeof productData.availableColors === 'string') {
-      productData.availableColors = JSON.parse(productData.availableColors);
+      try {
+        productData.availableColors = JSON.parse(productData.availableColors);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
+    }
+    // Parse Hand Karhai specific fields
+    if (typeof productData.embroideryDetails === 'string') {
+      try {
+        productData.embroideryDetails = JSON.parse(productData.embroideryDetails);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
+    }
+    if (typeof productData.suitComponents === 'string') {
+      try {
+        productData.suitComponents = JSON.parse(productData.suitComponents);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
+    }
+    if (typeof productData.images === 'string') {
+      try {
+        productData.images = JSON.parse(productData.images);
+      } catch (e) {
+        // Keep as is if parsing fails
+      }
     }
 
     // Validate required fields
@@ -960,11 +1089,13 @@ exports.createProductAdmin = async (req, res) => {
       counter++;
     }
 
-    // Generate design code if not provided
+    // Generate design code if not provided (format: LC-YYYY-NNNN)
     if (!productData.designCode) {
       const year = new Date().getFullYear();
-      const random = Math.floor(Math.random() * 9000) + 1000;
-      productData.designCode = `LC-${year}-${random}`;
+      // Generate sequential-like code to avoid collisions
+      const timestamp = Date.now().toString().slice(-4);
+      const random = Math.floor(Math.random() * 900) + 100;
+      productData.designCode = `LC-${year}-${timestamp}${random}`;
     }
 
     // Generate SKU if not provided
@@ -987,9 +1118,74 @@ exports.createProductAdmin = async (req, res) => {
       });
     }
 
-    // Set primary image
-    const primaryImage = images.length > 0 ? images[0].url : '';
-    const thumbnailImage = primaryImage;
+    // Use images from productData if provided (with imageType labels), otherwise use uploaded files
+    let finalImages = images;
+    if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
+      finalImages = productData.images.map((img, idx) => ({
+        url: typeof img === 'string' ? img : img.url,
+        publicId: img.publicId || '',
+        altText: img.altText || productData.title,
+        displayOrder: img.displayOrder || idx,
+        imageType: img.imageType || 'other',
+        caption: img.caption || ''
+      }));
+    }
+
+    // Set primary image from finalImages
+    const finalPrimaryImage = productData.primaryImage || (finalImages.length > 0 ? (typeof finalImages[0] === 'string' ? finalImages[0] : finalImages[0].url) : '');
+    const finalThumbnailImage = finalPrimaryImage;
+
+    // Transform pricing to match backend schema
+    // Frontend sends: { basePrice, customStitchingCharge, discount (number) }
+    // Backend expects: { basePrice, customStitchingCharge, discount: { percentage, isActive } }
+    const transformedPricing = {
+      basePrice: parseFloat(productData.pricing?.basePrice) || 0,
+      customStitchingCharge: parseFloat(productData.pricing?.customStitchingCharge) || 0,
+      discount: {
+        percentage: parseFloat(productData.pricing?.discount) || 0,
+        amount: 0,
+        isActive: (parseFloat(productData.pricing?.discount) || 0) > 0
+      }
+    };
+
+    // Ensure required sub-schemas have valid defaults
+    const defaultCustomization = {
+      allowFullyCustom: true,
+      allowBrandArticle: true,
+      allowOwnFabric: true,
+      maxReferenceImages: 5,
+      estimatedStitchingDays: 10,
+      availableAddOns: []
+    };
+
+    const defaultSizeAvailability = {
+      standardSizes: ['S', 'M', 'L', 'XL'],
+      customSizeOnly: false,
+      measurementGuide: ''
+    };
+
+    // Normalize fabric type to match enum (capitalize first letter)
+    const validFabricTypes = [
+      'Lawn', 'Chiffon', 'Silk', 'Cotton', 'Velvet', 'Organza',
+      'Georgette', 'Jacquard', 'Linen', 'Khaddar', 'Karandi',
+      'Cambric', 'Marina', 'Net', 'Banarsi', 'Raw Silk',
+      'Jamawar', 'Other'
+    ];
+    
+    if (productData.fabric && productData.fabric.type) {
+      const inputType = productData.fabric.type.toLowerCase();
+      const matchedType = validFabricTypes.find(t => t.toLowerCase() === inputType);
+      if (matchedType) {
+        productData.fabric.type = matchedType;
+      }
+    }
+    
+    // Truncate embroideryDetails.description to 500 chars if exceeds
+    if (productData.embroideryDetails && productData.embroideryDetails.description) {
+      if (productData.embroideryDetails.description.length > 500) {
+        productData.embroideryDetails.description = productData.embroideryDetails.description.substring(0, 500);
+      }
+    }
 
     // Create product
     const product = await Product.create({
@@ -1002,15 +1198,35 @@ exports.createProductAdmin = async (req, res) => {
       subcategory: productData.subcategory || '',
       occasion: productData.occasion || '',
       tags: productData.tags || [],
-      images,
-      primaryImage,
-      thumbnailImage,
-      fabric: productData.fabric || {},
-      pricing: productData.pricing,
+      images: finalImages,
+      primaryImage: finalPrimaryImage,
+      thumbnailImage: finalThumbnailImage,
+      fabric: productData.fabric || { type: 'Other' },
+      pricing: transformedPricing,
       inventory: productData.inventory || { trackInventory: false, stockQuantity: 0, lowStockThreshold: 5 },
       availability: productData.availability || { status: 'made-to-order' },
       productType: productData.productType || 'both',
-      sizeAvailability: productData.sizeAvailability || { availableSizes: [], customSizesAvailable: false },
+      // Hand Karhai specific fields
+      type: productData.type || 'ready-made',
+      articleName: productData.articleName || '',
+      articleCode: productData.articleCode || '',
+      embroideryDetails: productData.embroideryDetails || {
+        workType: 'none',
+        complexity: 'simple',
+        coverage: 'minimal',
+        placement: [],
+        estimatedHours: 0,
+        additionalCost: 0,
+        description: '',
+        threadColors: []
+      },
+      suitComponents: productData.suitComponents || {
+        shirt: { included: true, length: '', description: '' },
+        dupatta: { included: true, fabric: '', length: '', description: '' },
+        trouser: { included: true, fabric: '', length: '', description: '' }
+      },
+      customization: productData.customization || defaultCustomization,
+      sizeAvailability: productData.sizeAvailability || defaultSizeAvailability,
       availableColors: productData.availableColors || [],
       features: productData.features || [],
       whatsIncluded: productData.whatsIncluded || [],
@@ -1034,6 +1250,27 @@ exports.createProductAdmin = async (req, res) => {
 
   } catch (error) {
     console.error('Error in createProductAdmin:', error);
+    // Handle Mongoose validation errors with 400 status
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        error: error.message,
+        validationErrors: Object.keys(error.errors).reduce((acc, key) => {
+          acc[key] = error.errors[key].message;
+          return acc;
+        }, {})
+      });
+    }
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `Duplicate value for ${field}`,
+        error: `A product with this ${field} already exists`
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Failed to create product',
@@ -1098,8 +1335,8 @@ exports.updateProductAdmin = async (req, res) => {
       updateData = req.body;
     }
 
-    // Parse nested objects
-    ['pricing', 'fabric', 'inventory', 'availability', 'seo', 'sizeAvailability', 'availableColors'].forEach(key => {
+    // Parse nested objects (including Hand Karhai fields)
+    ['pricing', 'fabric', 'inventory', 'availability', 'seo', 'sizeAvailability', 'availableColors', 'embroideryDetails', 'suitComponents', 'images'].forEach(key => {
       if (typeof updateData[key] === 'string') {
         try {
           updateData[key] = JSON.parse(updateData[key]);
@@ -1108,6 +1345,18 @@ exports.updateProductAdmin = async (req, res) => {
         }
       }
     });
+    
+    // Process images with imageType labels if provided
+    if (updateData.images && Array.isArray(updateData.images)) {
+      updateData.images = updateData.images.map((img, idx) => ({
+        url: typeof img === 'string' ? img : img.url,
+        publicId: img.publicId || '',
+        altText: img.altText || updateData.title || '',
+        displayOrder: img.displayOrder || idx,
+        imageType: img.imageType || 'other',
+        caption: img.caption || ''
+      }));
+    }
 
     // Check if product exists
     const product = await Product.findById(id);
@@ -1231,10 +1480,13 @@ exports.deleteProductAdmin = async (req, res) => {
 
 /**
  * DELETE /api/v1/admin/products/bulk-delete
- * Bulk delete products
+ * Bulk delete products with transaction support
  * @access Private (Admin)
  */
 exports.bulkDeleteProducts = async (req, res) => {
+  const mongoose = require('mongoose');
+  const session = await mongoose.startSession();
+  
   try {
     const { productIds } = req.body;
 
@@ -1245,27 +1497,47 @@ exports.bulkDeleteProducts = async (req, res) => {
       });
     }
 
-    // Soft delete all products
-    const result = await Product.updateMany(
-      { _id: { $in: productIds } },
-      {
-        $set: {
-          isDeleted: true,
-          deletedAt: new Date(),
-          deletedBy: req.user.id
-        }
-      }
-    );
+    // Validate all IDs are valid ObjectIds
+    const validIds = productIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length !== productIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'One or more product IDs are invalid'
+      });
+    }
+
+    let result;
+    
+    // Use transaction for atomic operation
+    await session.withTransaction(async () => {
+      // Soft delete all products
+      result = await Product.updateMany(
+        { _id: { $in: validIds } },
+        {
+          $set: {
+            isDeleted: true,
+            isActive: false,
+            deletedAt: new Date(),
+            deletedBy: req.user.id
+          }
+        },
+        { session }
+      );
+    });
+
+    await session.endSession();
 
     res.status(200).json({
       success: true,
       message: `Successfully deleted ${result.modifiedCount} product(s)`,
       data: {
-        deletedCount: result.modifiedCount
+        deletedCount: result.modifiedCount,
+        requestedCount: validIds.length
       }
     });
 
   } catch (error) {
+    await session.endSession();
     console.error('Error in bulkDeleteProducts:', error);
     res.status(500).json({
       success: false,
@@ -1277,24 +1549,33 @@ exports.bulkDeleteProducts = async (req, res) => {
 
 /**
  * PATCH /api/v1/admin/products/bulk-update
- * Bulk update products
+ * Bulk update products with transaction support
  * @access Private (Admin)
  */
 exports.bulkUpdateProducts = async (req, res) => {
+  const mongoose = require('mongoose');
+  const { validateBulkUpdate } = require('../utils/productValidation');
+  const session = await mongoose.startSession();
+  
   try {
     const { productIds, updates } = req.body;
 
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+    // Validate input using Zod schema
+    const validation = validateBulkUpdate({ productIds, updates });
+    if (!validation.success) {
       return res.status(400).json({
         success: false,
-        message: 'Product IDs array is required'
+        message: 'Validation failed',
+        errors: validation.errors
       });
     }
 
-    if (!updates || typeof updates !== 'object') {
+    // Validate all IDs are valid ObjectIds
+    const validIds = productIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    if (validIds.length !== productIds.length) {
       return res.status(400).json({
         success: false,
-        message: 'Updates object is required'
+        message: 'One or more product IDs are invalid'
       });
     }
 
@@ -1314,25 +1595,45 @@ exports.bulkUpdateProducts = async (req, res) => {
       }
     });
 
-    // Add lastModifiedBy
+    // Add lastModifiedBy and timestamp
     updateObject.lastModifiedBy = req.user.id;
+    updateObject.lastEditedAt = new Date();
 
-    // Update all products
-    const result = await Product.updateMany(
-      { _id: { $in: productIds } },
-      { $set: updateObject }
-    );
+    let result;
+    
+    // Use transaction for atomic operation
+    await session.withTransaction(async () => {
+      result = await Product.updateMany(
+        { _id: { $in: validIds }, isDeleted: { $ne: true } },
+        { $set: updateObject },
+        { session, runValidators: true }
+      );
+    });
+
+    await session.endSession();
 
     res.status(200).json({
       success: true,
       message: `Successfully updated ${result.modifiedCount} product(s)`,
       data: {
-        updatedCount: result.modifiedCount
+        updatedCount: result.modifiedCount,
+        requestedCount: validIds.length
       }
     });
 
   } catch (error) {
+    await session.endSession();
     console.error('Error in bulkUpdateProducts:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        error: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to update products',

@@ -247,7 +247,8 @@ const ProductSchema = new mongoose.Schema({
     uppercase: true,
     trim: true,
     index: true,
-    match: [/^LC-\d{4}-\d{3,4}$/, 'Invalid design code format. Use LC-YYYY-XXX']
+    // Relaxed regex: accepts LC-YYYY-XXX, LC-timestamp-random, or any LC- prefix format
+    match: [/^LC-[A-Z0-9-]+$/i, 'Invalid design code format. Must start with LC-']
   },
 
   // FIXED: Enhanced category reference with validation
@@ -310,6 +311,16 @@ const ProductSchema = new mongoose.Schema({
       displayOrder: {
         type: Number,
         default: 0
+      },
+      imageType: {
+        type: String,
+        enum: ['front', 'back', 'side', 'detail', 'closeup', 'dupatta', 'trouser', 'full-set', 'model', 'flat-lay', 'other'],
+        default: 'other'
+      },
+      caption: {
+        type: String,
+        trim: true,
+        maxlength: [100, 'Image caption cannot exceed 100 characters']
       }
     }],
     validate: {
@@ -375,28 +386,54 @@ const ProductSchema = new mongoose.Schema({
   // NEW: Suit type classification (ready-made, replica, karhai)
   type: {
     type: String,
-    enum: ['ready-made', 'replica', 'karhai'],
+    enum: ['ready-made', 'replica', 'karhai', 'hand-karhai'],
     index: true,
     default: 'ready-made'
   },
 
-  // NEW: Embroidery details for karhai suits
+  // Article/Design name for easy identification (e.g., "Rose Garden", "Royal Elegance")
+  articleName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Article name cannot exceed 100 characters'],
+    index: true
+  },
+
+  // Article code/number for internal reference
+  articleCode: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    maxlength: [50, 'Article code cannot exceed 50 characters'],
+    index: true
+  },
+
+  // Embroidery details for karhai suits
   embroideryDetails: {
-    type: {
+    workType: {
       type: String,
-      enum: ['zardozi', 'aari', 'sequins', 'beads', 'thread', 'mixed', 'none'],
+      enum: [
+        'hand-karhai', 'machine-embroidery', 'zardozi', 'aari', 'gota-kinari',
+        'dabka', 'kora', 'sequins', 'beads', 'thread-work', 'resham',
+        'tilla', 'mirror-work', 'applique', 'cutwork', 'shadow-work',
+        'chikankari', 'phulkari', 'kashmiri', 'mixed', 'none'
+      ],
       default: 'none'
     },
     complexity: {
       type: String,
-      enum: ['simple', 'moderate', 'intricate', 'heavy'],
+      enum: ['simple', 'moderate', 'intricate', 'heavy', 'bridal'],
       default: 'simple'
     },
     coverage: {
       type: String,
-      enum: ['minimal', 'partial', 'full', 'heavy'],
+      enum: ['minimal', 'partial', 'full', 'heavy', 'all-over'],
       default: 'minimal'
     },
+    placement: [{
+      type: String,
+      enum: ['front-panel', 'back-panel', 'sleeves', 'neckline', 'daman', 'dupatta', 'trouser', 'border', 'motifs']
+    }],
     estimatedHours: {
       type: Number,
       min: 0,
@@ -411,6 +448,31 @@ const ProductSchema = new mongoose.Schema({
       type: String,
       trim: true,
       maxlength: [500, 'Embroidery description cannot exceed 500 characters']
+    },
+    threadColors: [{
+      type: String,
+      trim: true
+    }]
+  },
+
+  // Suit components included
+  suitComponents: {
+    shirt: {
+      included: { type: Boolean, default: true },
+      length: { type: String, trim: true }, // e.g., "2.5 meters"
+      description: { type: String, trim: true }
+    },
+    dupatta: {
+      included: { type: Boolean, default: true },
+      fabric: { type: String, trim: true },
+      length: { type: String, trim: true },
+      description: { type: String, trim: true }
+    },
+    trouser: {
+      included: { type: Boolean, default: true },
+      fabric: { type: String, trim: true },
+      length: { type: String, trim: true },
+      description: { type: String, trim: true }
     }
   },
 
@@ -545,7 +607,53 @@ const ProductSchema = new mongoose.Schema({
   deletedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+
+  // ============ DRAFT & AI CONTENT ============
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'archived'],
+    default: 'draft',
+    index: true
+  },
+
+  // AI-generated content storage
+  aiGeneratedContent: {
+    description: String,
+    shortDescription: String,
+    features: [String],
+    whatsIncluded: [String],
+    keywords: [String],
+    focusKeyword: String,
+    metaTitle: String,
+    metaDescription: String,
+    careInstructions: String,
+    generatedAt: Date,
+    appliedAt: Date,
+    model: String, // AI model used
+    isApplied: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  // Track if content was AI-assisted
+  contentSource: {
+    type: String,
+    enum: ['manual', 'ai-generated', 'ai-assisted', 'imported'],
+    default: 'manual'
+  },
+
+  // Publishing workflow
+  publishedAt: Date,
+  scheduledPublishAt: Date,
+  
+  lastEditedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  
+  lastEditedAt: Date
 
 }, {
   timestamps: true,

@@ -33,14 +33,14 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
  * @param {SuitTypeSales[]} [props.data]
  */
 
-// Color palette for suit types
+// Color palette for suit types - vibrant colors for dark mode
 const SUIT_TYPE_COLORS = {
-  'ready-made': '#3b82f6', // blue
-  'replica': '#8b5cf6', // purple
-  'karhai': '#f43f5e' // rose
+  'ready-made': '#60a5fa', // blue-400
+  'replica': '#a78bfa', // purple-400
+  'karhai': '#fb7185' // rose-400
 };
 
-const DEFAULT_COLORS = ['#3b82f6', '#8b5cf6', '#f43f5e'];
+const DEFAULT_COLORS = ['#60a5fa', '#a78bfa', '#fb7185'];
 
 export default function SuitTypeSalesChart({ data: propData }) {
   // Transform suit type sales data for pie chart
@@ -54,9 +54,9 @@ export default function SuitTypeSalesChart({ data: propData }) {
         color: SUIT_TYPE_COLORS[item.suitType] || DEFAULT_COLORS[index % DEFAULT_COLORS.length]
       }))
     : [
-        { name: 'Ready-Made', value: 50, revenue: 250000, orders: 120, quantity: 150, color: '#3b82f6' },
-        { name: 'Brand Replicas', value: 30, revenue: 150000, orders: 75, quantity: 90, color: '#8b5cf6' },
-        { name: 'Hand-Made Karhai', value: 20, revenue: 100000, orders: 45, quantity: 50, color: '#f43f5e' }
+        { name: 'Ready-Made', value: 50, revenue: 250000, orders: 120, quantity: 150, color: '#60a5fa' },
+        { name: 'Brand Replicas', value: 30, revenue: 150000, orders: 75, quantity: 90, color: '#a78bfa' },
+        { name: 'Hand-Made Karhai', value: 20, revenue: 100000, orders: 45, quantity: 50, color: '#fb7185' }
       ];
 
   // Custom label to show percentages

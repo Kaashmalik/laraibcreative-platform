@@ -24,7 +24,7 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
-      maxlength: [500, 'Description cannot exceed 500 characters'],
+      maxlength: [2000, 'Description cannot exceed 2000 characters'],
       default: '',
     },
 

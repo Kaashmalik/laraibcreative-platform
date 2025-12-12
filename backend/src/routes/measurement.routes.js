@@ -3,8 +3,8 @@
 const express = require('express');
 const router = express.Router();
 const measurementController = require('../controllers/measurementController');
-const { authenticate } = require('../middleware/auth.middleware');
-const { requireAdmin } = require('../middleware/admin.middleware');
+const { protect } = require('../middleware/auth.middleware');
+const { adminOnly } = require('../middleware/admin.middleware');
 const { validateRequest } = require('../middleware/validate.middleware');
 const { body, param, query } = require('express-validator');
 
@@ -252,7 +252,7 @@ router.get(
 // Create new measurement
 router.post(
   '/',
-  authenticate,
+  protect,
   createMeasurementValidation,
   validateRequest,
   measurementController.createMeasurement
@@ -261,7 +261,7 @@ router.post(
 // Get user's measurements
 router.get(
   '/',
-  authenticate,
+  protect,
   listMeasurementsValidation,
   validateRequest,
   measurementController.getMeasurements
@@ -270,7 +270,7 @@ router.get(
 // Get single measurement by ID
 router.get(
   '/:id',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.getMeasurementById
@@ -279,7 +279,7 @@ router.get(
 // Update measurement
 router.put(
   '/:id',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   updateMeasurementValidation,
   validateRequest,
@@ -289,7 +289,7 @@ router.put(
 // Delete measurement (soft delete)
 router.delete(
   '/:id',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.deleteMeasurement
@@ -298,7 +298,7 @@ router.delete(
 // Restore soft-deleted measurement
 router.put(
   '/:id/restore',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.restoreMeasurement
@@ -307,7 +307,7 @@ router.put(
 // Set measurement as default
 router.put(
   '/:id/set-default',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.setDefaultMeasurement
@@ -316,7 +316,7 @@ router.put(
 // Duplicate measurement
 router.post(
   '/:id/duplicate',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   duplicateMeasurementValidation,
   validateRequest,
@@ -326,7 +326,7 @@ router.post(
 // Compare with standard size
 router.get(
   '/:id/compare/:size',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   param('size').isIn(['XS', 'S', 'M', 'L', 'XL']).withMessage('Invalid standard size'),
   validateRequest,
@@ -336,7 +336,7 @@ router.get(
 // Get suggested standard size
 router.get(
   '/:id/suggest-size',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.suggestStandardSize
@@ -345,7 +345,7 @@ router.get(
 // Download measurement sheet as PDF
 router.get(
   '/:id/download',
-  authenticate,
+  protect,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   validateRequest,
   measurementController.downloadMeasurementSheet
@@ -358,8 +358,8 @@ router.get(
 // Verify measurement
 router.put(
   '/:id/verify',
-  authenticate,
-  requireAdmin,
+  protect,
+  adminOnly,
   param('id').isMongoId().withMessage('Invalid measurement ID'),
   verifyMeasurementValidation,
   validateRequest,
@@ -369,16 +369,16 @@ router.put(
 // Get measurement statistics
 router.get(
   '/analytics/stats',
-  authenticate,
-  requireAdmin,
+  protect,
+  adminOnly,
   measurementController.getMeasurementStatistics
 );
 
 // Get all measurements for admin view
 router.get(
   '/admin/all',
-  authenticate,
-  requireAdmin,
+  protect,
+  adminOnly,
   adminListValidation,
   validateRequest,
   measurementController.getAllMeasurementsAdmin

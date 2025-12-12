@@ -2,55 +2,78 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
 
 /**
  * Protected Admin Route Component
  * Verifies user is authenticated and has admin role
+ * Uses localStorage directly to avoid hook timing issues
  */
 export default function ProtectedAdminRoute({ children }) {
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authState, setAuthState] = useState('checking'); // 'checking' | 'authorized' | 'unauthorized'
 
   useEffect(() => {
+    // Immediately check auth - no delay
     const checkAuth = () => {
       try {
-        // Get token and user from localStorage
+        // Check if we're in a browser
+        if (typeof window === 'undefined') {
+          setAuthState('unauthorized');
+          return;
+        }
+
         const token = localStorage.getItem('auth_token');
         const userStr = localStorage.getItem('user');
 
         if (!token || !userStr) {
-          toast.error('Please login to access admin panel');
-          router.push('/admin/login');
+          console.log('[ProtectedAdminRoute] No token or user found');
+          setAuthState('unauthorized');
           return;
         }
 
-        const user = JSON.parse(userStr);
-
-        // Verify admin role
-        if (user.role !== 'admin' && user.role !== 'super-admin') {
-          toast.error('Access denied. Admin privileges required.');
-          router.push('/admin/login');
+        let user;
+        try {
+          user = JSON.parse(userStr);
+        } catch (parseError) {
+          console.log('[ProtectedAdminRoute] Invalid user data, clearing');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          setAuthState('unauthorized');
           return;
         }
 
-        // User is authorized
-        setIsAuthorized(true);
+        const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
+
+        if (!isAdmin) {
+          console.log('[ProtectedAdminRoute] User is not admin:', user?.role);
+          setAuthState('unauthorized');
+          return;
+        }
+
+        console.log('[ProtectedAdminRoute] User authorized:', user?.email);
+        setAuthState('authorized');
       } catch (error) {
-        console.error('Auth check error:', error);
-        toast.error('Authentication failed. Please login again.');
-        router.push('/admin/login');
-      } finally {
-        setIsLoading(false);
+        console.error('[ProtectedAdminRoute] Auth check error:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        setAuthState('unauthorized');
       }
     };
 
+    // Run immediately
     checkAuth();
-  }, [router]);
+  }, []);
 
-  // Show loading state
-  if (isLoading) {
+  // Handle redirect for unauthorized
+  useEffect(() => {
+    if (authState === 'unauthorized') {
+      // Use window.location to avoid redirect loops
+      window.location.href = '/admin/login';
+    }
+  }, [authState]);
+
+  // Show loading state while checking
+  if (authState === 'checking') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -62,10 +85,17 @@ export default function ProtectedAdminRoute({ children }) {
   }
 
   // Show content if authorized
-  if (isAuthorized) {
+  if (authState === 'authorized') {
     return <>{children}</>;
   }
 
-  // Return null while redirecting
-  return null;
+  // Redirecting...
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-600 mb-4"></div>
+        <p className="text-gray-600">Redirecting to login...</p>
+      </div>
+    </div>
+  );
 }

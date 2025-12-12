@@ -1,9 +1,21 @@
 'use client';
 
-import { Package, Scissors, Sparkles } from 'lucide-react';
+import { Package, Scissors, Sparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
+import AdminLayout from '@/components/admin/AdminLayout';
 
 export default function InventoryManagementPage() {
+  return (
+    <ProtectedAdminRoute>
+      <AdminLayout>
+        <InventoryContent />
+      </AdminLayout>
+    </ProtectedAdminRoute>
+  );
+}
+
+function InventoryContent() {
   const inventorySections = [
     {
       title: 'Fabrics',

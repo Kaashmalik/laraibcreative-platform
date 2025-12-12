@@ -74,6 +74,7 @@ const nextConfig = {
   // ==================================================
   async headers() {
     return [
+      // API CORS headers
       {
         source: '/api/:path*',
         headers: [
@@ -82,6 +83,49 @@ const nextConfig = {
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
         ],
       },
+      // Static assets - aggressive caching (1 year)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Images - cache for 1 week
+      {
+        source: '/images/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=604800, stale-while-revalidate=86400' },
+        ],
+      },
+      // Fonts - cache for 1 year
+      {
+        source: '/fonts/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Product pages - cache for 5 minutes, revalidate in background
+      {
+        source: '/products/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=300, stale-while-revalidate=600' },
+        ],
+      },
+      // Category pages - cache for 10 minutes
+      {
+        source: '/category/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=600, stale-while-revalidate=1200' },
+        ],
+      },
+      // Home page - cache for 2 minutes
+      {
+        source: '/',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=120, stale-while-revalidate=300' },
+        ],
+      },
+      // Security headers for all pages
       {
         source: '/:path*',
         headers: [
@@ -120,10 +164,10 @@ const nextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        // Rewrite API calls to backend
+        // Rewrite API calls to backend EXCEPT /api/trpc (which is handled by Next.js)
         {
-          source: '/api/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/:path*`,
+          source: '/api/v1/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/:path*`,
         },
       ],
     };

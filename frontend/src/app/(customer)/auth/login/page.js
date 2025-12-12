@@ -2,13 +2,13 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import useAuth from '@/hooks/useAuth';
 import Link from 'next/link';
 
 function LoginForm() {
-  const { login, loading, isAuthenticated } = useAuth();
+  const { login, loading } = useAuth();
   const params = useSearchParams();
   const router = useRouter();
   const returnUrl = params.get('returnUrl') || '/account';
@@ -17,6 +17,44 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if already logged in on mount - redirect immediately
+  useEffect(() => {
+    // Delay check slightly to ensure localStorage is available
+    const timer = setTimeout(() => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const userStr = localStorage.getItem('user');
+        
+        console.log('[Login] Auth check - token:', !!token, 'user:', !!userStr);
+        
+        if (token && userStr) {
+          const user = JSON.parse(userStr);
+          const isUserAdmin = user?.role === 'admin' || user?.role === 'super-admin';
+          
+          console.log('[Login] User found, role:', user?.role, 'isAdmin:', isUserAdmin);
+          
+          // Already logged in - force redirect
+          setRedirecting(true);
+          const redirectTo = isUserAdmin ? '/admin/dashboard' : '/account';
+          console.log('[Login] Redirecting to:', redirectTo);
+          
+          // Use replace to prevent back button issues
+          window.location.replace(redirectTo);
+          return;
+        }
+        
+        setCheckingAuth(false);
+      } catch (e) {
+        console.error('[Login] Auth check error:', e);
+        setCheckingAuth(false);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,20 +63,35 @@ function LoginForm() {
     try {
       const result = await login(email, password);
       if (result.success) {
-        router.replace(returnUrl);
+        setRedirecting(true);
+        // Check user role from localStorage directly after login
+        const userStr = localStorage.getItem('user');
+        const userData = userStr ? JSON.parse(userStr) : null;
+        const isUserAdmin = userData?.role === 'admin' || userData?.role === 'super-admin';
+        const redirectTo = isUserAdmin ? '/admin/dashboard' : returnUrl;
+        
+        // Use window.location for immediate redirect
+        window.location.href = redirectTo;
       } else {
         setError(result.error || 'Login failed');
+        setSubmitting(false);
       }
     } catch (err) {
       setError(err.message || 'Login failed');
-    } finally {
       setSubmitting(false);
     }
   };
 
-  if (isAuthenticated) {
-    router.replace(returnUrl);
-    return null;
+  // Show loading while checking auth or redirecting
+  if (checkingAuth || redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-white">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">{redirecting ? 'Redirecting to dashboard...' : 'Checking authentication...'}</p>
+        </div>
+      </div>
+    );
   }
 
   return (

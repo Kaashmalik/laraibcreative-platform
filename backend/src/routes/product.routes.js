@@ -13,9 +13,17 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const {
+  cacheProducts,
+  cacheProductById,
+  cacheProductBySlug,
+  cacheFeaturedProducts,
+  cacheNewArrivals,
+  cacheBestSellers,
+} = require('../middleware/cache.middleware');
 
 // ============================================
-// PUBLIC ROUTES
+// PUBLIC ROUTES (with caching)
 // ============================================
 
 /**
@@ -23,35 +31,35 @@ const productController = require('../controllers/productController');
  * @desc    Get all products with filters, search, and pagination
  * @access  Public
  */
-router.get('/', productController.getAllProducts);
+router.get('/', cacheProducts, productController.getAllProducts);
 
 /**
  * @route   GET /api/v1/products/featured
  * @desc    Get featured products
  * @access  Public
  */
-router.get('/featured', productController.getFeaturedProducts);
+router.get('/featured', cacheFeaturedProducts, productController.getFeaturedProducts);
 
 /**
  * @route   GET /api/v1/products/new-arrivals
  * @desc    Get new arrival products
  * @access  Public
  */
-router.get('/new-arrivals', productController.getNewArrivals);
+router.get('/new-arrivals', cacheNewArrivals, productController.getNewArrivals);
 
 /**
  * @route   GET /api/v1/products/best-sellers
  * @desc    Get best seller products
  * @access  Public
  */
-router.get('/best-sellers', productController.getBestSellers);
+router.get('/best-sellers', cacheBestSellers, productController.getBestSellers);
 
 /**
  * @route   GET /api/v1/products/slug/:slug
  * @desc    Get product by SEO-friendly slug
  * @access  Public
  */
-router.get('/slug/:slug', productController.getProductBySlug);
+router.get('/slug/:slug', cacheProductBySlug, productController.getProductBySlug);
 
 /**
  * @route   GET /api/v1/products/:id

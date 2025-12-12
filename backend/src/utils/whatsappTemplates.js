@@ -81,7 +81,7 @@ Your custom order status has been updated:
 📋 Order Number: *${orderNumber}*
 📊 Status: *${status.replace(/-/g, ' ').toUpperCase()}*
 
-${message || 'We'll keep you updated on the progress.'}
+${message || "We'll keep you updated on the progress."}
 
 Track your order: ${process.env.FRONTEND_URL || 'https://laraibcreative.com'}/orders/${orderNumber}
 

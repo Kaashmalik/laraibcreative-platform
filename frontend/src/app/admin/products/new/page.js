@@ -66,7 +66,7 @@ export default function NewProductPage() {
         }
       });
       
-      const response = await api.products.createAdmin(formData);
+      const response = await api.products.admin.create(formData);
       
       const result = response;
       

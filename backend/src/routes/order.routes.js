@@ -8,7 +8,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
-const { authenticate, optionalAuth } = require('../middleware/auth.middleware');
+const { protect, optionalAuth } = require('../middleware/auth.middleware');
 
 /**
  * @route POST /api/v1/orders
@@ -28,7 +28,7 @@ router.post(
  */
 router.get(
   '/',
-  authenticate,
+  protect,
   orderController.getOrders
 );
 
@@ -39,7 +39,7 @@ router.get(
  */
 router.get(
   '/:id',
-  authenticate,
+  protect,
   orderController.getOrderById
 );
 
@@ -50,7 +50,7 @@ router.get(
  */
 router.put(
   '/:id/status',
-  authenticate,
+  protect,
   orderController.updateOrderStatus
 );
 
@@ -71,7 +71,7 @@ router.get(
  */
 router.post(
   '/:id/cancel',
-  authenticate,
+  protect,
   orderController.cancelOrder
 );
 
@@ -82,7 +82,7 @@ router.post(
  */
 router.get(
   '/:id/invoice',
-  authenticate,
+  protect,
   orderController.downloadInvoice
 );
 

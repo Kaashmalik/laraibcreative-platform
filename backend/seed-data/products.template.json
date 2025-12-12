@@ -1,0 +1,33 @@
+[
+  {
+    "title": "Red Bridal Suit",
+    "sku": "LC-BR-001",
+    "category": "bridal-wear",
+    "fabricType": "Velvet",
+    "basePrice": 25000,
+    "stitchingCharge": 5000,
+    "discountPercent": 0,
+    "description": "Beautiful red bridal suit with gold embroidery",
+    "images": [
+      "red-bridal-1.jpg",
+      "red-bridal-2.jpg"
+    ],
+    "featured": true,
+    "availability": "custom-only"
+  },
+  {
+    "title": "Blue Chiffon Party Dress",
+    "sku": "LC-PW-001",
+    "category": "party-wear",
+    "fabricType": "Chiffon",
+    "basePrice": 12000,
+    "stitchingCharge": 3500,
+    "discountPercent": 10,
+    "description": "Stunning blue party dress",
+    "images": [
+      "blue-party-1.jpg"
+    ],
+    "featured": true,
+    "availability": "in-stock"
+  }
+]

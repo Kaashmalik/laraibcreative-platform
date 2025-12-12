@@ -50,12 +50,15 @@ const Textarea = ({
   rows = 4,
   autoResize = false,
   showCount = false,
+  showCharacterCount = false, // Accept but don't pass to DOM
   required = false,
   size = 'md',
   resize = 'vertical',
   className = '',
   ...props
 }) => {
+  // Use showCharacterCount as alias for showCount if provided
+  const displayCount = showCount || showCharacterCount;
   const textareaRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -124,7 +127,7 @@ const Textarea = ({
         {...props}
       />
 
-      {(showCount || maxLength) && (
+      {(displayCount || maxLength) && (
         <div className="flex items-center justify-between mt-1.5">
           <div className="flex-1">
             {error && errorMessage && (
@@ -140,7 +143,7 @@ const Textarea = ({
             )}
           </div>
           
-          {showCount && maxLength && (
+          {displayCount && maxLength && (
             <span 
               className={`text-sm ml-2 ${
                 isNearLimit ? 'text-orange-600 font-medium' : 'text-gray-500'

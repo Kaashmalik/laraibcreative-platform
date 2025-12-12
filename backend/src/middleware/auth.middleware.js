@@ -296,19 +296,25 @@ const generateRefreshToken = (userId) => {
  * @param {boolean} rememberMe - Whether to set long-lived cookies
  */
 const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
+  // Determine sameSite based on environment
+  // 'lax' is safer than 'strict' for cross-origin requests while still providing CSRF protection
+  // 'none' is required for cross-origin cookies but requires secure: true
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sameSiteValue = isProduction ? 'lax' : 'lax';
+  
   // Cookie options for access token (short-lived)
   const accessTokenOptions = {
     httpOnly: true, // Prevents XSS attacks
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'strict', // CSRF protection
+    secure: isProduction, // HTTPS only in production
+    sameSite: sameSiteValue, // CSRF protection with cross-origin support
     maxAge: 15 * 60 * 1000 // 15 minutes
   };
 
   // Cookie options for refresh token (long-lived if rememberMe)
   const refreshTokenOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: sameSiteValue,
     maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000 // 30 days or 7 days
   };
 
@@ -321,18 +327,23 @@ const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
  * @param {object} res - Express response object
  */
 const clearAuthCookies = (res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   res.clearCookie('accessToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    secure: isProduction,
+    sameSite: 'lax'
   });
   
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    secure: isProduction,
+    sameSite: 'lax'
   });
 };
+
+// Alias for authorize (used in some route files as restrictTo)
+const restrictTo = authorize;
 
 module.exports = {
   // Main auth middlewares
@@ -343,6 +354,7 @@ module.exports = {
   verifyRefreshToken,
   optionalAuth,
   authorize,
+  restrictTo, // Alias for authorize
   
   // Token utilities
   generateAccessToken,

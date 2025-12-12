@@ -1,246 +1,338 @@
 /**
  * Health Check Routes
- * Comprehensive health check endpoints for monitoring and load balancers
+ * Provides comprehensive health monitoring endpoints
+ * 
+ * Endpoints:
+ * - GET /health - Quick health check
+ * - GET /health/detailed - Detailed health with all services
+ * - GET /health/ready - Readiness probe for k8s
+ * - GET /health/live - Liveness probe for k8s
  */
 
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
+const logger = require('../utils/logger');
+const { circuitBreakerManager } = require('../utils/circuitBreaker');
 
-// ============================================
-// BASIC HEALTH CHECK
-// ============================================
-
-/**
- * GET /api/health
- * Basic health check endpoint
- * Used by load balancers and monitoring tools
- */
-router.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'API is running',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0'
-  });
-});
-
-// ============================================
-// DETAILED HEALTH CHECK
-// ============================================
+// Version info
+const packageJson = require('../../package.json');
 
 /**
- * GET /api/health/detailed
- * Detailed health check with system metrics
- * Includes database, memory, and service status
+ * Check MongoDB connection
+ * @returns {Object} MongoDB health status
  */
-router.get('/detailed', async (req, res) => {
-  const health = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-    services: {},
-    system: {}
-  };
-
-  // Database Health Check
+const checkMongoDB = async () => {
   try {
-    const dbState = mongoose.connection.readyState;
-    const dbStates = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting'
-    };
-
-    health.services.database = {
-      status: dbState === 1 ? 'healthy' : 'unhealthy',
-      state: dbStates[dbState] || 'unknown',
-      host: mongoose.connection.host || 'unknown',
-      name: mongoose.connection.name || 'unknown'
-    };
-
-    // Test database query
-    if (dbState === 1) {
-      const startTime = Date.now();
-      await mongoose.connection.db.admin().ping();
-      health.services.database.responseTime = Date.now() - startTime;
-    }
-  } catch (error) {
-    health.services.database = {
-      status: 'unhealthy',
-      error: error.message
-    };
-    health.status = 'degraded';
-  }
-
-  // Memory Usage
-  const memoryUsage = process.memoryUsage();
-  health.system.memory = {
-    used: Math.round(memoryUsage.heapUsed / 1024 / 1024), // MB
-    total: Math.round(memoryUsage.heapTotal / 1024 / 1024), // MB
-    external: Math.round(memoryUsage.external / 1024 / 1024), // MB
-    rss: Math.round(memoryUsage.rss / 1024 / 1024) // MB
-  };
-
-  // CPU Usage
-  const cpuUsage = process.cpuUsage();
-  health.system.cpu = {
-    user: cpuUsage.user,
-    system: cpuUsage.system
-  };
-
-  // Environment Variables Check
-  const requiredEnvVars = [
-    'MONGODB_URI',
-    'JWT_SECRET',
-    'JWT_REFRESH_SECRET'
-  ];
-
-  health.services.environment = {
-    status: 'healthy',
-    missing: []
-  };
-
-  requiredEnvVars.forEach(varName => {
-    if (!process.env[varName]) {
-      health.services.environment.missing.push(varName);
-      health.services.environment.status = 'unhealthy';
-      health.status = 'unhealthy';
-    }
-  });
-
-  // External Services Check
-  health.services.external = {
-    cloudinary: process.env.CLOUDINARY_CLOUD_NAME ? 'configured' : 'not configured',
-    email: process.env.EMAIL_HOST ? 'configured' : 'not configured',
-    whatsapp: process.env.TWILIO_ACCOUNT_SID ? 'configured' : 'not configured'
-  };
-
-  // Determine overall status
-  const hasUnhealthyServices = Object.values(health.services).some(
-    service => service.status === 'unhealthy'
-  );
-
-  if (hasUnhealthyServices && health.status !== 'unhealthy') {
-    health.status = 'degraded';
-  }
-
-  const statusCode = health.status === 'healthy' ? 200 : 
-                     health.status === 'degraded' ? 200 : 503;
-
-  res.status(statusCode).json(health);
-});
-
-// ============================================
-// READINESS CHECK
-// ============================================
-
-/**
- * GET /api/health/ready
- * Readiness probe for Kubernetes/Docker
- * Returns 200 only if service is ready to accept traffic
- */
-router.get('/ready', async (req, res) => {
-  try {
-    // Check database connection
+    const startTime = Date.now();
+    
     if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        status: 'not ready',
-        reason: 'Database not connected',
-        timestamp: new Date().toISOString()
-      });
+      return {
+        status: 'unhealthy',
+        message: 'MongoDB not connected',
+        readyState: mongoose.connection.readyState,
+      };
     }
 
-    // Check required environment variables
-    const required = ['MONGODB_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
-    const missing = required.filter(key => !process.env[key]);
+    // Ping the database
+    await mongoose.connection.db.admin().ping();
+    const latency = Date.now() - startTime;
 
-    if (missing.length > 0) {
-      return res.status(503).json({
-        status: 'not ready',
-        reason: 'Missing required environment variables',
-        missing,
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    res.status(200).json({
-      status: 'ready',
-      timestamp: new Date().toISOString()
-    });
+    return {
+      status: 'healthy',
+      latency: `${latency}ms`,
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host,
+      database: mongoose.connection.name,
+    };
   } catch (error) {
-    res.status(503).json({
-      status: 'not ready',
-      reason: error.message,
-      timestamp: new Date().toISOString()
-    });
+    return {
+      status: 'unhealthy',
+      message: error.message,
+      readyState: mongoose.connection.readyState,
+    };
   }
-});
-
-// ============================================
-// LIVENESS CHECK
-// ============================================
+};
 
 /**
- * GET /api/health/live
- * Liveness probe for Kubernetes/Docker
- * Returns 200 if service is alive (even if degraded)
+ * Check Redis connection (if configured)
+ * @returns {Object} Redis health status
  */
-router.get('/live', (req, res) => {
-  res.status(200).json({
-    status: 'alive',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+const checkRedis = async () => {
+  if (!process.env.REDIS_URL) {
+    return {
+      status: 'not_configured',
+      message: 'Redis not configured',
+    };
+  }
+
+  try {
+    // Import redis client if available
+    const { rateLimiterService } = require('../services/rateLimiterService');
+    const status = rateLimiterService.getStatus();
+    
+    return {
+      status: status.type === 'redis' ? 'healthy' : 'degraded',
+      type: status.type,
+      configured: status.configured,
+    };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: error.message,
+    };
+  }
+};
+
+/**
+ * Check external services via circuit breakers
+ * @returns {Object} External services health status
+ */
+const checkExternalServices = () => {
+  const breakerStatus = circuitBreakerManager.getAllStatus();
+  const services = {};
+
+  Object.entries(breakerStatus).forEach(([name, status]) => {
+    services[name] = {
+      status: status.state === 'CLOSED' ? 'healthy' : 
+              status.state === 'HALF-OPEN' ? 'recovering' : 'unhealthy',
+      circuitState: status.state,
+      failures: status.failures,
+      lastFailure: status.lastFailure,
+      stats: {
+        total: status.stats.totalRequests,
+        success: status.stats.successfulRequests,
+        failed: status.stats.failedRequests,
+        rejected: status.stats.rejectedRequests,
+      },
+    };
   });
-});
 
-// ============================================
-// METRICS ENDPOINT
-// ============================================
+  return services;
+};
 
 /**
- * GET /api/health/metrics
- * Prometheus-style metrics endpoint
- * Returns metrics in Prometheus format
+ * Get system metrics
+ * @returns {Object} System metrics
  */
-router.get('/metrics', (req, res) => {
+const getSystemMetrics = () => {
   const memoryUsage = process.memoryUsage();
   const uptime = process.uptime();
 
-  const metrics = [
-    `# HELP nodejs_heap_size_total_bytes Process heap size from Node.js`,
-    `# TYPE nodejs_heap_size_total_bytes gauge`,
-    `nodejs_heap_size_total_bytes ${memoryUsage.heapTotal}`,
-    ``,
-    `# HELP nodejs_heap_size_used_bytes Process heap size used from Node.js`,
-    `# TYPE nodejs_heap_size_used_bytes gauge`,
-    `nodejs_heap_size_used_bytes ${memoryUsage.heapUsed}`,
-    ``,
-    `# HELP nodejs_external_memory_bytes Node.js external memory size`,
-    `# TYPE nodejs_external_memory_bytes gauge`,
-    `nodejs_external_memory_bytes ${memoryUsage.external}`,
-    ``,
-    `# HELP nodejs_rss_memory_bytes Node.js RSS memory size`,
-    `# TYPE nodejs_rss_memory_bytes gauge`,
-    `nodejs_rss_memory_bytes ${memoryUsage.rss}`,
-    ``,
-    `# HELP nodejs_uptime_seconds Node.js process uptime in seconds`,
-    `# TYPE nodejs_uptime_seconds gauge`,
-    `nodejs_uptime_seconds ${uptime}`,
-    ``,
-    `# HELP nodejs_db_connection_state MongoDB connection state (0=disconnected, 1=connected, 2=connecting, 3=disconnecting)`,
-    `# TYPE nodejs_db_connection_state gauge`,
-    `nodejs_db_connection_state ${mongoose.connection.readyState}`
-  ].join('\n');
+  return {
+    uptime: {
+      seconds: Math.floor(uptime),
+      formatted: formatUptime(uptime),
+    },
+    memory: {
+      heapUsed: formatBytes(memoryUsage.heapUsed),
+      heapTotal: formatBytes(memoryUsage.heapTotal),
+      external: formatBytes(memoryUsage.external),
+      rss: formatBytes(memoryUsage.rss),
+      heapUsedPercent: ((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100).toFixed(1) + '%',
+    },
+    process: {
+      pid: process.pid,
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch,
+    },
+  };
+};
 
-  res.set('Content-Type', 'text/plain');
-  res.status(200).send(metrics);
+/**
+ * Format bytes to human readable
+ * @param {number} bytes - Bytes to format
+ * @returns {string} Formatted string
+ */
+const formatBytes = (bytes) => {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(2)} ${units[unitIndex]}`;
+};
+
+/**
+ * Format uptime to human readable
+ * @param {number} seconds - Uptime in seconds
+ * @returns {string} Formatted string
+ */
+const formatUptime = (seconds) => {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  parts.push(`${secs}s`);
+
+  return parts.join(' ');
+};
+
+/**
+ * GET /health
+ * Quick health check - minimal overhead
+ */
+router.get('/', async (req, res) => {
+  try {
+    const mongoStatus = await checkMongoDB();
+    const isHealthy = mongoStatus.status === 'healthy';
+
+    res.status(isHealthy ? 200 : 503).json({
+      status: isHealthy ? 'healthy' : 'unhealthy',
+      timestamp: new Date().toISOString(),
+      version: packageJson.version,
+      environment: process.env.NODE_ENV || 'development',
+    });
+  } catch (error) {
+    logger.error('Health check failed', { error: error.message });
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /health/detailed
+ * Comprehensive health check with all services
+ */
+router.get('/detailed', async (req, res) => {
+  try {
+    const [mongoStatus, redisStatus] = await Promise.all([
+      checkMongoDB(),
+      checkRedis(),
+    ]);
+
+    const externalServices = checkExternalServices();
+    const systemMetrics = getSystemMetrics();
+
+    // Determine overall health
+    const criticalServices = [mongoStatus];
+    const isHealthy = criticalServices.every(s => s.status === 'healthy');
+    const isDegraded = !isHealthy && criticalServices.some(s => s.status === 'healthy');
+
+    const overallStatus = isHealthy ? 'healthy' : isDegraded ? 'degraded' : 'unhealthy';
+
+    res.status(overallStatus === 'healthy' ? 200 : 503).json({
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      version: packageJson.version,
+      environment: process.env.NODE_ENV || 'development',
+      services: {
+        mongodb: mongoStatus,
+        redis: redisStatus,
+        ...externalServices,
+      },
+      system: systemMetrics,
+    });
+  } catch (error) {
+    logger.error('Detailed health check failed', { error: error.message });
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /health/ready
+ * Readiness probe - is the app ready to receive traffic?
+ */
+router.get('/ready', async (req, res) => {
+  try {
+    const mongoStatus = await checkMongoDB();
+    const isReady = mongoStatus.status === 'healthy';
+
+    if (isReady) {
+      res.status(200).json({
+        ready: true,
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      res.status(503).json({
+        ready: false,
+        timestamp: new Date().toISOString(),
+        reason: 'Database not ready',
+        details: mongoStatus,
+      });
+    }
+  } catch (error) {
+    res.status(503).json({
+      ready: false,
+      timestamp: new Date().toISOString(),
+      reason: error.message,
+    });
+  }
+});
+
+/**
+ * GET /health/live
+ * Liveness probe - is the app still running?
+ */
+router.get('/live', (req, res) => {
+  // If we can respond, we're alive
+  res.status(200).json({
+    alive: true,
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+  });
+});
+
+/**
+ * GET /health/metrics
+ * Prometheus-style metrics (optional)
+ */
+router.get('/metrics', async (req, res) => {
+  try {
+    const memoryUsage = process.memoryUsage();
+    const uptime = process.uptime();
+
+    // Simple Prometheus-compatible format
+    let metrics = '';
+    
+    // Process metrics
+    metrics += `# HELP process_uptime_seconds The uptime of the process in seconds\n`;
+    metrics += `# TYPE process_uptime_seconds gauge\n`;
+    metrics += `process_uptime_seconds ${uptime}\n\n`;
+
+    metrics += `# HELP process_heap_bytes The heap memory usage in bytes\n`;
+    metrics += `# TYPE process_heap_bytes gauge\n`;
+    metrics += `process_heap_bytes{type="used"} ${memoryUsage.heapUsed}\n`;
+    metrics += `process_heap_bytes{type="total"} ${memoryUsage.heapTotal}\n\n`;
+
+    metrics += `# HELP process_memory_bytes The memory usage in bytes\n`;
+    metrics += `# TYPE process_memory_bytes gauge\n`;
+    metrics += `process_memory_bytes{type="rss"} ${memoryUsage.rss}\n`;
+    metrics += `process_memory_bytes{type="external"} ${memoryUsage.external}\n\n`;
+
+    // Circuit breaker metrics
+    const breakerStatus = circuitBreakerManager.getAllStatus();
+    metrics += `# HELP circuit_breaker_state The state of circuit breakers (0=closed, 1=half-open, 2=open)\n`;
+    metrics += `# TYPE circuit_breaker_state gauge\n`;
+    
+    Object.entries(breakerStatus).forEach(([name, status]) => {
+      const stateValue = status.state === 'CLOSED' ? 0 : status.state === 'HALF-OPEN' ? 1 : 2;
+      metrics += `circuit_breaker_state{name="${name}"} ${stateValue}\n`;
+    });
+
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.send(metrics);
+  } catch (error) {
+    logger.error('Metrics endpoint failed', { error: error.message });
+    res.status(500).send('# Error generating metrics\n');
+  }
 });
 
 module.exports = router;
-

@@ -9,11 +9,11 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { authenticate, adminOnly } = require('../middleware/auth.middleware');
+const { protect, adminOnly } = require('../middleware/auth.middleware');
 const { uploadMultiple } = require('../middleware/upload.middleware');
 
 // All routes require admin authentication
-router.use(authenticate, adminOnly);
+router.use(protect, adminOnly);
 
 /**
  * @route   GET /api/v1/admin/products
@@ -35,10 +35,10 @@ router.post(
 
 /**
  * @route   GET /api/v1/admin/products/:id/edit
-const { protect, adminOnly } = require('../middleware/auth.middleware');
+ * @desc    Get product for editing
  * @access  Private (Admin)
  */
-router.use(protect, adminOnly);
+router.get('/:id/edit', productController.getProductById);
 
 /**
  * @route   PUT /api/v1/admin/products/:id

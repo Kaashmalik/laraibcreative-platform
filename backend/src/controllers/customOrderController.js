@@ -67,22 +67,6 @@ exports.uploadReferenceImages = async (req, res) => {
       return file.path || file.secure_url || file.url;
     });
 
-    const uploadResults = await Promise.all(uploadPromises);
-
-    // Check for upload failures
-    const failedUploads = uploadResults.filter(result => !result.success);
-    if (failedUploads.length > 0) {
-      logger.error('Some images failed to upload', { failedUploads });
-      return res.status(500).json({
-        success: false,
-        message: 'Some images failed to upload',
-        errors: failedUploads.map(r => r.error)
-      });
-    }
-
-    // Extract URLs
-    const urls = uploadResults.map(result => result.url);
-
     logger.info(`Reference images uploaded successfully: ${urls.length} images`);
 
     res.status(200).json({

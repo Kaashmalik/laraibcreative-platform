@@ -1207,6 +1207,130 @@ const api = {
     async validate() {
       return await axios.post('/cart/validate');
     }
+  },
+
+  /**
+   * AI Content Generation endpoints
+   */
+  ai: {
+    /**
+     * Get AI service status
+     * @returns {Promise<{ configured: boolean, provider: string }>}
+     */
+    async getStatus() {
+      return await axios.get('/admin/ai/status');
+    },
+
+    /**
+     * Generate product description
+     * @param {Object} data - Product data
+     * @returns {Promise<{ description: string }>}
+     */
+    async generateDescription(data) {
+      return await axios.post('/admin/ai/generate-description', data);
+    },
+
+    /**
+     * Generate SEO keywords
+     * @param {Object} data - Product data
+     * @returns {Promise<{ keywords: Array }>}
+     */
+    async generateKeywords(data) {
+      return await axios.post('/admin/ai/generate-keywords', data);
+    },
+
+    /**
+     * Generate complete product content
+     * @param {Object} data - Product data
+     * @returns {Promise<Object>}
+     */
+    async generateComplete(data) {
+      return await axios.post('/admin/ai/generate-complete', data);
+    },
+
+    /**
+     * Save AI-generated content as draft
+     * @param {Object} data - Draft data
+     * @returns {Promise<Object>}
+     */
+    async saveDraft(data) {
+      return await axios.post('/admin/ai/save-draft', data);
+    }
+  },
+
+  /**
+   * Admin Settings endpoints
+   */
+  settings: {
+    async getGeneral() {
+      return await axios.get('/admin/settings/general');
+    },
+    async updateGeneral(data) {
+      return await axios.put('/admin/settings/general', data);
+    },
+    async getPayment() {
+      return await axios.get('/admin/settings/payment');
+    },
+    async updatePayment(data) {
+      return await axios.put('/admin/settings/payment', data);
+    },
+    async getShipping() {
+      return await axios.get('/admin/settings/shipping');
+    },
+    async updateShipping(data) {
+      return await axios.put('/admin/settings/shipping', data);
+    },
+    async getEmail() {
+      return await axios.get('/admin/settings/email');
+    },
+    async updateEmail(data) {
+      return await axios.put('/admin/settings/email', data);
+    },
+    async testEmail(email) {
+      return await axios.post('/admin/settings/email/test', { email });
+    }
+  },
+
+  /**
+   * Reports endpoints
+   */
+  reports: {
+    async getSalesReport(params = {}) {
+      return await axios.get('/admin/reports/sales', { params });
+    },
+    async getProductsReport(params = {}) {
+      return await axios.get('/admin/reports/products', { params });
+    },
+    async getCustomersReport(params = {}) {
+      return await axios.get('/admin/reports/customers', { params });
+    },
+    async exportReport(type, params = {}) {
+      return await axios.get(`/admin/reports/${type}/export`, {
+        params,
+        responseType: 'blob'
+      });
+    }
+  },
+
+  /**
+   * Inventory endpoints
+   */
+  inventory: {
+    async getAll(params = {}) {
+      return await axios.get('/admin/inventory', { params });
+    },
+    async getFabrics(params = {}) {
+      return await axios.get('/admin/inventory/fabrics', { params });
+    },
+    async getAccessories(params = {}) {
+      return await axios.get('/admin/inventory/accessories', { params });
+    },
+    async updateStock(productId, quantity) {
+      return await axios.put(`/admin/inventory/${productId}/stock`, { quantity });
+    },
+    async getLowStock() {
+      return await axios.get('/admin/inventory/low-stock');
+    }
   }
 };
 

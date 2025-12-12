@@ -27,6 +27,7 @@ A **production-ready** e-commerce platform for bespoke Pakistani fashion with cu
 - 📊 **Analytics Dashboard** - Revenue, orders, popular products, customer insights
 - 📋 **Order Management** - View, update status, verify payments, generate invoices
 - 🛒 **Product Management** - Create/edit products, manage inventory and images
+- 🤖 **AI Content Generator** - Auto-generate descriptions, SEO keywords, meta content
 - 👨‍💼 **Customer Management** - CRM features, order history, measurements
 - 📝 **Content Management** - Blog posts, homepage content, site settings
 - 📧 **Notifications** - Email and WhatsApp communications
@@ -210,6 +211,7 @@ pm2 start "npm start" --name "laraib-frontend"
 |----------|---------|
 | [QUICKSTART.md](./QUICKSTART.md) | 5-minute setup guide |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | Production deployment guide |
+| [docs/AI_SETUP_GUIDE.md](./docs/AI_SETUP_GUIDE.md) | AI content generation setup |
 | [.github/copilot-instructions.md](./.github/copilot-instructions.md) | AI agent guidelines |
 | [docs/API.md](./docs/API.md) | API endpoint documentation |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System design & data flows |
@@ -244,6 +246,10 @@ JWT_SECRET=your_secure_random_key_min_32_chars
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 SMTP_HOST=smtp.gmail.com
 TWILIO_ACCOUNT_SID=your_twilio_sid
+
+# AI Content Generation (Google Gemini - FREE!)
+GEMINI_API_KEY=AIza-your-key-from-google-ai-studio
+GEMINI_MODEL=gemini-1.5-flash
 ```
 
 ### Frontend (.env.local)
@@ -438,7 +444,8 @@ This project is licensed under the MIT License - see [LICENSE](./LICENSE) file f
 - [ ] Payment gateway integration (Stripe, JazzCash)
 - [ ] Multi-language support (Urdu)
 - [ ] Mobile app (React Native)
-- [ ] AI-powered recommendations
+- [x] AI-powered content generation (descriptions, keywords, SEO)
+- [ ] AI-powered product recommendations
 - [ ] Subscription services
 - [ ] GraphQL API
 - [ ] Real-time notifications (WebSocket)

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,45 @@ export default function AdminLoginPage() {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if already logged in as admin
+  useEffect(() => {
+    // Immediate check without delay
+    const checkAuth = () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const userStr = localStorage.getItem('user');
+        
+        if (token && userStr) {
+          const user = JSON.parse(userStr);
+          if (user?.role === 'admin' || user?.role === 'super-admin') {
+            // Already logged in as admin - redirect to dashboard
+            router.push('/admin/dashboard');
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Auth check error:', e);
+      }
+      setCheckingAuth(false);
+    };
+
+    // Run immediately
+    checkAuth();
+  }, [router]);
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,9 +95,10 @@ export default function AdminLoginPage() {
 
         toast.success(`Welcome back, ${user.fullName || user.email}!`);
         
-        // Small delay to ensure toast is visible before redirect
+        // Force redirect to admin dashboard using window.location
+        // router.push doesn't work reliably here
         setTimeout(() => {
-          router.push('/admin/dashboard');
+          window.location.href = '/admin/dashboard';
         }, 500);
       } else {
         const errorMessage = message || 'Login failed. Please try again.';

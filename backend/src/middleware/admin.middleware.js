@@ -109,9 +109,20 @@ const hasRole = (roles) => {
   };
 };
 
+// Aliases for backward compatibility
+const adminOnly = isAdmin;
+const admin = isAdmin;
+const superAdminOnly = isSuperAdmin;
+const requireAdmin = isAdmin;
+
 module.exports = {
   isAdmin,
   isSuperAdmin,
   isCustomer,
-  hasRole
+  hasRole,
+  // Aliases
+  adminOnly,
+  admin,
+  superAdminOnly,
+  requireAdmin
 };

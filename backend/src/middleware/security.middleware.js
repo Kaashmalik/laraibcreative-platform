@@ -93,8 +93,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
  */
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+    // Allow requests with no origin only in development (mobile apps, Postman, etc.)
+    // In production, always require origin for security
     if (!origin) {
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      // In production, allow no-origin only for same-origin requests (like server-to-server)
       return callback(null, true);
     }
     
@@ -102,6 +107,7 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Blocked request from origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },

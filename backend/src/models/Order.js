@@ -31,7 +31,7 @@ const orderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
-    required: [true, 'Product reference is required']
+    required: [function() { return !this.isCustom; }, 'Product reference is required for non-custom orders']
   },
   
   productSnapshot: {
@@ -197,7 +197,7 @@ const shippingAddressSchema = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
   method: {
     type: String,
-    enum: ['bank-transfer', 'jazzcash', 'easypaisa', 'cod'],
+    enum: ['bank-transfer', 'jazzcash', 'easypaisa', 'cod', 'pending'],
     required: [true, 'Payment method is required']
   },
   
@@ -324,7 +324,7 @@ const orderSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
     index: true
   },
   
@@ -336,11 +336,12 @@ const orderSchema = new mongoose.Schema({
     },
     email: {
       type: String,
-      required: true,
+      required: false,
       lowercase: true,
       trim: true,
       validate: {
         validator: function(v) {
+          if (!v) return true;
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: 'Invalid email format'

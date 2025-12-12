@@ -449,14 +449,11 @@ exports.verifyPayment = async (req, res) => {
     } else {
       // Reject payment
       order.payment.status = 'failed';
-      order.status = 'payment-failed'; // Note: 'payment-failed' is not in enum, might need to check model. 
-      // Model enum: 'pending-payment', 'payment-verified', etc. 
-      // Let's stick to 'pending-payment' or add 'payment-failed' to enum.
-      // The model enum has 'pending-payment', 'payment-verified', 'cancelled', 'refunded'.
-      // It does NOT have 'payment-failed'. So we should probably keep it 'pending-payment' but mark payment as failed.
+      // Keep order status as 'pending-payment' since 'payment-failed' is not in enum
+      // The payment.status = 'failed' already indicates the payment was rejected
       
       order.statusHistory.push({
-        status: 'pending-payment', // Revert to pending
+        status: 'pending-payment',
         timestamp: new Date(),
         note: rejectionReason || 'Payment verification failed',
         updatedBy: req.user._id
@@ -660,10 +657,10 @@ exports.cancelOrder = async (req, res) => {
 
       // Customers can only cancel before processing starts
       const nonCancellableStatuses = [
-        'stitching-in-progress',
+        'in-progress',
         'quality-check',
-        'ready-for-dispatch',
-        'out-for-delivery',
+        'ready-dispatch',
+        'dispatched',
         'delivered'
       ];
 

@@ -29,7 +29,7 @@ const skuSchema = z.string()
 const productImageSchema = z.object({
   url: z.string().url('Invalid image URL'),
   publicId: z.string().optional(),
-  altText: z.string().max(200, 'Alt text cannot exceed 200 characters').optional(),
+  altText: z.string().max(100, 'Alt text cannot exceed 100 characters').optional(),
   displayOrder: z.number().min(0).optional(),
 });
 
@@ -63,8 +63,12 @@ const fabricSchema = z.object({
   color: z.string().optional(),
   pattern: z.string().optional(),
   weight: z.string().optional(),
-  composition: z.string().optional(),
-  careInstructions: z.string().optional(),
+  composition: z.string()
+    .max(200, 'Fabric composition cannot exceed 200 characters')
+    .optional(),
+  careInstructions: z.string()
+    .max(500, 'Care instructions cannot exceed 500 characters')
+    .optional(),
 });
 
 /**

@@ -667,6 +667,14 @@ const startServer = async () => {
   // Connect to database
   await connectDB();
 
+  // Initialize cache (Redis or in-memory)
+  try {
+    const { initCache } = require('./src/utils/cache');
+    await initCache();
+  } catch (err) {
+    console.warn('⚠️ Cache initialization failed, using defaults:', err.message);
+  }
+
   // Start HTTP server
   server = app.listen(PORT, () => {
     console.log('\n' + '='.repeat(60));

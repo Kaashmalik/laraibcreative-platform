@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 const customOrderController = require('../controllers/customOrderController');
 const { uploadMultiple } = require('../middleware/upload.middleware');
-const { authenticate, optionalAuth } = require('../middleware/auth.middleware');
+const { protect, optionalAuth } = require('../middleware/auth.middleware');
 
 /**
  * @route POST /api/v1/orders/custom/upload-images
@@ -41,7 +41,7 @@ router.post(
  */
 router.get(
   '/:id',
-  authenticate,
+  protect,
   customOrderController.getCustomOrder
 );
 

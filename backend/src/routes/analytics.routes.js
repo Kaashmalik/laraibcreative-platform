@@ -35,4 +35,11 @@ router.get('/customers', analyticsController.getCustomers);
  */
 router.get('/products', analyticsController.getProducts);
 
+/**
+ * @route   GET /api/v1/analytics/seo
+ * @desc    Get SEO analytics data
+ * @access  Admin
+ */
+router.get('/seo', analyticsController.getSeo);
+
 module.exports = router;

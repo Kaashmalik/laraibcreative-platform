@@ -473,9 +473,8 @@ const settingsSchema = new mongoose.Schema(
 
       defaultMetaDescription: {
         type: String,
-        default: 'Expert tailoring and stitching services with premium fabrics. Custom orders, bridal wear, and everyday fashion.',
+        default: 'Premium Pakistani fashion tailoring and custom stitching services. Expert craftsmanship for bridal wear, party wear, and everyday fashion. Shop now!',
         trim: true,
-        minlength: [120, 'Meta description should be at least 120 characters'],
         maxlength: [160, 'Meta description should not exceed 160 characters']
       },
 
@@ -768,8 +767,7 @@ const settingsSchema = new mongoose.Schema(
 
 // ==================== INDEXES ====================
 
-// Ensure only one settings document exists
-settingsSchema.index({}, { unique: true });
+// No explicit indexes needed - singleton pattern with pre-save hook
 
 // ==================== METHODS ====================
 
@@ -835,6 +833,19 @@ settingsSchema.statics.updateSection = async function(section, data, userId) {
   }
   
   return settings;
+};
+
+/**
+ * Seed default settings (singleton pattern)
+ */
+settingsSchema.statics.seedDefaults = async function() {
+  const count = await this.countDocuments();
+  if (count === 0) {
+    await this.create({});
+    console.log('  ✓ Default settings created');
+  } else {
+    console.log('  ✓ Settings already exist');
+  }
 };
 
 // ==================== HOOKS ====================

@@ -11,7 +11,7 @@ const rateLimit = require('express-rate-limit');
 
 // Middleware
 const { protect } = require('../middleware/auth.middleware');
-const { admin } = require('../middleware/admin.middleware');
+const { adminOnly } = require('../middleware/admin.middleware');
 const {
   uploadSingle,
   uploadMultiple,
@@ -96,7 +96,7 @@ router.post(
 router.post(
   '/product',
   protect,
-  admin,
+  adminOnly,
   uploadLimiter,
   uploadMultiple('images', 10, 'product'),
   uploadProductImages
@@ -136,7 +136,7 @@ router.post(
 router.post(
   '/blog',
   protect,
-  admin,
+  adminOnly,
   uploadLimiter,
   uploadSingle('image', 'blog'),
   uploadBlogImage
@@ -175,7 +175,7 @@ router.delete(
 router.post(
   '/delete-multiple',
   protect,
-  admin,
+  adminOnly,
   deleteMultipleUploadedImages
 );
 
@@ -187,7 +187,7 @@ router.post(
 router.get(
   '/stats',
   protect,
-  admin,
+  adminOnly,
   getUploadStats
 );
 

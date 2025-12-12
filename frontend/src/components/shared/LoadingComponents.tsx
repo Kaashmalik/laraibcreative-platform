@@ -83,30 +83,36 @@ export function RichTextEditorLoading() {
  * Chart Loading Skeleton
  */
 export function ChartLoading({ height = 300 }: { height?: number }) {
+  // Generate consistent heights for bars
+  const barHeights = [65, 45, 80, 55, 70, 40, 75, 50];
+  
   return (
     <div 
-      className="bg-white rounded-lg border border-gray-200 p-6"
+      className="rounded-lg p-6"
       style={{ height: `${height}px` }}
     >
-      {/* Chart Title Skeleton */}
-      <div className="h-6 bg-gray-200 rounded w-48 mb-4 animate-pulse" />
-
       {/* Chart Area Skeleton */}
       <div className="relative h-full">
         {/* Y-axis skeleton */}
         <div className="absolute left-0 top-0 bottom-8 w-8 space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-3 bg-gray-200 rounded animate-pulse" />
+            <div key={i} className="h-3 bg-gray-600/30 dark:bg-gray-500/30 rounded animate-pulse" />
           ))}
         </div>
 
-        {/* Chart bars/lines skeleton */}
-        <div className="ml-12 mr-4 h-full flex items-end justify-between gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        {/* Chart bars/lines skeleton - vibrant gradient colors */}
+        <div className="ml-12 mr-4 h-full flex items-end justify-between gap-2 pb-8">
+          {barHeights.map((h, i) => (
             <div
               key={i}
-              className="flex-1 bg-gray-200 rounded-t animate-pulse"
-              style={{ height: `${Math.random() * 60 + 20}%` }}
+              className="flex-1 rounded-t animate-pulse"
+              style={{ 
+                height: `${h}%`,
+                background: `linear-gradient(180deg, 
+                  ${['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#22c55e', '#6366f1'][i]} 80%, 
+                  ${['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#22c55e', '#6366f1'][i]}40 100%)`,
+                opacity: 0.7
+              }}
             />
           ))}
         </div>
@@ -114,7 +120,7 @@ export function ChartLoading({ height = 300 }: { height?: number }) {
         {/* X-axis skeleton */}
         <div className="absolute bottom-0 left-12 right-4 h-8 flex justify-between items-center">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="h-3 bg-gray-200 rounded w-12 animate-pulse" />
+            <div key={i} className="h-3 bg-gray-600/30 dark:bg-gray-500/30 rounded w-8 animate-pulse" />
           ))}
         </div>
       </div>

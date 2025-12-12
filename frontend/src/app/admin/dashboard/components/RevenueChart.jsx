@@ -118,26 +118,27 @@ export default function RevenueChart({ data: propData }) {
           data={data}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         >
-          {/* Define gradient for area fill */}
+          {/* Define gradient for area fill - more vibrant for dark mode */}
           <defs>
             <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.6} />
+              <stop offset="50%" stopColor="#10b981" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
             </linearGradient>
           </defs>
 
-          {/* Grid */}
+          {/* Grid - darker stroke for dark mode visibility */}
           <CartesianGrid 
             strokeDasharray="3 3" 
-            stroke="#e5e7eb" 
-            className="dark:stroke-gray-700"
+            stroke="#4b5563"
             vertical={false}
           />
 
-          {/* X-Axis */}
+          {/* X-Axis - brighter text for dark mode */}
           <XAxis
             dataKey="date"
             stroke="#9ca3af"
+            tick={{ fill: '#d1d5db' }}
             style={{
               fontSize: '12px',
               fontFamily: 'Inter, sans-serif'
@@ -152,9 +153,10 @@ export default function RevenueChart({ data: propData }) {
             }}
           />
 
-          {/* Y-Axis */}
+          {/* Y-Axis - brighter text for dark mode */}
           <YAxis
             stroke="#9ca3af"
+            tick={{ fill: '#d1d5db' }}
             style={{
               fontSize: '12px',
               fontFamily: 'Inter, sans-serif'
@@ -166,13 +168,13 @@ export default function RevenueChart({ data: propData }) {
           />
 
           {/* Tooltip */}
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 2 }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#a855f7', strokeWidth: 2 }} />
 
-          {/* Area */}
+          {/* Area - more vibrant stroke */}
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#10b981"
+            stroke="#34d399"
             strokeWidth={3}
             fill="url(#revenueGradient)"
             animationDuration={1500}

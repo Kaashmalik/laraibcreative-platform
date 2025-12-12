@@ -60,23 +60,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Admin route protection
-  if (isAdminPage) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth/login'
-      url.searchParams.set('returnUrl', pathname)
-      return NextResponse.redirect(url)
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || !['admin', 'super-admin'].includes(profile.role)) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
+  // Skip protection for admin login page - it uses localStorage auth, not Supabase
+  if (isAdminPage && pathname !== '/admin/login') {
+    // Admin routes use localStorage-based auth from Express backend
+    // The ProtectedAdminRoute component handles client-side auth checking
+    // So we don't block here - just let the page handle its own auth
+    // This allows the admin panel to work with Express backend auth
   }
 
   return supabaseResponse

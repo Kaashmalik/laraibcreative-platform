@@ -7,6 +7,8 @@ import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
+import axios from '@/lib/axios';
+import { API_BASE_URL } from '@/lib/constants';
 
 /**
  * Multiple Image Upload Component
@@ -168,33 +170,63 @@ export default function ImageUploadMultiple({
   };
   
   /**
-   * Upload image to Cloudinary
+   * Upload image via backend (handles Cloudinary securely)
+   * Uses axios instance which automatically handles auth tokens
+   * Includes retry logic for transient failures
    */
-  const uploadToCloudinary = async (file) => {
+  const uploadToCloudinary = async (file, maxRetries = 3) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'laraibcreative');
-    formData.append('folder', 'products');
     
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData
+    let lastError = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // Use axios instance - it handles token automatically via interceptors
+        const response = await axios.post('/upload/single', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000 // 60 second timeout for uploads
+        });
+        
+        // axios interceptor returns response.data directly
+        const url = response.data?.url || response.url || response.secure_url;
+        
+        if (!url) {
+          throw new Error('Upload succeeded but no URL returned');
         }
-      );
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
+        
+        return url;
+      } catch (error) {
+        lastError = error;
+        console.error(`Upload attempt ${attempt + 1}/${maxRetries} failed:`, error.message);
+        
+        // Don't retry auth errors
+        if (error.response?.status === 401) {
+          throw new Error('Session expired. Please login again.');
+        }
+        
+        // Don't retry validation errors (400)
+        if (error.response?.status === 400) {
+          throw new Error(error.response?.data?.message || 'Invalid file. Please check file type and size.');
+        }
+        
+        // Retry on network/server errors
+        if (attempt < maxRetries - 1) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+          console.log(`Retrying upload in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-      
-      const data = await response.json();
-      return data.secure_url;
-    } catch (error) {
-      console.error('Error uploading to Cloudinary:', error);
-      throw error;
     }
+    
+    // All retries failed
+    throw new Error(
+      lastError?.response?.data?.message || 
+      lastError?.message || 
+      'Upload failed after multiple attempts. Please try again.'
+    );
   };
   
   /**

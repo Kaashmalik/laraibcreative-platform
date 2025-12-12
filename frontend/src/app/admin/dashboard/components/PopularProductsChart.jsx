@@ -48,18 +48,18 @@ export default function PopularProductsChart({ data: propData }) {
       }))
     : defaultData;
 
-  // Colors for bars
+  // Colors for bars - vibrant 400-level colors for dark mode visibility
   const COLORS = [
-    '#4F46E5', // indigo-600
-    '#7C3AED', // violet-600
-    '#2563EB', // blue-600
-    '#0891B2', // cyan-600
-    '#059669', // emerald-600
-    '#CA8A04', // yellow-600
-    '#EA580C', // orange-600
-    '#DC2626', // red-600
-    '#DB2777', // pink-600
-    '#9333EA'  // purple-600
+    '#818cf8', // indigo-400
+    '#a78bfa', // violet-400
+    '#60a5fa', // blue-400
+    '#22d3ee', // cyan-400
+    '#34d399', // emerald-400
+    '#facc15', // yellow-400
+    '#fb923c', // orange-400
+    '#f87171', // red-400
+    '#f472b6', // pink-400
+    '#c084fc'  // purple-400
   ];
 
   // Custom tooltip
@@ -94,17 +94,19 @@ export default function PopularProductsChart({ data: propData }) {
           layout="vertical"
           margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
           <XAxis 
             type="number" 
-            className="text-xs text-gray-600 dark:text-gray-400"
-            tick={{ fill: 'currentColor' }}
+            tick={{ fill: '#d1d5db', fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis 
             type="category" 
             dataKey="name" 
-            className="text-xs text-gray-600 dark:text-gray-400"
-            tick={{ fill: 'currentColor' }}
+            tick={{ fill: '#d1d5db', fontSize: 12 }}
+            axisLine={false}
+            tickLine={false}
             width={110}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(79, 70, 229, 0.1)' }} />

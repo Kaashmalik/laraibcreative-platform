@@ -25,6 +25,7 @@ const Button = ({
   fullWidth = false,
   disabled = false,
   isLoading = false,
+  loading = false, // Alias for isLoading to prevent DOM warning
   leftIcon = null,
   rightIcon = null,
   onClick,
@@ -33,6 +34,8 @@ const Button = ({
   ariaLabel,
   ...rest
 }) => {
+  // Support both loading and isLoading props
+  const showLoading = isLoading || loading;
   // Base styles - mobile-first approach
   const baseStyles = `
     inline-flex items-center justify-center
@@ -115,16 +118,16 @@ const Button = ({
     <button
       type={type}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]}`}
-      disabled={disabled || isLoading}
+      disabled={disabled || showLoading}
       onClick={onClick}
       aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
-      aria-busy={isLoading}
+      aria-busy={showLoading}
       {...rest}
     >
-      {isLoading && <LoadingSpinner />}
-      {!isLoading && leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+      {showLoading && <LoadingSpinner />}
+      {!showLoading && leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
       {children}
-      {!isLoading && rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+      {!showLoading && rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
     </button>
   );
 };

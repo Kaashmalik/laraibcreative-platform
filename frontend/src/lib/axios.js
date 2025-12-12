@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { API_BASE_URL } from './constants';
 import * as storage from './storage';
 import { toast } from 'react-hot-toast';
@@ -51,7 +51,7 @@ axiosInstance.interceptors.request.use(
     // Log requests in development
     if (process.env.NODE_ENV === 'development') {
       // console.log(
-      //   `🚀 [API] ${config.method?.toUpperCase()} ${config.url}`,
+      //   `ðŸš€ [API] ${config.method?.toUpperCase()} ${config.url}`,
       //   config.params || config.data || ''
       // );
     }
@@ -88,7 +88,7 @@ axiosInstance.interceptors.response.use(
     if (process.env.NODE_ENV === 'development' && response.config.metadata) {
       const duration = Date.now() - response.config.metadata.startTime;
       // console.log(
-      //   `✅ [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
+      //   `âœ… [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
       // );
     }
 
@@ -101,6 +101,22 @@ axiosInstance.interceptors.response.use(
     return response.data;
   },
   async (error) => {
+    // Treat canceled requests (AbortController/CancelToken) as non-errors to avoid retries/toasts
+    try {
+      const isCanceled = (typeof axios?.isCancel === 'function' && axios.isCancel(error)) ||
+                         error?.code === 'ERR_CANCELED' ||
+                         (typeof error?.message === 'string' && error.message.toLowerCase().includes('canceled'));
+      if (isCanceled) {
+        const canceledRequestId = error?.config?.requestId;
+        if (canceledRequestId) {
+          ongoingRequests.delete(canceledRequestId);
+        }
+        return Promise.reject(error);
+      }
+    } catch (_) {
+      // Ignore errors in cancel detection
+    }
+    
     const originalRequest = error.config;
     const requestId = originalRequest?.requestId;
     const requestInfo = requestId ? ongoingRequests.get(requestId) : null;
@@ -108,16 +124,19 @@ axiosInstance.interceptors.response.use(
     // Log error in development
     if (process.env.NODE_ENV === 'development') {
       console.error(
-        `❌ [API] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`,
+        `âŒ [API] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`,
         error.response?.status,
         error.response?.data || error.message
       );
     }
 
-    // Handle network errors
+    // Handle network errors (including timeouts)
     if (!error.response) {
-      // Retry logic for network errors
-      if (requestInfo && requestInfo.retryCount < MAX_RETRIES) {
+      // Check if it's a timeout error - don't retry timeouts aggressively
+      const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+      
+      // Retry logic for network errors (but limit retries for timeouts)
+      if (requestInfo && requestInfo.retryCount < MAX_RETRIES && !isTimeout) {
         requestInfo.retryCount++;
         
         safeToastError(`Connection failed. Retrying... (${requestInfo.retryCount}/${MAX_RETRIES})`);
@@ -128,8 +147,16 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       }
 
-      safeToastError('Unable to connect. Please check your internet connection.');
+      // Clear request from tracking
       ongoingRequests.delete(requestId);
+      
+      // Show appropriate error message
+      if (isTimeout) {
+        safeToastError('Request timed out. The server may be slow or unavailable.');
+      } else {
+        safeToastError('Unable to connect. Please check your internet connection.');
+      }
+      
       return Promise.reject(error);
     }
 
@@ -137,8 +164,15 @@ axiosInstance.interceptors.response.use(
     const { status, data } = error.response;
     const errorMessage = data?.message || data?.error || 'Something went wrong';
 
-    // Implement retry logic for 5xx errors
-    if (status >= 500 && requestInfo && requestInfo.retryCount < MAX_RETRIES) {
+    // Skip retry for validation-related errors to prevent infinite loops
+    const isValidationError = errorMessage.includes('validation') || 
+                              errorMessage.includes('Validation') ||
+                              errorMessage.includes('cannot exceed') ||
+                              errorMessage.includes('is required') ||
+                              errorMessage.includes('not a valid enum');
+
+    // Implement retry logic for 5xx errors (but not for validation errors)
+    if (status >= 500 && requestInfo && requestInfo.retryCount < MAX_RETRIES && !isValidationError) {
       requestInfo.retryCount++;
       
       // Wait before retry with exponential backoff
@@ -294,7 +328,7 @@ export function cancelAllRequests() {
   });
   
   if (process.env.NODE_ENV === 'development') {
-    // console.log('🚫 [API] All requests cancelled');
+    // console.log('ðŸš« [API] All requests cancelled');
   }
 }
 
@@ -400,3 +434,4 @@ export function clearAuthToken() {
 }
 
 export default axiosInstance;
+
