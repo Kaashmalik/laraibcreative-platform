@@ -7,7 +7,6 @@
 
 import { useState, type ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createQueryClient } from '@/lib/queryClient';
 import { GlobalLoadingIndicator } from '@/components/shared/GlobalLoadingIndicator';
 
@@ -31,18 +30,8 @@ export function QueryProvider({ children }: QueryProviderProps) {
       
       {/* App content */}
       {children}
-      
-      {/* React Query DevTools - only in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools 
-          initialIsOpen={false} 
-          position="bottom"
-          buttonPosition="bottom-right"
-        />
-      )}
     </QueryClientProvider>
   );
 }
 
 export default QueryProvider;
-

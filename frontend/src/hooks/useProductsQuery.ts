@@ -54,6 +54,7 @@ export interface ProductFilters {
   bestSeller?: boolean;
   page?: number;
   limit?: number;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export interface ProductsResponse {
@@ -67,6 +68,27 @@ export interface ProductsResponse {
   };
 }
 
+// API response types
+interface ApiProductsResponse {
+  success?: boolean;
+  products?: Product[];
+  data?: Product[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+    currentPage?: number;
+    totalPages?: number;
+  };
+}
+
+interface ApiProductResponse {
+  success?: boolean;
+  product?: Product;
+  data?: Product;
+}
+
 // ============================================
 // QUERY HOOKS
 // ============================================
@@ -76,10 +98,20 @@ export interface ProductsResponse {
  */
 export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
-    queryKey: queryKeys.products.list(filters),
+    queryKey: queryKeys.products.list(filters as Record<string, unknown>),
     queryFn: async () => {
-      const response = await api.products.getAll(filters);
-      return response as ProductsResponse;
+      const response = await api.products.getAll(filters) as ApiProductsResponse;
+      // Normalize response structure
+      return {
+        success: response.success ?? true,
+        products: response.products ?? response.data ?? [],
+        pagination: response.pagination ?? {
+          page: 1,
+          limit: 12,
+          total: 0,
+          pages: 1,
+        },
+      } as ProductsResponse;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: (previousData) => previousData,
@@ -97,8 +129,18 @@ export function useInfiniteProducts(filters: Omit<ProductFilters, 'page'> = {}) 
         ...filters,
         page: pageParam,
         limit: filters.limit || 12,
-      });
-      return response as ProductsResponse;
+      }) as ApiProductsResponse;
+      // Normalize response
+      const pagination = response.pagination;
+      const page = pagination?.page ?? (pagination as { currentPage?: number })?.currentPage ?? pageParam;
+      const limit = pagination?.limit ?? 12;
+      const total = pagination?.total ?? 0;
+      const pages = pagination?.pages ?? (pagination as { totalPages?: number })?.totalPages ?? 1;
+      return {
+        success: response.success ?? true,
+        products: response.products ?? response.data ?? [],
+        pagination: { page, limit, total, pages },
+      } as ProductsResponse;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -118,8 +160,8 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: queryKeys.products.detail(id),
     queryFn: async () => {
-      const response = await api.products.getById(id);
-      return response.product as Product;
+      const response = await api.products.getById(id) as ApiProductResponse;
+      return (response.product ?? response.data ?? response) as Product;
     },
     enabled: !!id,
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -133,8 +175,8 @@ export function useProductBySlug(slug: string) {
   return useQuery({
     queryKey: queryKeys.products.bySlug(slug),
     queryFn: async () => {
-      const response = await api.products.getBySlug(slug);
-      return response.product as Product;
+      const response = await api.products.getBySlug(slug) as ApiProductResponse;
+      return (response.product ?? response.data ?? response) as Product;
     },
     enabled: !!slug,
     staleTime: 10 * 60 * 1000,
@@ -148,8 +190,8 @@ export function useFeaturedProducts(limit = 8) {
   return useQuery({
     queryKey: queryKeys.products.featured(),
     queryFn: async () => {
-      const response = await api.products.getFeatured(limit);
-      return response.products as Product[];
+      const response = await api.products.getFeatured(limit) as ApiProductsResponse;
+      return (response.products ?? response.data ?? []) as Product[];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
@@ -162,8 +204,8 @@ export function useNewArrivals(limit = 8) {
   return useQuery({
     queryKey: queryKeys.products.newArrivals(),
     queryFn: async () => {
-      const response = await api.products.getNewArrivals(limit);
-      return response.products as Product[];
+      const response = await api.products.getNewArrivals(limit) as ApiProductsResponse;
+      return (response.products ?? response.data ?? []) as Product[];
     },
     staleTime: 15 * 60 * 1000,
   });
@@ -176,8 +218,8 @@ export function useBestSellers(limit = 8) {
   return useQuery({
     queryKey: queryKeys.products.bestSellers(),
     queryFn: async () => {
-      const response = await api.products.getBestSellers(limit);
-      return response.products as Product[];
+      const response = await api.products.getBestSellers(limit) as ApiProductsResponse;
+      return (response.products ?? response.data ?? []) as Product[];
     },
     staleTime: 15 * 60 * 1000,
   });
@@ -190,8 +232,8 @@ export function useProductSearch(query: string, options?: { enabled?: boolean })
   return useQuery({
     queryKey: queryKeys.products.search(query),
     queryFn: async () => {
-      const response = await api.products.search(query);
-      return response.products as Product[];
+      const response = await api.products.search(query) as ApiProductsResponse;
+      return (response.products ?? response.data ?? []) as Product[];
     },
     enabled: options?.enabled !== false && query.length >= 2,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -205,8 +247,8 @@ export function useRelatedProducts(productId: string, limit = 4) {
   return useQuery({
     queryKey: queryKeys.products.related(productId),
     queryFn: async () => {
-      const response = await api.products.getRelated(productId, limit);
-      return response.products as Product[];
+      const response = await api.products.getRelated(productId, { limit }) as ApiProductsResponse;
+      return (response.products ?? response.data ?? []) as Product[];
     },
     enabled: !!productId,
     staleTime: 10 * 60 * 1000,
@@ -300,10 +342,19 @@ export function usePrefetchProducts() {
 
   const prefetchProducts = async (filters: ProductFilters = {}) => {
     await queryClient.prefetchQuery({
-      queryKey: queryKeys.products.list(filters),
+      queryKey: queryKeys.products.list(filters as Record<string, unknown>),
       queryFn: async () => {
-        const response = await api.products.getAll(filters);
-        return response as ProductsResponse;
+        const response = await api.products.getAll(filters) as ApiProductsResponse;
+        return {
+          success: response.success ?? true,
+          products: response.products ?? response.data ?? [],
+          pagination: response.pagination ?? {
+            page: 1,
+            limit: 12,
+            total: 0,
+            pages: 1,
+          },
+        } as ProductsResponse;
       },
       staleTime: 5 * 60 * 1000,
     });
@@ -313,8 +364,8 @@ export function usePrefetchProducts() {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.products.detail(id),
       queryFn: async () => {
-        const response = await api.products.getById(id);
-        return response.product as Product;
+        const response = await api.products.getById(id) as ApiProductResponse;
+        return (response.product ?? response.data ?? response) as Product;
       },
       staleTime: 10 * 60 * 1000,
     });
@@ -324,4 +375,3 @@ export function usePrefetchProducts() {
 }
 
 export default useProducts;
-

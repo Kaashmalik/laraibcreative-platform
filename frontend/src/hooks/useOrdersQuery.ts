@@ -73,6 +73,7 @@ export interface OrderFilters {
   page?: number;
   limit?: number;
   sortBy?: string;
+  [key: string]: string | number | undefined;
 }
 
 export interface OrdersResponse {
@@ -88,6 +89,33 @@ export interface OrdersResponse {
   };
 }
 
+// API response types
+interface ApiOrdersResponse {
+  success?: boolean;
+  orders?: Order[];
+  data?: {
+    orders: Order[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalOrders: number;
+      ordersPerPage: number;
+    };
+  };
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalOrders: number;
+    ordersPerPage: number;
+  };
+}
+
+interface ApiOrderResponse {
+  success?: boolean;
+  order?: Order;
+  data?: Order;
+}
+
 // ============================================
 // QUERY HOOKS
 // ============================================
@@ -97,10 +125,22 @@ export interface OrdersResponse {
  */
 export function useOrders(filters: OrderFilters = {}) {
   return useQuery({
-    queryKey: queryKeys.orders.list(filters),
+    queryKey: queryKeys.orders.list(filters as Record<string, unknown>),
     queryFn: async () => {
-      const response = await api.orders.getAll(filters);
-      return response as OrdersResponse;
+      const response = await api.orders.getAll(filters) as ApiOrdersResponse;
+      // Normalize response structure
+      return {
+        success: response.success ?? true,
+        data: response.data ?? {
+          orders: response.orders ?? [],
+          pagination: response.pagination ?? {
+            currentPage: 1,
+            totalPages: 1,
+            totalOrders: 0,
+            ordersPerPage: 10,
+          },
+        },
+      } as OrdersResponse;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
@@ -114,8 +154,8 @@ export function useCustomerOrders(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...queryKeys.orders.all, 'customer'],
     queryFn: async () => {
-      const response = await api.orders.getMyOrders();
-      return response.orders as Order[];
+      const response = await api.orders.getAll({ customer: 'me' }) as ApiOrdersResponse;
+      return (response.orders ?? response.data?.orders ?? []) as Order[];
     },
     enabled: options?.enabled !== false,
     staleTime: 2 * 60 * 1000,
@@ -129,8 +169,8 @@ export function useOrder(id: string) {
   return useQuery({
     queryKey: queryKeys.orders.detail(id),
     queryFn: async () => {
-      const response = await api.orders.getById(id);
-      return response.order as Order;
+      const response = await api.orders.getById(id) as ApiOrderResponse;
+      return (response.order ?? response.data ?? response) as Order;
     },
     enabled: !!id,
     staleTime: 1 * 60 * 1000, // 1 minute
@@ -144,8 +184,8 @@ export function useTrackOrder(orderNumber: string) {
   return useQuery({
     queryKey: queryKeys.orders.track(orderNumber),
     queryFn: async () => {
-      const response = await api.orders.track(orderNumber);
-      return response.data;
+      const response = await api.orders.track(orderNumber) as { data?: unknown };
+      return response.data ?? response;
     },
     enabled: !!orderNumber && orderNumber.length >= 5,
     staleTime: 30 * 1000, // 30 seconds
@@ -160,8 +200,8 @@ export function useOrderStats(period = 'month') {
   return useQuery({
     queryKey: queryKeys.orders.stats(),
     queryFn: async () => {
-      const response = await api.orders.getStats(period);
-      return response.stats;
+      const response = await api.orders.admin.getAll({ period }) as { stats?: unknown };
+      return response.stats ?? response;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -183,12 +223,12 @@ export function useCreateOrder() {
       const response = await api.orders.create(orderData);
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { data?: { order?: { orderNumber?: string } } }) => {
       // Invalidate order lists
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.lists() });
       // Clear cart
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
-      toast.success(`Order ${data.data?.order?.orderNumber} placed successfully!`);
+      toast.success(`Order ${data.data?.order?.orderNumber ?? ''} placed successfully!`);
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to place order');
@@ -268,7 +308,7 @@ export function useVerifyPayment() {
       verified: boolean;
       notes?: string;
     }) => {
-      const response = await api.orders.verifyPayment(id, verified, notes);
+      const response = await api.orders.admin.verifyPayment(id, { verified, notes });
       return response;
     },
     onSuccess: (_data, variables) => {
@@ -313,7 +353,7 @@ export function useAddOrderNote() {
 
   return useMutation({
     mutationFn: async ({ id, note }: { id: string; note: string }) => {
-      const response = await api.orders.addNote(id, note);
+      const response = await api.orders.admin.addNote(id, { note });
       return response;
     },
     onSuccess: (_data, variables) => {
@@ -327,4 +367,3 @@ export function useAddOrderNote() {
 }
 
 export default useOrders;
-

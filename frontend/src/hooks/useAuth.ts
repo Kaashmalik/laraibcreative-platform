@@ -49,7 +49,7 @@ export default function useAuth() {
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true)
     try {
-      const response = await api.auth.login(email, password)
+      const response = await api.auth.login(email, password) as { success?: boolean; data?: { user: User; tokens: { accessToken: string; refreshToken: string } }; message?: string }
       
       if (response.success && response.data) {
         const { user: userData, tokens } = response.data
@@ -78,7 +78,7 @@ export default function useAuth() {
   const register = useCallback(async (userData: { email: string; password: string; fullName: string; phone?: string }) => {
     setLoading(true)
     try {
-      const response = await api.auth.register(userData)
+      const response = await api.auth.register(userData) as { success?: boolean; data?: { user: User; tokens: { accessToken: string; refreshToken: string } }; message?: string }
       
       if (response.success && response.data) {
         const { user: newUser, tokens } = response.data

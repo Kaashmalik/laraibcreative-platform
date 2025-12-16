@@ -3,7 +3,15 @@
  * Web Vitals tracking and performance metrics
  */
 
-import type { Metric } from 'web-vitals';
+// Web Vitals metric interface (compatible with web-vitals library)
+interface Metric {
+  name: 'CLS' | 'FCP' | 'FID' | 'INP' | 'LCP' | 'TTFB';
+  value: number;
+  rating: 'good' | 'needs-improvement' | 'poor';
+  id: string;
+  delta: number;
+  navigationType: 'navigate' | 'reload' | 'back-forward' | 'back-forward-cache' | 'prerender';
+}
 
 // Performance metrics storage
 const metrics: Record<string, number> = {};
@@ -25,8 +33,8 @@ export function reportWebVitals(metric: Metric) {
   }
 
   // Send to Google Analytics 4
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', metric.name, {
+  if (typeof window !== 'undefined' && (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag) {
+    (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', metric.name, {
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
       event_category: 'Web Vitals',
       event_label: metric.id,
@@ -117,11 +125,7 @@ function logPerformance(name: string, duration: number) {
  * Create performance observer for specific entry types
  */
 export function observePerformance(
-  entryTypes: PerformanceObserverEntryList['getEntries'] extends () => infer R
-    ? R extends PerformanceEntry[]
-      ? PerformanceEntry['entryType'][]
-      : string[]
-    : string[],
+  entryTypes: string[],
   callback: (entries: PerformanceEntry[]) => void
 ) {
   if (typeof window === 'undefined' || !('PerformanceObserver' in window)) {
@@ -133,7 +137,7 @@ export function observePerformance(
       callback(list.getEntries());
     });
 
-    observer.observe({ entryTypes: entryTypes as string[] });
+    observer.observe({ entryTypes });
 
     return () => observer.disconnect();
   } catch (error) {
@@ -202,11 +206,19 @@ export function trackTTI() {
     
     checkCount++;
     if (checkCount < maxChecks) {
-      requestIdleCallback ? requestIdleCallback(check) : setTimeout(check, 100);
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(check);
+      } else {
+        setTimeout(check, 100);
+      }
     }
   };
 
-  requestIdleCallback ? requestIdleCallback(check) : setTimeout(check, 100);
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(check);
+  } else {
+    setTimeout(check, 100);
+  }
 }
 
 /**
@@ -251,4 +263,3 @@ export default {
   trackLongTasks,
   trackResources,
 };
-

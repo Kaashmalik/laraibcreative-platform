@@ -152,13 +152,18 @@ export async function clearAllCaches(): Promise<void> {
 export async function requestSync(tag: string): Promise<boolean> {
   if (typeof window === 'undefined') return false;
   
-  if (!('serviceWorker' in navigator) || !('sync' in window.registration)) {
-    return false;
-  }
+  if (!('serviceWorker' in navigator)) return false;
   
   try {
     const registration = await navigator.serviceWorker.ready;
-    await (registration as any).sync.register(tag);
+    
+    // Check if sync is supported
+    if (!('sync' in registration)) {
+      console.log('[SW] Background sync not supported');
+      return false;
+    }
+    
+    await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register(tag);
     console.log(`[SW] Background sync registered: ${tag}`);
     return true;
   } catch (error) {
@@ -175,7 +180,7 @@ export function isRunningAsPWA(): boolean {
   
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
     document.referrer.includes('android-app://')
   );
 }
@@ -243,4 +248,3 @@ export default {
   getCacheSize,
   formatCacheSize,
 };
-
