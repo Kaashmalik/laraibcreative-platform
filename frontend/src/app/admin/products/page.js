@@ -79,7 +79,7 @@ export default function AdminProductsPage() {
         sortOrder
       };
       
-      const response = await api.products.getAllAdmin(params);
+      const response = await api.products.admin.getAll(params);
       // Handle both response formats
       const responseData = response.data || response;
       setProducts(responseData.products || []);
@@ -101,10 +101,9 @@ export default function AdminProductsPage() {
    */
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      const data = await response.json();
-      setCategories(data);
+      const response = await api.categories.getAll();
+      const data = response.data || response;
+      setCategories(data.categories || data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }

@@ -127,7 +127,7 @@ async function seedFromData() {
       try {
         console.log(`\n[${index + 1}/${products.length}] Processing: ${productData.title}`);
         
-        // Handle images
+        // Handle images - format as objects with url, altText, imageType
         let images = [];
         let primaryImage = '';
 
@@ -137,25 +137,49 @@ async function seedFromData() {
             ? productData.images.split('|').map(s => s.trim())
             : productData.images;
 
-          for (const img of imageList) {
+          const imageTypes = ['front', 'back', 'side', 'detail', 'closeup', 'dupatta', 'trouser', 'full-set'];
+          
+          for (let i = 0; i < imageList.length; i++) {
+            const img = imageList[i];
+            let imageUrl = '';
+            
             if (img.startsWith('http')) {
               // Already a URL
-              images.push(img);
+              imageUrl = img;
             } else {
               // Local file - upload to Cloudinary
               const localPath = path.join(SEED_IMAGES_DIR, img);
               if (fs.existsSync(localPath)) {
                 console.log(`   📤 Uploading: ${img}`);
-                const url = await uploadToCloudinary(localPath);
-                if (url) images.push(url);
+                imageUrl = await uploadToCloudinary(localPath);
               } else {
                 console.log(`   ⚠️  Image not found: ${localPath}`);
               }
             }
+            
+            if (imageUrl) {
+              // Determine image type from filename
+              let imageType = 'other';
+              const lowerImg = img.toLowerCase();
+              if (lowerImg.includes('front')) imageType = 'front';
+              else if (lowerImg.includes('back')) imageType = 'back';
+              else if (lowerImg.includes('side')) imageType = 'side';
+              else if (lowerImg.includes('detail')) imageType = 'detail';
+              else if (lowerImg.includes('full')) imageType = 'full-set';
+              else if (i === 0) imageType = 'front';
+              else if (i === 1) imageType = 'back';
+              
+              images.push({
+                url: imageUrl,
+                altText: `${productData.title} - ${imageType} view`,
+                displayOrder: i,
+                imageType: imageType
+              });
+            }
           }
         }
 
-        primaryImage = images[0] || '';
+        primaryImage = images[0]?.url || '';
 
         // Map category
         const categoryKey = (productData.category || '').toLowerCase();
@@ -167,11 +191,22 @@ async function seedFromData() {
           continue;
         }
 
-        // Build product object
+        // Skip products without images
+        if (images.length === 0) {
+          console.log(`   ⚠️  Skipping: No images available`);
+          results.failed++;
+          continue;
+        }
+
+        // Generate design code
+        const designCode = productData.designCode || await Product.generateDesignCode();
+
+        // Build product object with all required fields
         const product = {
           title: productData.title,
           slug: productData.slug || generateSlug(productData.title),
           sku: productData.sku || generateSKU(productData.title),
+          designCode,
           description: productData.description || `${productData.title} - Premium quality Pakistani fashion.`,
           category: categoryId,
           subcategory: productData.subcategory || '',
@@ -181,8 +216,8 @@ async function seedFromData() {
           type: productData.type || 'ready-made',
           fabric: {
             type: productData.fabricType || 'Lawn',
-            composition: productData.fabricComposition || '',
-            care: productData.fabricCare || ''
+            composition: productData.fabricComposition || '100% Premium Quality',
+            care: productData.fabricCare || 'Dry clean recommended'
           },
           pricing: {
             basePrice: parseFloat(productData.basePrice) || 5000,
@@ -194,9 +229,20 @@ async function seedFromData() {
             currency: 'PKR'
           },
           availability: productData.availability || 'in-stock',
+          status: 'active',
+          isActive: true,
           featured: productData.featured === 'true' || productData.featured === true,
+          customization: {
+            allowFullyCustom: true,
+            stitchingOptions: ['standard', 'premium'],
+            customizableAreas: ['length', 'sleeves', 'neckline']
+          },
+          sizeAvailability: {
+            standardSizes: ['S', 'M', 'L', 'XL'],
+            customSizing: true
+          },
           seo: {
-            metaTitle: productData.metaTitle || `${productData.title} | LaraibCreative`,
+            metaTitle: (productData.metaTitle || productData.title)?.substring(0, 60) || productData.title.substring(0, 60),
             metaDescription: productData.metaDescription || productData.description?.substring(0, 160) || '',
             keywords: productData.keywords ? productData.keywords.split(',').map(k => k.trim()) : []
           }

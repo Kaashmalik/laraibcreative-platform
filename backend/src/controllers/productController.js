@@ -45,6 +45,7 @@ exports.getAllProducts = async (req, res) => {
     // Build filter object - only show active, non-deleted products
     const filter = {
       isActive: true,
+      status: 'published',
       isDeleted: { $ne: true }
     };
 
@@ -148,7 +149,7 @@ exports.getAllProducts = async (req, res) => {
 
     // Featured products filter
     if (featured === 'true') {
-      filter.featured = true;
+      filter.isFeatured = true;
     }
 
     // Suit type filter (NEW)
@@ -543,7 +544,12 @@ exports.getFeaturedProducts = async (req, res) => {
   try {
     const { limit = 8 } = req.query;
 
-    const products = await Product.find({ featured: true })
+    const products = await Product.find({ 
+      isFeatured: true,
+      status: 'published',
+      isActive: true,
+      isDeleted: { $ne: true }
+    })
       .populate('category', 'name slug')
       .sort('-createdAt')
       .limit(parseInt(limit))
@@ -576,6 +582,7 @@ exports.getNewArrivals = async (req, res) => {
 
     const products = await Product.find({
       status: 'published',
+      isActive: true,
       isDeleted: { $ne: true }
     })
       .sort({ createdAt: -1 })
@@ -608,6 +615,7 @@ exports.getBestSellers = async (req, res) => {
 
     const products = await Product.find({
       status: 'published',
+      isActive: true,
       isDeleted: { $ne: true }
     })
       .sort({ salesCount: -1, rating: -1 })

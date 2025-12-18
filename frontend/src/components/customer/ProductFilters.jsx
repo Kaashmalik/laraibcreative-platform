@@ -25,6 +25,7 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
 
   // Use filters from props or default state with proper defaults
   const filters = {
+    category: propFilters?.category || 'all',
     fabric: propFilters?.fabric || [],
     minPrice: propFilters?.minPrice ?? 0,
     maxPrice: propFilters?.maxPrice ?? 50000,
@@ -36,6 +37,7 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
 
   // Expanded sections state
   const [expanded, setExpanded] = useState({
+    category: true,
     suitType: true, // NEW: Suit type section
     fabric: true,
     price: true,
@@ -43,6 +45,15 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
     color: true,
     availability: true,
   });
+
+  // Category options
+  const categoryOptions = [
+    { value: 'all', label: 'All Categories', count: null },
+    { value: 'party-formal-wear', label: 'Party & Formal Wear', count: 9 },
+    { value: 'casual-everyday', label: 'Casual & Everyday', count: 6 },
+    { value: 'hand-karhai-collection', label: 'Hand Karhai Collection', count: 5 },
+    { value: 'bridal-collection', label: 'Bridal Collection', count: 2 },
+  ];
 
   // Suit type options (NEW)
   const suitTypeOptions = [
@@ -93,6 +104,16 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
       : [...currentValues, value];
 
     const newFilters = { ...filters, [filterType]: newValues };
+    if (onFilterChange) {
+      onFilterChange(newFilters);
+    }
+  };
+
+  /**
+   * Handle radio filter change (category)
+   */
+  const handleRadioChange = (filterType, value) => {
+    const newFilters = { ...filters, [filterType]: value };
     if (onFilterChange) {
       onFilterChange(newFilters);
     }
@@ -214,6 +235,36 @@ export default function ProductFilters({ filters: propFilters, onFilterChange })
 
       {/* Filters */}
       <div className="divide-y divide-gray-200">
+        {/* Category */}
+        <FilterSection
+          title="Category"
+          isExpanded={expanded.category}
+          onToggle={() => toggleSection('category')}
+        >
+          <div className="space-y-2">
+            {categoryOptions.map((option) => (
+              <label
+                key={option.value}
+                className="flex items-center justify-between py-2 px-4 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="category"
+                    checked={filters.category === option.value}
+                    onChange={() => handleRadioChange('category', option.value)}
+                    className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-2 focus:ring-pink-500"
+                  />
+                  <span className="text-sm text-gray-700">{option.label}</span>
+                </div>
+                {option.count && (
+                  <span className="text-xs text-gray-500">({option.count})</span>
+                )}
+              </label>
+            ))}
+          </div>
+        </FilterSection>
+
         {/* Suit Type (NEW) */}
         <FilterSection
           title="Suit Type"

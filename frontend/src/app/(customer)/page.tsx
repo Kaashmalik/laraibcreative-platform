@@ -73,26 +73,41 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage(): Promise<JSX.Element> {
   try {
     // Fetch data for homepage in parallel
+    console.log('Fetching homepage data...');
     const [featuredProductsResponse, categoriesResponse] = await Promise.all([
-      api.products.getFeatured(8).catch(() => ({ products: [] })),
-      api.categories.getAll().catch(() => ({ data: [] }))
+      api.products.getFeatured(8).catch((e) => {
+        console.error('Error fetching featured products:', e);
+        return { products: [] };
+      }),
+      api.categories.getAll().catch((e) => {
+        console.error('Error fetching categories:', e);
+        return { data: [] };
+      })
     ]);
+
+    console.log('Featured Products Response:', JSON.stringify(featuredProductsResponse, null, 2));
+    // console.log('Categories Response:', JSON.stringify(categoriesResponse, null, 2));
 
     // Type-safe extraction of products
     let featuredProducts: Product[] = [];
     if (featuredProductsResponse && typeof featuredProductsResponse === 'object') {
       if ('products' in featuredProductsResponse && Array.isArray(featuredProductsResponse.products)) {
         featuredProducts = featuredProductsResponse.products;
-      } else if ('data' in featuredProductsResponse && featuredProductsResponse.data && 
-                 typeof featuredProductsResponse.data === 'object' && 
-                 'products' in featuredProductsResponse.data && 
-                 Array.isArray(featuredProductsResponse.data.products)) {
+      } else if ('data' in featuredProductsResponse && Array.isArray(featuredProductsResponse.data)) {
+        // Handle { success: true, data: [...] } format from backend
+        featuredProducts = featuredProductsResponse.data as Product[];
+      } else if ('data' in featuredProductsResponse && featuredProductsResponse.data &&
+        typeof featuredProductsResponse.data === 'object' &&
+        'products' in featuredProductsResponse.data &&
+        Array.isArray(featuredProductsResponse.data.products)) {
         featuredProducts = featuredProductsResponse.data.products;
       } else if (Array.isArray(featuredProductsResponse)) {
         featuredProducts = featuredProductsResponse as Product[];
       }
     }
-    
+
+    console.log(`Extracted ${featuredProducts.length} featured products`);
+
     // Type-safe extraction of categories
     let categories: Category[] = [];
     if (categoriesResponse && typeof categoriesResponse === 'object') {
@@ -127,11 +142,11 @@ export default async function HomePage(): Promise<JSX.Element> {
     );
   } catch (error: unknown) {
     console.error('Error fetching homepage data:', error);
-    
+
     // Return homepage with empty data rather than error
     // This ensures the page still loads even if API fails
     const organizationSchema = generateOrganizationStructuredData();
-    
+
     return (
       <>
         {/* JSON-LD Organization Schema for SEO */}

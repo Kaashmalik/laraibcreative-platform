@@ -418,6 +418,9 @@ try {
   loadRoute('./src/routes/measurement.routes.js', '/api/v1/measurements');
   loadRoute('./src/routes/analytics.routes.js', '/api/v1/analytics');
   loadRoute('./src/routes/settings.routes.js', '/api/v1/settings');
+  loadRoute('./src/routes/dashboard.routes.js', '/api/v1/admin/dashboard');
+  loadRoute('./src/routes/adminProduct.routes.js', '/api/v1/admin/products');
+  loadRoute('./src/routes/adminOrder.routes.js', '/api/v1/admin/orders');
 }
 
 // =================================================================
@@ -429,11 +432,14 @@ app.use((req, res) => {
     message: `Route not found: ${req.method} ${req.path}`,
     availableRoutes: [
       '/health',
-      '/api/auth',
-      '/api/products',
-      '/api/orders',
-      '/api/customers',
-      '/api/categories'
+      '/api/v1/auth',
+      '/api/v1/products',
+      '/api/v1/orders',
+      '/api/v1/customers',
+      '/api/v1/categories',
+      '/api/v1/admin/dashboard',
+      '/api/v1/admin/products',
+      '/api/v1/admin/orders'
     ]
   });
 });

@@ -1,369 +1,233 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-
-import { useUIStore } from '@/store/uiStore';
+import Image from 'next/image';
+import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
+import { toast } from 'react-hot-toast';
 
 /**
  * ProductCard Component
- * 
- * Displays product information in grid or list view with:
- * - Image with hover zoom effect
- * - Title, price, fabric type
- * - Rating stars
- * - Wishlist heart icon (animated)
- * - Custom stitching badge
- * - Quick view button (modal)
- * - Smooth animations
- * 
- * @param {Object} product - Product data object
- * @param {string} viewMode - 'grid' or 'list'
- * @param {Function} onQuickView - Callback for quick view button
+ * Premium card design with hover effects, quick actions, and image carousel
  */
-export default function ProductCard({ product, viewMode = 'grid', onQuickView }) {
+export default function ProductCard({ product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const openQuickView = useUIStore((state) => state.openQuickView);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const router = useRouter();
+  const { addItem } = useCart();
 
-  /**
-   * Toggle wishlist status
-   */
-  const handleWishlistToggle = async (e) => {
-    e.preventDefault(); // Prevent navigation to product page
-    
-    // Optimistic UI update
-    setIsWishlisted(!isWishlisted);
+  // Get product images (handle both string URLs and object structure)
+  const getProductImages = () => {
+    const images = [];
 
-    try {
-      // API call to add/remove from wishlist
-      const response = await fetch('/api/wishlist', {
-        method: isWishlisted ? 'DELETE' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product._id }),
+    if (product.images && Array.isArray(product.images)) {
+      product.images.forEach(img => {
+        if (typeof img === 'string') {
+          images.push(img);
+        } else if (img?.url) {
+          images.push(img.url);
+        }
       });
+    }
 
-      if (!response.ok) {
-        // Revert on error
-        setIsWishlisted(isWishlisted);
-        throw new Error('Failed to update wishlist');
+    if (product.primaryImage && !images.includes(product.primaryImage)) {
+      // Ensure primary image is first
+      const primaryIndex = images.indexOf(product.primaryImage);
+      if (primaryIndex > -1) {
+        images.splice(primaryIndex, 1);
       }
-    } catch (error) {
-      console.error('Wishlist error:', error);
-      // Show toast notification
+      images.unshift(product.primaryImage);
     }
-  };
 
-  /**
-   * Handle quick view (opens modal)
-   */
-  const handleQuickView = (e) => {
-    e.preventDefault();
-    if (onQuickView) {
-      onQuickView(product);
-    } else {
-      openQuickView(product._id);
+    if (images.length === 0) {
+      images.push('/images/placeholder.png');
     }
+
+    return images;
   };
 
-  /**
-   * Render rating stars
-   */
-  const renderStars = (rating) => {
-    return (
-      <div className="flex items-center gap-1" aria-label={`Rating: ${rating} out of 5 stars`}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <svg
-            key={star}
-            className={`w-4 h-4 ${
-              star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-            }`}
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-        <span className="text-sm text-gray-600 ml-1">
-          ({product.reviewCount || 0})
-        </span>
-      </div>
-    );
-  };
+  const productImages = getProductImages();
+  const hasMultipleImages = productImages.length > 1;
 
-  /**
-   * Grid view layout
-   */
-  if (viewMode === 'grid') {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        whileHover={{ y: -4 }}
-        className="group"
-      >
-        <Link href={`/products/${product._id || product.id}`} className="block">
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-shadow hover:shadow-lg">
-            {/* Image container */}
-            <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-              {/* Skeleton loader */}
-              {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-              )}
+  // Auto-slide on hover
+  useEffect(() => {
+    let interval;
+    if (isHovered && hasMultipleImages) {
+      interval = setInterval(() => {
+        setCurrentImageIndex(prev => (prev + 1) % productImages.length);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, hasMultipleImages, productImages.length]);
 
-              {/* Product image with hover zoom */}
-              <Image
-                src={product.primaryImage || product.images?.[0] || '/images/placeholder.png'}
-                alt={`${product.title || product.name} - ${product.fabric?.type || 'Premium fabric'} ladies suit${product.occasion ? ` for ${product.occasion}` : ''}`}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoadingComplete={() => setImageLoaded(true)}
-                priority={false}
-                quality={75}
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
-              />
+  // Reset to first image when not hovering
+  useEffect(() => {
+    if (!isHovered) {
+      setCurrentImageIndex(0);
+    }
+  }, [isHovered]);
 
-              {/* Wishlist button - Top right */}
-              <button
-                onClick={handleWishlistToggle}
-                className="absolute top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all z-10"
-                aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-              >
-                <motion.svg
-                  className={`w-5 h-5 ${isWishlisted ? 'text-pink-600 fill-current' : 'text-gray-600'}`}
-                  fill={isWishlisted ? 'currentColor' : 'none'}
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                  animate={isWishlisted ? { scale: [1, 1.3, 1] } : {}}
-                  transition={{ duration: 0.3 }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </motion.svg>
-              </button>
+  const price = product.pricing?.basePrice || product.price || 0;
+  const salePrice = product.pricing?.salePrice;
+  const slug = product.slug || product._id;
 
-              {/* Badges - Top left */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-                {product.featured && (
-                  <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full">
-                    Featured
-                  </span>
-                )}
-                {product.discount && (
-                  <span className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
-                    -{product.discount}%
-                  </span>
-                )}
-                {product.availability === 'custom-only' && (
-                  <span className="px-3 py-1 bg-pink-600 text-white text-xs font-semibold rounded-full">
-                    Custom Only
-                  </span>
-                )}
-              </div>
+  // Calculate discount percentage
+  const discountPercentage = salePrice && price > salePrice
+    ? Math.round(((price - salePrice) / price) * 100)
+    : 0;
 
-              {/* Quick view button - Appears on hover */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
-                <motion.button
-                  onClick={handleQuickView}
-                  className="px-6 py-3 bg-white text-gray-900 font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-4 group-hover:translate-y-0"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Quick View
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Product info */}
-            <div className="p-4">
-              {/* Title */}
-              <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                {product.title || product.name}
-              </h3>
-
-              {/* Fabric type */}
-              <p className="text-sm text-gray-600 mb-2">
-                {product.fabric?.type || 'Premium Fabric'}
-              </p>
-
-              {/* Rating */}
-              <div className="mb-3">
-                {renderStars(product.averageRating || 0)}
-              </div>
-
-              {/* Price */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-gray-900">
-                    PKR {(product.pricing?.basePrice || product.price || 0).toLocaleString()}
-                  </span>
-                  {product.pricing?.discount?.percentage && (
-                    <span className="text-sm text-gray-500 line-through">
-                      PKR {((product.pricing.basePrice || product.price || 0) * (1 + product.pricing.discount.percentage / 100)).toLocaleString()}
-                    </span>
-                  )}
-                </div>
-
-                {/* Custom stitching indicator */}
-                {product.pricing?.customStitchingCharge && (
-                  <div className="text-xs text-pink-600 font-medium">
-                    + Stitching
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Link>
-      </motion.div>
-    );
-  }
-
-  /**
-   * List view layout
-   */
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3 }}
-      className="group"
+    <div
+      className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 h-full flex flex-col"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href={`/products/${product._id}`} className="block">
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-          <div className="flex flex-col sm:flex-row">
-            {/* Image */}
-            <div className="relative w-full sm:w-64 aspect-[4/3] sm:aspect-square overflow-hidden bg-gray-100 flex-shrink-0">
-              {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-              )}
+      {/* Product Image Container */}
+      <Link href={`/products/${slug}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100">
 
-              <Image
-                src={product.primaryImage || product.images?.[0] || '/images/placeholder.png'}
-                alt={`${product.title || product.name} - ${product.fabric?.type || 'Premium fabric'} ladies suit${product.occasion ? ` for ${product.occasion}` : ''}`}
-                fill
-                sizes="(max-width: 640px) 100vw, 256px"
-                className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoadingComplete={() => setImageLoaded(true)}
-                quality={75}
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
+        {/* Product Images */}
+        <Image
+          src={productImages[currentImageIndex]}
+          alt={product.title || product.name || 'Product Image'}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          priority={false}
+        />
+
+        {/* Overlay gradient for text contrast if needed */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Image Indicators */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {productImages.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1 rounded-full transition-all duration-300 ${index === currentImageIndex
+                  ? 'w-4 bg-white'
+                  : 'w-1 bg-white/60'
+                  }`}
               />
+            ))}
+          </div>
+        )}
 
-              {/* Wishlist button */}
-              <button
-                onClick={handleWishlistToggle}
-                className="absolute top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all z-10"
-                aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-              >
-                <svg
-                  className={`w-5 h-5 ${isWishlisted ? 'text-pink-600 fill-current' : 'text-gray-600'}`}
-                  fill={isWishlisted ? 'currentColor' : 'none'}
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
-              </button>
+        {/* Badge: Sale or Featured */}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+          {(product.isFeatured || product.featured) && (
+            <span className="px-3 py-1 bg-black/80 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-semibold rounded-sm">
+              Featured
+            </span>
+          )}
+          {discountPercentage > 0 && (
+            <span className="px-3 py-1 bg-red-600/90 text-white text-[10px] uppercase tracking-wider font-semibold rounded-sm">
+              -{discountPercentage}%
+            </span>
+          )}
+          {product.isNewArrival && (
+            <span className="px-3 py-1 bg-blue-600/90 text-white text-[10px] uppercase tracking-wider font-semibold rounded-sm">
+              New
+            </span>
+          )}
+        </div>
 
-              {/* Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-                {product.featured && (
-                  <span className="px-3 py-1 bg-purple-600 text-white text-xs font-semibold rounded-full">
-                    Featured
-                  </span>
-                )}
-                {product.discount && (
-                  <span className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
-                    -{product.discount}%
-                  </span>
-                )}
-              </div>
-            </div>
+        {/* Quick Actions Overlay (Appears on Hover) */}
+        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="flex gap-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setIsWishlisted(!isWishlisted);
+              }}
+              className={`w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-lg ${isWishlisted ? 'bg-pink-50 text-pink-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              aria-label="Add to wishlist"
+            >
+              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-pink-600' : ''}`} />
+            </button>
 
-            {/* Content */}
-            <div className="flex-1 p-6">
-              <div className="flex flex-col h-full justify-between">
-                <div>
-                  {/* Title */}
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
-                    {product.title}
-                  </h3>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/products/${slug}`);
+              }}
+              className="w-10 h-10 bg-white text-gray-700 rounded-full flex items-center justify-center hover:scale-110 hover:bg-gray-50 transition-all shadow-lg"
+              aria-label="Quick view"
+            >
+              <Eye className="w-5 h-5" />
+            </button>
 
-                  {/* Fabric and SKU */}
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                    <span className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      {product.fabric?.type || 'Premium Fabric'}
-                    </span>
-                    <span className="text-gray-400">•</span>
-                    <span>SKU: {product.sku}</span>
-                  </div>
-
-                  {/* Description preview */}
-                  <p className="text-gray-600 mb-4 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  {/* Rating */}
-                  <div className="mb-4">
-                    {renderStars(product.averageRating || 0)}
-                  </div>
-                </div>
-
-                {/* Bottom section */}
-                <div className="flex items-center justify-between">
-                  {/* Price */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-2xl font-bold text-gray-900">
-                        PKR {product.pricing?.basePrice?.toLocaleString()}
-                      </span>
-                      {product.pricing?.discount && (
-                        <span className="text-sm text-gray-500 line-through">
-                          PKR {(product.pricing.basePrice * (1 + product.pricing.discount / 100)).toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                    {product.pricing?.customStitchingCharge && (
-                      <p className="text-sm text-pink-600 font-medium">
-                        + PKR {product.pricing.customStitchingCharge.toLocaleString()} custom stitching
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quick view button */}
-                  <button
-                    onClick={handleQuickView}
-                    className="px-6 py-3 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg transition-colors"
-                  >
-                    Quick View
-                  </button>
-                </div>
-              </div>
-            </div>
+            <button
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                  setIsAdding(true);
+                  await addItem(product, 1);
+                  toast.success(`${product.title || product.name} added to cart!`);
+                } catch (error) {
+                  toast.error(error.message || 'Failed to add to cart');
+                } finally {
+                  setIsAdding(false);
+                }
+              }}
+              disabled={isAdding}
+              className={`w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-lg text-white ${isAdding ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'}`}
+              aria-label="Add to cart"
+            >
+              <ShoppingCart className={`w-5 h-5 ${isAdding ? 'animate-pulse' : ''}`} />
+            </button>
           </div>
         </div>
       </Link>
-    </motion.div>
+
+      {/* Product Info */}
+      <div className="p-4 flex flex-col flex-grow">
+        {/* Category */}
+        <div className="text-[11px] uppercase tracking-wider text-gray-500 mb-1">
+          {product.category?.name || 'Fashion'}
+        </div>
+
+        {/* Title */}
+        <Link
+          href={`/products/${slug}`}
+          className="mb-2"
+        >
+          <h3 className="text-base font-medium text-gray-900 group-hover:text-pink-600 transition-colors line-clamp-2 leading-snug">
+            {product.title || product.name}
+          </h3>
+        </Link>
+
+        <div className="mt-auto pt-2 border-t border-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg font-bold text-gray-900">
+                  Rs. {price.toLocaleString()}
+                </span>
+                {salePrice && salePrice < price && (
+                  <span className="text-sm text-gray-400 line-through decoration-gray-400">
+                    Rs. {salePrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Rating (Optional - only if non-zero) */}
+            {product.rating?.average > 0 && (
+              <div className="flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                <span className="text-xs font-medium text-gray-600">{product.rating.average}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

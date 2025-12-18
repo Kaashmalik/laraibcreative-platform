@@ -34,6 +34,8 @@ function ProductsContent() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        console.log('Fetching products with filters:', filters);
+        
         const params = {
           page: currentPage,
           limit: productsPerPage,
@@ -45,16 +47,33 @@ function ProductsContent() {
           maxPrice: filters.maxPrice || filters.priceRange[1],
         };
 
+        console.log('API params:', params);
         const response = await api.products.getAll(params);
-        if (response && response.products) {
+        console.log('API response:', response);
+        
+        // Handle different response formats
+        if (response?.products) {
           setProducts(response.products);
           setTotalProducts(response.total || response.products.length);
+        } else if (response?.data) {
+          // If data is an array, use it directly
+          if (Array.isArray(response.data)) {
+            setProducts(response.data);
+            setTotalProducts(response.data.length);
+          } else {
+            setProducts(response.data);
+            setTotalProducts(response.data.length);
+          }
         } else {
+          console.log('Unexpected response format:', response);
           setProducts([]);
           setTotalProducts(0);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+        }
         setProducts([]);
         setTotalProducts(0);
       } finally {
