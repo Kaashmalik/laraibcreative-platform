@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter } from 'lucide-react';
@@ -24,6 +24,7 @@ function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [filterCounts, setFilterCounts] = useState({
     fabric: {} as Record<string, number>,
@@ -33,13 +34,10 @@ function ProductsContent() {
   });
 
   // Use filters hook with URL sync and localStorage
+  // Note: onFilterChange is NOT used here - fetch is triggered via useEffect watching filter props
   const { filters, activeFiltersCount, updateFilter } = useFilters({
     syncWithURL: true,
-    persistToLocalStorage: true,
-    onFilterChange: useCallback((newFilters: ProductFiltersType) => {
-      // Trigger product fetch when filters change
-      fetchProducts(newFilters);
-    }, []),
+    persistToLocalStorage: false,
   });
 
   const [currentPage, setCurrentPage] = useState(
@@ -65,13 +63,13 @@ function ProductsContent() {
       // This allows backend to show all products regardless of price
       const defaultMinPrice = 0;
       const defaultMaxPrice = 50000;
-      const hasMinPriceFilter = activeFilters.minPrice !== undefined && 
-                                 activeFilters.minPrice !== null && 
-                                 activeFilters.minPrice > defaultMinPrice;
-      const hasMaxPriceFilter = activeFilters.maxPrice !== undefined && 
-                                 activeFilters.maxPrice !== null && 
-                                 activeFilters.maxPrice < defaultMaxPrice;
-      
+      const hasMinPriceFilter = activeFilters.minPrice !== undefined &&
+        activeFilters.minPrice !== null &&
+        activeFilters.minPrice > defaultMinPrice;
+      const hasMaxPriceFilter = activeFilters.maxPrice !== undefined &&
+        activeFilters.maxPrice !== null &&
+        activeFilters.maxPrice < defaultMaxPrice;
+
       if (hasMinPriceFilter) {
         params.minPrice = activeFilters.minPrice;
       }
@@ -80,7 +78,8 @@ function ProductsContent() {
       }
 
       // Add category if present
-      if (activeFilters.category) {
+      // Add category if present and not 'all'
+      if (activeFilters.category && activeFilters.category !== 'all') {
         params.category = activeFilters.category;
       }
 
@@ -124,36 +123,41 @@ function ProductsContent() {
       }
 
       // Debug logging
-      if (process.env.NODE_ENV === 'development') {
+      if (true) {
         console.log('Fetching products with params:', params);
       }
 
       const response = await api.products.getAll(params);
-      
+
       let products: any[] = [];
       if (response) {
         const data = response as any;
         // Handle both response structures: { products, total } or { data: products, pagination: { totalProducts } }
         products = data.products || data.data || [];
         const total = data.total || data.pagination?.totalProducts || products.length;
-        
+
         // Debug logging
-        if (process.env.NODE_ENV === 'development') {
+        if (true) {
           console.log('Products response:', { productsCount: products.length, total, data });
         }
-        
+
         setProducts(products);
         setTotalProducts(total);
+
+        // Use facets from API if available, otherwise fallback to local calculation
+        if (data.facets) {
+          setFilterCounts(data.facets);
+        } else {
+          calculateFilterCounts(products);
+        }
       } else {
         setProducts([]);
         setTotalProducts(0);
+        calculateFilterCounts([]);
       }
-
-      // TODO: Fetch filter counts from API
-      // For now, calculate from products
-      calculateFilterCounts(products);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products. Please try again.');
       setProducts([]);
       setTotalProducts(0);
     } finally {
@@ -202,9 +206,18 @@ function ProductsContent() {
   }, []);
 
   // Fetch products when filters or page change
+  // Use a ref to ensure initial fetch happens only once
+  const hasMountedRef = useRef(false);
   useEffect(() => {
+    // Always fetch on mount
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      fetchProducts();
+      return;
+    }
+    // On subsequent filter/page changes, fetch again
     fetchProducts();
-  }, [filters, currentPage, fetchProducts]);
+  }, [filters.minPrice, filters.maxPrice, filters.fabric, filters.color, filters.size, filters.occasion, filters.availability, filters.sortBy, filters.search, filters.category, filters.suitType, currentPage]);
 
   const totalPages = Math.ceil(totalProducts / productsPerPage);
 
@@ -262,7 +275,7 @@ function ProductsContent() {
         </div>
 
         {/* Active Filters Bar */}
-        <ActiveFilters 
+        <ActiveFilters
           filters={filters}
           onRemoveFilter={(type, value) => {
             if (type === 'minPrice' || type === 'maxPrice') {
@@ -306,7 +319,7 @@ function ProductsContent() {
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
-              <ProductFilters 
+              <ProductFilters
                 filters={filters}
                 filterCounts={filterCounts}
                 onFilterChange={(newFilters) => {
@@ -358,6 +371,30 @@ function ProductsContent() {
                 <Spinner className="w-12 h-12 text-primary-600" />
                 <p className="mt-4 text-gray-600 dark:text-gray-400">Loading products...</p>
               </div>
+            ) : error ? (
+              /* Error State */
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-12"
+              >
+                <div className="w-24 h-24 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">{error}</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Please check your connection and try again</p>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    fetchProducts();
+                  }}
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors min-h-[44px]"
+                >
+                  Retry
+                </button>
+              </motion.div>
             ) : products.length === 0 ? (
               /* Empty State */
               <motion.div

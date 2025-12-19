@@ -6,11 +6,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  ShoppingCart, 
-  User, 
-  Menu, 
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
   ChevronDown,
   Heart,
   Package,
@@ -54,12 +54,12 @@ export default function Header() {
   const { totalItems: cartCount } = useCart();
   const { theme, toggleTheme, mounted: themeMounted } = useTheme();
   const scrollDirection = useScrollDirection({ threshold: 10 });
-  
+
   // Refs
   const headerRef = useRef<HTMLElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // UI States
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function Header() {
   // Handle scroll for sticky header with hide/show behavior
   useEffect(() => {
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
@@ -110,7 +110,7 @@ export default function Header() {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
     }
-    
+
     return () => {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
@@ -150,61 +150,61 @@ export default function Header() {
 
   // Navigation structure with SEO metadata
   const navLinks: NavLinkType[] = [
-    { 
-      name: 'Home', 
+    {
+      name: 'Home',
       href: '/',
       ariaLabel: 'Go to homepage'
     },
-    { 
-      name: 'Products', 
+    {
+      name: 'Products',
       href: '/products',
       ariaLabel: 'Browse our products',
       megaMenu: true,
       categories: [
-        { 
-          name: 'Bridal Wear', 
+        {
+          name: 'Bridal Wear',
           href: '/products?category=bridal',
           description: 'Elegant bridal suits and lehengas'
         },
-        { 
-          name: 'Party Wear', 
+        {
+          name: 'Party Wear',
           href: '/products?category=party',
           description: 'Stunning party dresses and outfits'
         },
-        { 
-          name: 'Casual Wear', 
+        {
+          name: 'Casual Wear',
           href: '/products?category=casual',
           description: 'Comfortable everyday wear'
         },
-        { 
-          name: 'Formal Wear', 
+        {
+          name: 'Formal Wear',
           href: '/products?category=formal',
           description: 'Professional and formal attire'
         },
-        { 
-          name: 'Designer Replicas', 
+        {
+          name: 'Designer Replicas',
           href: '/products?category=designer',
           description: 'Premium designer inspired pieces'
         },
       ]
     },
-    { 
-      name: 'Custom Order', 
+    {
+      name: 'Custom Order',
       href: '/custom-order',
       ariaLabel: 'Create your custom order'
     },
-    { 
-      name: 'Blog', 
+    {
+      name: 'Blog',
       href: '/blog',
       ariaLabel: 'Read our fashion blog'
     },
-    { 
-      name: 'About', 
+    {
+      name: 'About',
       href: '/about',
       ariaLabel: 'Learn about LaraibCreative'
     },
-    { 
-      name: 'Contact', 
+    {
+      name: 'Contact',
       href: '/contact',
       ariaLabel: 'Get in touch with us'
     },
@@ -212,27 +212,27 @@ export default function Header() {
 
   // User menu items with proper routing
   const userMenuItems: UserMenuItem[] = [
-    { 
-      icon: User, 
-      label: 'My Profile', 
+    {
+      icon: User,
+      label: 'My Profile',
       href: '/account/profile',
       ariaLabel: 'View your profile'
     },
-    { 
-      icon: Package, 
-      label: 'My Orders', 
+    {
+      icon: Package,
+      label: 'My Orders',
       href: '/account/orders',
       ariaLabel: 'View your orders'
     },
-    { 
-      icon: Heart, 
-      label: 'Wishlist', 
+    {
+      icon: Heart,
+      label: 'Wishlist',
       href: '/account/wishlist',
       ariaLabel: 'View your wishlist'
     },
-    { 
-      icon: Settings, 
-      label: 'Settings', 
+    {
+      icon: Settings,
+      label: 'Settings',
       href: '/account/profile',
       ariaLabel: 'Account settings'
     },
@@ -283,7 +283,7 @@ export default function Header() {
   // Don't render until mounted to avoid hydration issues
   if (!mounted || !themeMounted) {
     return (
-      <header 
+      <header
         className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 py-4 transition-colors"
         ref={headerRef}
       >
@@ -303,8 +303,8 @@ export default function Header() {
   return (
     <>
       {/* Skip to main content for accessibility */}
-      <a 
-        href="#main-content" 
+      <a
+        href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg"
       >
         Skip to main content
@@ -322,11 +322,10 @@ export default function Header() {
           duration: 0.3,
           ease: 'easeInOut'
         }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-          isScrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled
             ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800'
             : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'
-        }`}
+          }`}
         role="banner"
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -348,34 +347,34 @@ export default function Header() {
             </button>
 
             {/* Logo with SEO optimization */}
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 rounded-lg min-w-0"
               aria-label="LaraibCreative - Home"
             >
               <Image
-                src="/globe.svg"
+                src="/logo.svg"
                 alt="LaraibCreative Logo"
-                width={32}
-                height={32}
+                width={40}
+                height={40}
                 className="transition-all duration-300 flex-shrink-0"
-                style={{ 
-                  width: '32px',
-                  height: '32px'
+                style={{
+                  width: '40px',
+                  height: '40px'
                 }}
                 priority
-                quality={75}
+                quality={100}
                 unoptimized
               />
-              <span className="font-playfair text-lg lg:text-xl font-semibold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent truncate">
+              <span className="font-playfair text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent truncate tracking-tight">
                 <span className="hidden sm:inline">LaraibCreative</span>
                 <span className="sm:hidden">LC</span>
               </span>
             </Link>
 
             {/* Center: Desktop Navigation */}
-            <nav 
-              className="hidden lg:flex items-center gap-8 flex-1 justify-center" 
+            <nav
+              className="hidden lg:flex items-center gap-8 flex-1 justify-center"
               role="navigation"
               aria-label="Main navigation"
             >
@@ -394,8 +393,8 @@ export default function Header() {
                     <span className="flex items-center gap-1">
                       {link.name}
                       {link.megaMenu && (
-                        <ChevronDown 
-                          className="w-3.5 h-3.5" 
+                        <ChevronDown
+                          className="w-3.5 h-3.5"
                           aria-hidden="true"
                         />
                       )}

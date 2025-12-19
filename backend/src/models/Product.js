@@ -217,7 +217,7 @@ const ProductSchema = new mongoose.Schema({
     maxlength: [200, 'Title cannot exceed 200 characters'],
     index: 'text'
   },
-  
+
   slug: {
     type: String,
     unique: true,
@@ -225,7 +225,7 @@ const ProductSchema = new mongoose.Schema({
     index: true,
     trim: true
   },
-  
+
   description: {
     type: String,
     required: [true, 'Product description is required'],
@@ -233,7 +233,7 @@ const ProductSchema = new mongoose.Schema({
     minlength: [20, 'Description must be at least 20 characters'],
     maxlength: [3000, 'Description cannot exceed 3000 characters']
   },
-  
+
   shortDescription: {
     type: String,
     trim: true,
@@ -258,7 +258,7 @@ const ProductSchema = new mongoose.Schema({
     required: [true, 'Category is required'],
     index: true,
     validate: {
-      validator: async function(value) {
+      validator: async function (value) {
         try {
           const Category = mongoose.model('Category');
           const category = await Category.findById(value);
@@ -270,19 +270,19 @@ const ProductSchema = new mongoose.Schema({
       message: 'Selected category does not exist or is inactive'
     }
   },
-  
+
   // FIXED: Category snapshot for historical data
   categorySnapshot: {
     name: String,
     slug: String
   },
-  
+
   subcategory: {
     type: String,
     trim: true,
     index: true
   },
-  
+
   occasion: {
     type: String,
     enum: [
@@ -292,7 +292,7 @@ const ProductSchema = new mongoose.Schema({
     ],
     index: true
   },
-  
+
   tags: [{
     type: String,
     trim: true,
@@ -324,18 +324,18 @@ const ProductSchema = new mongoose.Schema({
       }
     }],
     validate: {
-      validator: function(images) {
+      validator: function (images) {
         return images.length >= 1 && images.length <= 15;
       },
       message: 'Product must have between 1 and 15 images'
     }
   },
-  
+
   primaryImage: {
     type: String,
     required: [true, 'Primary image is required']
   },
-  
+
   thumbnailImage: String,
 
   availableColors: [{
@@ -493,7 +493,7 @@ const ProductSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Feature description too long']
   }],
-  
+
   whatsIncluded: [{
     type: String,
     trim: true
@@ -504,19 +504,19 @@ const ProductSchema = new mongoose.Schema({
     default: true,
     index: true
   },
-  
+
   isFeatured: {
     type: Boolean,
     default: false,
     index: true
   },
-  
+
   isNewArrival: {
     type: Boolean,
     default: false,
     index: true
   },
-  
+
   isBestSeller: {
     type: Boolean,
     default: false
@@ -527,25 +527,25 @@ const ProductSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  
+
   clicks: {
     type: Number,
     default: 0,
     min: 0
   },
-  
+
   addedToCart: {
     type: Number,
     default: 0,
     min: 0
   },
-  
+
   purchased: {
     type: Number,
     default: 0,
     min: 0
   },
-  
+
   wishlistedBy: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -558,13 +558,13 @@ const ProductSchema = new mongoose.Schema({
     max: [5, 'Rating cannot exceed 5'],
     set: val => Math.round(val * 10) / 10
   },
-  
+
   totalReviews: {
     type: Number,
     default: 0,
     min: 0
   },
-  
+
   ratingDistribution: {
     five: { type: Number, default: 0 },
     four: { type: Number, default: 0 },
@@ -584,12 +584,12 @@ const ProductSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  
+
   lastModifiedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  
+
   adminNotes: {
     type: String,
     trim: true,
@@ -601,9 +601,9 @@ const ProductSchema = new mongoose.Schema({
     default: false,
     index: true
   },
-  
+
   deletedAt: Date,
-  
+
   deletedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -647,12 +647,12 @@ const ProductSchema = new mongoose.Schema({
   // Publishing workflow
   publishedAt: Date,
   scheduledPublishAt: Date,
-  
+
   lastEditedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  
+
   lastEditedAt: Date
 
 }, {
@@ -688,13 +688,13 @@ ProductSchema.index({
 });
 
 // ============ VIRTUALS ============
-ProductSchema.virtual('finalPrice').get(function() {
+ProductSchema.virtual('finalPrice').get(function () {
   const { basePrice, discount } = this.pricing;
-  
+
   if (!discount || !discount.isActive) {
     return basePrice;
   }
-  
+
   const now = new Date();
   if (discount.startDate && now < discount.startDate) {
     return basePrice;
@@ -702,56 +702,56 @@ ProductSchema.virtual('finalPrice').get(function() {
   if (discount.endDate && now > discount.endDate) {
     return basePrice;
   }
-  
+
   if (discount.percentage > 0) {
     return basePrice - (basePrice * discount.percentage / 100);
   } else if (discount.amount > 0) {
     return Math.max(0, basePrice - discount.amount);
   }
-  
+
   return basePrice;
 });
 
-ProductSchema.virtual('isOnSale').get(function() {
+ProductSchema.virtual('isOnSale').get(function () {
   if (!this.pricing.discount || !this.pricing.discount.isActive) {
     return false;
   }
-  
+
   const now = new Date();
   const { startDate, endDate } = this.pricing.discount;
-  
+
   if (startDate && now < startDate) return false;
   if (endDate && now > endDate) return false;
-  
+
   return (this.pricing.discount.percentage > 0 || this.pricing.discount.amount > 0);
 });
 
-ProductSchema.virtual('discountPercentage').get(function() {
+ProductSchema.virtual('discountPercentage').get(function () {
   if (!this.isOnSale) return 0;
-  
+
   const { basePrice, discount } = this.pricing;
-  
+
   if (discount.percentage > 0) {
     return discount.percentage;
   } else if (discount.amount > 0) {
     return Math.round((discount.amount / basePrice) * 100);
   }
-  
+
   return 0;
 });
 
-ProductSchema.virtual('url').get(function() {
+ProductSchema.virtual('url').get(function () {
   return `/products/${this.slug}`;
 });
 
-ProductSchema.virtual('isLowStock').get(function() {
-  if (!this.inventory.trackInventory) return false;
+ProductSchema.virtual('isLowStock').get(function () {
+  if (!this.inventory || !this.inventory.trackInventory) return false;
   return this.inventory.stockQuantity <= this.inventory.lowStockThreshold;
 });
 
 // ============ PRE-SAVE HOOKS ============
 // FIXED: Improved slug generation with better collision handling
-ProductSchema.pre('save', async function(next) {
+ProductSchema.pre('save', async function (next) {
   if (this.isModified('title') || !this.slug) {
     let baseSlug = slugify(this.title, {
       lower: true,
@@ -770,21 +770,21 @@ ProductSchema.pre('save', async function(next) {
     while (attempts < maxAttempts) {
       try {
         const existing = await mongoose.model('Product').findOne(
-          { 
-            slug, 
+          {
+            slug,
             _id: { $ne: this._id },
-            isDeleted: false 
+            isDeleted: false
           }
         );
-        
+
         if (!existing) {
           this.slug = slug;
           break;
         }
-        
+
         attempts++;
         slug = `${baseSlug}-${attempts}`;
-        
+
       } catch (error) {
         if (error.code === 11000 && attempts < maxAttempts) {
           attempts++;
@@ -794,7 +794,7 @@ ProductSchema.pre('save', async function(next) {
         throw error;
       }
     }
-    
+
     if (attempts >= maxAttempts) {
       throw new Error('Unable to generate unique slug after maximum attempts');
     }
@@ -803,12 +803,12 @@ ProductSchema.pre('save', async function(next) {
 });
 
 // FIXED: Store category snapshot
-ProductSchema.pre('save', async function(next) {
+ProductSchema.pre('save', async function (next) {
   if ((this.isModified('category') || this.isNew) && this.category) {
     try {
       const Category = mongoose.model('Category');
       const category = await Category.findById(this.category).select('name slug');
-      
+
       if (category) {
         this.categorySnapshot = {
           name: category.name,
@@ -822,38 +822,38 @@ ProductSchema.pre('save', async function(next) {
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   if (!this.primaryImage && this.images && this.images.length > 0) {
     this.primaryImage = this.images[0].url;
   }
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   if (!this.thumbnailImage && this.primaryImage) {
     this.thumbnailImage = this.primaryImage;
   }
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   if (!this.seo.metaTitle) {
     this.seo.metaTitle = this.title.substring(0, 60);
   }
-  
+
   if (!this.seo.metaDescription) {
-    this.seo.metaDescription = this.shortDescription || 
+    this.seo.metaDescription = this.shortDescription ||
       this.description.substring(0, 160);
   }
-  
+
   if (!this.seo.ogImage) {
     this.seo.ogImage = this.primaryImage;
   }
-  
+
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   if (this.isModified('description')) {
     this.description = this.description
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -863,13 +863,13 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   if (this.isNew) {
     this.isNewArrival = true;
   } else {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     if (this.createdAt < thirtyDaysAgo) {
       this.isNewArrival = false;
     }
@@ -877,9 +877,9 @@ ProductSchema.pre('save', function(next) {
   next();
 });
 
-ProductSchema.pre('save', function(next) {
+ProductSchema.pre('save', function (next) {
   const { discount } = this.pricing;
-  
+
   if (discount && discount.isActive) {
     if (discount.startDate && discount.endDate) {
       if (discount.startDate >= discount.endDate) {
@@ -887,66 +887,66 @@ ProductSchema.pre('save', function(next) {
       }
     }
   }
-  
+
   next();
 });
 
 // ============ INSTANCE METHODS ============
-ProductSchema.methods.incrementViews = async function() {
+ProductSchema.methods.incrementViews = async function () {
   this.views += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.incrementClicks = async function() {
+ProductSchema.methods.incrementClicks = async function () {
   this.clicks += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.incrementCartAdditions = async function() {
+ProductSchema.methods.incrementCartAdditions = async function () {
   this.addedToCart += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.incrementPurchases = async function() {
+ProductSchema.methods.incrementPurchases = async function () {
   this.purchased += 1;
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.updateRating = async function(newRating) {
+ProductSchema.methods.updateRating = async function (newRating) {
   this.ratingDistribution[
     newRating === 5 ? 'five' :
-    newRating === 4 ? 'four' :
-    newRating === 3 ? 'three' :
-    newRating === 2 ? 'two' : 'one'
+      newRating === 4 ? 'four' :
+        newRating === 3 ? 'three' :
+          newRating === 2 ? 'two' : 'one'
   ] += 1;
-  
-  const totalRatings = 
+
+  const totalRatings =
     (this.ratingDistribution.five * 5) +
     (this.ratingDistribution.four * 4) +
     (this.ratingDistribution.three * 3) +
     (this.ratingDistribution.two * 2) +
     (this.ratingDistribution.one * 1);
-  
+
   this.totalReviews += 1;
   this.averageRating = totalRatings / this.totalReviews;
-  
+
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.isInStock = function() {
-  if (this.availability.status === 'out-of-stock' || 
-      this.availability.status === 'discontinued') {
+ProductSchema.methods.isInStock = function () {
+  if (this.availability.status === 'out-of-stock' ||
+    this.availability.status === 'discontinued') {
     return false;
   }
-  
+
   if (this.inventory.trackInventory) {
     return this.inventory.stockQuantity > 0;
   }
-  
+
   return true;
 };
 
-ProductSchema.methods.softDelete = async function(userId) {
+ProductSchema.methods.softDelete = async function (userId) {
   this.isDeleted = true;
   this.deletedAt = new Date();
   this.deletedBy = userId;
@@ -954,7 +954,7 @@ ProductSchema.methods.softDelete = async function(userId) {
   return this.save({ validateBeforeSave: false });
 };
 
-ProductSchema.methods.restore = async function() {
+ProductSchema.methods.restore = async function () {
   this.isDeleted = false;
   this.deletedAt = undefined;
   this.deletedBy = undefined;
@@ -963,7 +963,7 @@ ProductSchema.methods.restore = async function() {
 };
 
 // ============ STATIC METHODS ============
-ProductSchema.statics.findActive = function(conditions = {}) {
+ProductSchema.statics.findActive = function (conditions = {}) {
   return this.find({
     ...conditions,
     isActive: true,
@@ -971,36 +971,36 @@ ProductSchema.statics.findActive = function(conditions = {}) {
   });
 };
 
-ProductSchema.statics.findFeatured = function(limit = 8) {
+ProductSchema.statics.findFeatured = function (limit = 8) {
   return this.find({
     isFeatured: true,
     isActive: true,
     isDeleted: false
   })
-  .limit(limit)
-  .sort({ createdAt: -1 });
+    .limit(limit)
+    .sort({ createdAt: -1 });
 };
 
-ProductSchema.statics.findNewArrivals = function(limit = 12) {
+ProductSchema.statics.findNewArrivals = function (limit = 12) {
   return this.find({
     isNewArrival: true,
     isActive: true,
     isDeleted: false
   })
-  .limit(limit)
-  .sort({ createdAt: -1 });
+    .limit(limit)
+    .sort({ createdAt: -1 });
 };
 
-ProductSchema.statics.findBestSellers = function(limit = 10) {
+ProductSchema.statics.findBestSellers = function (limit = 10) {
   return this.find({
     isActive: true,
     isDeleted: false
   })
-  .sort({ purchased: -1 })
-  .limit(limit);
+    .sort({ purchased: -1 })
+    .limit(limit);
 };
 
-ProductSchema.statics.findByPriceRange = function(min, max) {
+ProductSchema.statics.findByPriceRange = function (min, max) {
   return this.find({
     'pricing.basePrice': { $gte: min, $lte: max },
     isActive: true,
@@ -1008,7 +1008,7 @@ ProductSchema.statics.findByPriceRange = function(min, max) {
   });
 };
 
-ProductSchema.statics.search = function(query, options = {}) {
+ProductSchema.statics.search = function (query, options = {}) {
   const {
     category,
     occasion,
@@ -1019,13 +1019,13 @@ ProductSchema.statics.search = function(query, options = {}) {
     page = 1,
     limit = 20
   } = options;
-  
+
   const filter = {
     $text: { $search: query },
     isActive: true,
     isDeleted: false
   };
-  
+
   if (category) filter.category = category;
   if (occasion) filter.occasion = occasion;
   if (fabricType) filter['fabric.type'] = fabricType;
@@ -1034,7 +1034,7 @@ ProductSchema.statics.search = function(query, options = {}) {
     if (minPrice) filter['pricing.basePrice'].$gte = minPrice;
     if (maxPrice) filter['pricing.basePrice'].$lte = maxPrice;
   }
-  
+
   return this.find(filter)
     .sort(sort)
     .skip((page - 1) * limit)
@@ -1042,28 +1042,28 @@ ProductSchema.statics.search = function(query, options = {}) {
     .select('-adminNotes');
 };
 
-ProductSchema.statics.generateDesignCode = async function() {
+ProductSchema.statics.generateDesignCode = async function () {
   const year = new Date().getFullYear();
   const prefix = `LC-${year}-`;
-  
+
   const lastProduct = await this.findOne({
     designCode: new RegExp(`^${prefix}`)
   })
-  .sort({ designCode: -1 })
-  .select('designCode');
-  
+    .sort({ designCode: -1 })
+    .select('designCode');
+
   if (!lastProduct) {
     return `${prefix}001`;
   }
-  
+
   const lastNumber = parseInt(lastProduct.designCode.split('-')[2]);
   const newNumber = (lastNumber + 1).toString().padStart(3, '0');
-  
+
   return `${prefix}${newNumber}`;
 };
 
 // ============ POST HOOKS ============
-ProductSchema.post('save', async function(doc) {
+ProductSchema.post('save', async function (doc) {
   if (doc.category) {
     try {
       const Category = mongoose.model('Category');
@@ -1074,7 +1074,7 @@ ProductSchema.post('save', async function(doc) {
   }
 });
 
-ProductSchema.post('remove', async function(doc) {
+ProductSchema.post('remove', async function (doc) {
   if (doc.category) {
     try {
       const Category = mongoose.model('Category');
@@ -1086,23 +1086,23 @@ ProductSchema.post('remove', async function(doc) {
 });
 
 // ============ QUERY HELPERS ============
-ProductSchema.query.active = function() {
+ProductSchema.query.active = function () {
   return this.where({ isActive: true, isDeleted: false });
 };
 
-ProductSchema.query.featured = function() {
+ProductSchema.query.featured = function () {
   return this.where({ isFeatured: true });
 };
 
-ProductSchema.query.inStock = function() {
+ProductSchema.query.inStock = function () {
   return this.where({ 'availability.status': { $in: ['in-stock', 'made-to-order'] } });
 };
 
-ProductSchema.query.byCategory = function(categoryId) {
+ProductSchema.query.byCategory = function (categoryId) {
   return this.where({ category: categoryId });
 };
 
-ProductSchema.query.byOccasion = function(occasion) {
+ProductSchema.query.byOccasion = function (occasion) {
   return this.where({ occasion });
 };
 

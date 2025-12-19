@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Search, Filter, Calendar, Clock, User, ChevronRight, Tag } from 'lucide-react';
 import BlogCard from '@/components/customer/BlogCard';
+
+import { blogPosts } from '@/lib/blogData';
 
 export default function BlogClient() {
   const [posts, setPosts] = useState([]);
@@ -35,112 +38,13 @@ export default function BlogClient() {
     'DIY'
   ];
 
-  // Sample featured post
-  const featuredPost = {
-    id: 1,
-    title: 'Complete Guide to Taking Your Measurements at Home',
-    excerpt: 'Learn how to take accurate body measurements for perfect custom stitching. Step-by-step guide with images and video tutorial.',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea3c9866?w=800',
-    author: 'Laraib',
-    date: '2025-10-10',
-    readTime: 8,
-    category: 'Stitching Tips',
-    tags: ['Measurements', 'DIY', 'Custom Stitching'],
-    views: 2547
-  };
-
-  // Sample posts
-  const samplePosts = [
-    {
-      id: 2,
-      title: 'Top 5 Fabrics for Summer Suits in Pakistan',
-      excerpt: 'Discover the best breathable fabrics perfect for Pakistani summers. Complete guide to Lawn, Cotton, and more.',
-      image: 'https://images.unsplash.com/photo-1581783342260-e4c7c4149a5a?w=600',
-      author: 'Laraib',
-      date: '2025-10-08',
-      readTime: 6,
-      category: 'Fabric Guide',
-      tags: ['Lawn', 'Summer', 'Fabric Guide'],
-      views: 1832
-    },
-    {
-      id: 3,
-      title: 'How to Choose the Perfect Bridal Outfit',
-      excerpt: 'Expert tips on selecting your dream bridal suit. From fabric selection to color coordination and embroidery choices.',
-      image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600',
-      author: 'Laraib',
-      date: '2025-10-05',
-      readTime: 10,
-      category: 'Bridal Fashion',
-      tags: ['Bridal', 'Wedding', 'Custom Stitching'],
-      views: 3241
-    },
-    {
-      id: 4,
-      title: 'Difference Between Lawn, Chiffon, and Silk',
-      excerpt: 'Understanding fabric types and their characteristics. Make informed decisions for your custom stitching orders.',
-      image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600',
-      author: 'Laraib',
-      date: '2025-10-02',
-      readTime: 7,
-      category: 'Fabric Guide',
-      tags: ['Lawn', 'Silk', 'Chiffon', 'Fabric Guide'],
-      views: 2156
-    },
-    {
-      id: 5,
-      title: '10 Trending Suit Designs for 2025',
-      excerpt: 'Stay ahead of fashion with the latest trending designs. From minimalist to heavily embroidered masterpieces.',
-      image: 'https://images.unsplash.com/photo-1610797067348-e4f3c8be5470?w=600',
-      author: 'Laraib',
-      date: '2025-09-28',
-      readTime: 9,
-      category: 'Seasonal Trends',
-      tags: ['Fashion Trends', '2025 Trends', 'Design Ideas'],
-      views: 4523
-    },
-    {
-      id: 6,
-      title: 'Behind the Scenes: Our Stitching Process',
-      excerpt: 'Take a peek into how we transform your vision into reality. From measurement to final quality check.',
-      image: 'https://images.unsplash.com/photo-1581783342260-e4c7c4149a5a?w=600',
-      author: 'Laraib',
-      date: '2025-09-25',
-      readTime: 5,
-      category: 'Behind The Scenes',
-      tags: ['Behind The Scenes', 'Process', 'Quality'],
-      views: 1687
-    },
-    {
-      id: 7,
-      title: 'How to Care for Your Designer Suits',
-      excerpt: 'Essential tips to maintain the beauty and longevity of your custom stitched outfits. Washing, storing, and more.',
-      image: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600',
-      author: 'Laraib',
-      date: '2025-09-22',
-      readTime: 6,
-      category: 'Styling Ideas',
-      tags: ['Care Guide', 'Maintenance', 'Tips'],
-      views: 1234
-    },
-    {
-      id: 8,
-      title: 'Custom Stitching vs Ready-Made: What\'s Better?',
-      excerpt: 'Comprehensive comparison to help you make the right choice. Pros, cons, and when to choose each option.',
-      image: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=600',
-      author: 'Laraib',
-      date: '2025-09-18',
-      readTime: 8,
-      category: 'Stitching Tips',
-      tags: ['Custom Stitching', 'Comparison', 'Buying Guide'],
-      views: 2987
-    }
-  ];
+  // Use the first post from data as featured
+  const featuredPost = blogPosts[0];
 
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
-      setPosts(samplePosts);
+      setPosts(blogPosts);
       setLoading(false);
     }, 1000);
   }, []);
@@ -149,11 +53,11 @@ export default function BlogClient() {
   const filteredPosts = posts
     .filter(post => {
       const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || 
-                             post.category.toLowerCase().replace(' ', '-') === selectedCategory;
-      const matchesTag = selectedTag === 'all' || 
-                        post.tags.some(tag => tag.toLowerCase().replace(' ', '-') === selectedTag);
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' ||
+        post.category.toLowerCase().replace(' ', '-') === selectedCategory;
+      const matchesTag = selectedTag === 'all' ||
+        post.tags.some(tag => tag.toLowerCase().replace(' ', '-') === selectedTag);
       return matchesSearch && matchesCategory && matchesTag;
     })
     .sort((a, b) => {
@@ -165,15 +69,24 @@ export default function BlogClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Fashion Hub & Stitching Insights
+      {/* Premium Hero Section */}
+      <div className="relative py-24 lg:py-32 overflow-hidden bg-gray-50 dark:bg-gray-900">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="inline-block mb-4 px-4 py-1.5 rounded-full border border-primary-200 bg-primary-50 text-primary-700 text-sm font-medium tracking-wide">
+              ✨ Fashion Hub & Stitching Insights
+            </span>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">
+              <span className="block text-gray-900 dark:text-white mb-2">Discover the</span>
+              <span className="gradient-text-animate">Art of Elegance</span>
             </h1>
-            <p className="text-xl text-pink-100 max-w-2xl mx-auto">
-              Expert tips, style guides, and everything you need to know about custom stitching
+            <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+              Expert tips, style guides, and everything you need to know about custom stitching and Pakistani fashion trends.
             </p>
           </div>
         </div>
@@ -188,49 +101,58 @@ export default function BlogClient() {
               Featured Post
             </span>
           </div>
-          
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+
+          <div className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl border border-gray-100 dark:border-gray-700">
             <div className="grid md:grid-cols-2 gap-0">
-              <div className="relative h-64 md:h-full">
-                <img 
-                  src={featuredPost.image} 
+              <div className="relative h-64 md:h-full overflow-hidden min-h-[300px]">
+                <img
+                  src={featuredPost.image}
                   alt={featuredPost.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  onError={(e) => {
+                    e.target.src = "https://images.unsplash.com/photo-1558769132-cb1aea3c9866?w=800&q=80";
+                    e.target.onerror = null;
+                  }}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-pink-600 text-white px-4 py-1.5 rounded-full text-sm font-medium">
+                  <span className="glass px-4 py-1.5 rounded-full text-white text-sm font-medium backdrop-blur-md border border-white/20">
                     {featuredPost.category}
                   </span>
                 </div>
               </div>
-              
-              <div className="p-8 flex flex-col justify-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4 hover:text-pink-600 transition-colors">
+
+              <div className="p-8 lg:p-12 flex flex-col justify-center relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 dark:bg-primary-900/20 rounded-bl-full -z-10 transition-transform group-hover:scale-110" />
+
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {featuredPost.title}
                 </h2>
-                <p className="text-gray-600 mb-6 line-clamp-3">
+                <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg leading-relaxed line-clamp-3">
                   {featuredPost.excerpt}
                 </p>
-                
-                <div className="flex items-center gap-6 text-sm text-gray-500 mb-6">
+
+                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-gray-400 mb-8">
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    <span>{featuredPost.author}</span>
+                    <User className="w-4 h-4 text-primary-500" />
+                    <span className="font-medium">{featuredPost.author}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
+                    <Calendar className="w-4 h-4 text-primary-500" />
                     <span>{new Date(featuredPost.date).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-4 h-4 text-primary-500" />
                     <span>{featuredPost.readTime} min read</span>
                   </div>
                 </div>
-                
-                <button className="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 transition-colors flex items-center gap-2 w-fit group">
+
+                <Link href={`/blog/${featuredPost.id}`} className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-semibold group/btn">
                   Read Full Article
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
+                  <span className="bg-primary-50 dark:bg-primary-900/30 p-2 rounded-full transition-all group-hover/btn:translate-x-1 group-hover/btn:bg-primary-100 dark:group-hover/btn:bg-primary-900/50">
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -279,11 +201,10 @@ export default function BlogClient() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category === 'All Posts' ? 'all' : slug)}
-                  className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                    isActive
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-pink-50 border border-gray-200'
-                  }`}
+                  className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${isActive
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-pink-50 border border-gray-200'
+                    }`}
                 >
                   {category}
                 </button>
@@ -297,11 +218,10 @@ export default function BlogClient() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedTag('all')}
-                className={`text-sm px-3 py-1 rounded-full transition-all ${
-                  selectedTag === 'all'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                className={`text-sm px-3 py-1 rounded-full transition-all ${selectedTag === 'all'
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+                  }`}
               >
                 All Tags
               </button>
@@ -311,11 +231,10 @@ export default function BlogClient() {
                   <button
                     key={tag}
                     onClick={() => setSelectedTag(slug)}
-                    className={`text-sm px-3 py-1 rounded-full transition-all ${
-                      selectedTag === slug
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`text-sm px-3 py-1 rounded-full transition-all ${selectedTag === slug
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     #{tag}
                   </button>

@@ -112,7 +112,9 @@ export const metadata: Metadata = {
   applicationName: 'LaraibCreative',
   referrer: 'origin-when-cross-origin',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',

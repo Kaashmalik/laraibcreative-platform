@@ -131,12 +131,12 @@ app.use(compression());
 // LOGGING MIDDLEWARE
 // =================================================================
 // Import comprehensive logging middleware
-const { 
-  httpLogger, 
-  apiMetricsLogger, 
-  rateLimitLogger, 
+const {
+  httpLogger,
+  apiMetricsLogger,
+  rateLimitLogger,
   authLogger,
-  errorLogger 
+  errorLogger
 } = require('./src/middleware/logger.middleware');
 
 // Import monitoring middleware
@@ -156,13 +156,13 @@ if (process.env.NODE_ENV === 'production') {
   app.use(rateLimitLogger);
   app.use(authLogger);
   app.use(adminMonitoringMiddleware);
-  
+
   // Also keep morgan for access logs
   const logsDir = path.join(__dirname, 'logs');
   if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir, { recursive: true });
   }
-  
+
   const accessLogStream = fs.createWriteStream(
     path.join(logsDir, 'access.log'),
     { flags: 'a' }
@@ -183,10 +183,10 @@ if (process.env.NODE_ENV === 'production') {
 // Production-optimized rate limits
 const isProduction = process.env.NODE_ENV === 'production';
 
-// General API rate limiter - more lenient in production for legitimate traffic
+// General API rate limiter - more lenient in development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isProduction ? 200 : 100, // Higher limit in production
+  max: isProduction ? 200 : 1000, // Much higher limit in development (1000 vs 100)
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.',
@@ -295,7 +295,7 @@ app.get('/health', async (req, res) => {
 
   // Check if database is connected
   const dbConnected = mongoose.connection.readyState === 1;
-  
+
   // If database is not connected, return 503 (Service Unavailable)
   if (!dbConnected) {
     healthStatus.status = 'DEGRADED';
@@ -348,7 +348,7 @@ app.get('/health/detailed', async (req, res) => {
 
   // Check if database is connected
   const dbConnected = mongoose.connection.readyState === 1;
-  
+
   // If database is not connected, return 503 (Service Unavailable)
   if (!dbConnected) {
     healthStatus.status = 'DEGRADED';
@@ -508,7 +508,7 @@ const connectDB = async (retries = 5) => {
   const uri = process.env.MONGODB_URI;
   let clusterInfo = 'MongoDB Atlas';
   let dbName = 'laraibcreative';
-  
+
   try {
     const uriMatch = uri.match(/(@.*\.mongodb\.net)/);
     if (uriMatch) {
@@ -521,11 +521,11 @@ const connectDB = async (retries = 5) => {
   } catch (e) {
     // Ignore parsing errors
   }
-  
+
   console.log('\n🔌 Connecting to MongoDB...');
   console.log(`📍 Cluster: ${clusterInfo}`);
   console.log(`💾 Database: ${dbName}`);
-  
+
   for (let i = 0; i < retries; i++) {
     try {
       const connectOptions = {
@@ -544,7 +544,7 @@ const connectDB = async (retries = 5) => {
       }
 
       await mongoose.connect(process.env.MONGODB_URI, connectOptions);
-      
+
       console.log('✅ MongoDB connected successfully');
       console.log(`📊 Connection state: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'}`);
       console.log(`🗄️  Database name: ${mongoose.connection.name}`);
@@ -552,7 +552,7 @@ const connectDB = async (retries = 5) => {
     } catch (error) {
       console.error(`❌ MongoDB connection attempt ${i + 1}/${retries} failed:`);
       console.error(`   Error: ${error.message}`);
-      
+
       if (error.message.includes('ETIMEOUT') || error.message.includes('ENOTFOUND') || error.message.includes('queryTxt')) {
         console.log('   💡 Possible causes:');
         console.log('      1. MongoDB Atlas cluster is paused (auto-resumes in 30-60s)');
@@ -561,14 +561,14 @@ const connectDB = async (retries = 5) => {
         console.log('      4. DNS resolution issue (check internet connection)');
         console.log('      5. Invalid connection string or password encoding');
       }
-      
+
       if (error.message.includes('Authentication failed')) {
         console.log('   💡 Authentication issue:');
         console.log('      1. Check username and password in .env file');
         console.log('      2. Verify password special characters are URL encoded');
         console.log('      3. Confirm database user exists in MongoDB Atlas');
       }
-      
+
       if (i < retries - 1) {
         const waitTime = Math.min(1000 * Math.pow(2, i), 10000);
         console.log(`   ⏳ Retrying in ${waitTime / 1000} seconds...`);
@@ -611,7 +611,7 @@ let server; // Declare server variable at module level
 
 const gracefulShutdown = async (signal) => {
   console.log(`\n⚠️  ${signal} signal received: starting graceful shutdown`);
-  
+
   // Check if server exists before trying to close
   if (!server) {
     console.log('⚠️  Server not initialized, closing database only');
@@ -626,11 +626,11 @@ const gracefulShutdown = async (signal) => {
     process.exit(0);
     return;
   }
-  
+
   // Stop accepting new requests
   server.close(async () => {
     console.log('✅ HTTP server closed');
-    
+
     // Close database connection
     try {
       if (mongoose.connection.readyState !== 0) {
@@ -640,11 +640,11 @@ const gracefulShutdown = async (signal) => {
     } catch (err) {
       console.error('❌ Error closing MongoDB:', err.message);
     }
-    
+
     console.log('👋 Process terminated gracefully');
     process.exit(0);
   });
-  
+
   // Force close after 10 seconds
   setTimeout(() => {
     console.error('⚠️  Forced shutdown after timeout');
@@ -682,14 +682,14 @@ const startServer = async () => {
   }
 
   // Start HTTP server
-  server = app.listen(PORT, () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(60));
     console.log(`✅ Server is running on port ${PORT}`);
     console.log(`🌐 Local: http://localhost:${PORT}`);
     console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
     console.log(`📡 API Base: http://localhost:${PORT}/api`);
     console.log('='.repeat(60) + '\n');
-    
+
     if (mongoose.connection.readyState !== 1) {
       console.log('⚠️  WARNING: Database not connected. Some features may not work.');
       console.log('   The server will keep retrying to connect in the background.\n');

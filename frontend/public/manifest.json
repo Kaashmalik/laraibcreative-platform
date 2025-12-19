@@ -7,10 +7,25 @@
   "background_color": "#ffffff",
   "theme_color": "#D946A6",
   "orientation": "portrait-primary",
-  "icons": [],
-  "categories": ["fashion", "shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": [
+    "fashion",
+    "shopping",
+    "lifestyle"
+  ],
   "lang": "en-PK",
   "dir": "ltr",
   "screenshots": []
 }
-

@@ -13,6 +13,7 @@
 
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const mongoose = require('mongoose');
 const { generateSlug, calculateReadTime } = require('../utils/helpers');
 const { deleteFromCloudinary } = require('../config/cloudinary');
 const { productSchema } = require('../utils/validationSchemas');
@@ -78,8 +79,32 @@ exports.getAllProducts = async (req, res) => {
     }
 
     // Category filter
-    if (category) {
-      filter.category = category;
+    if (category && category !== 'all') {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        filter.category = category;
+      } else {
+        const categoryDoc = await Category.findOne({ slug: category });
+        if (categoryDoc) {
+          filter.category = categoryDoc._id;
+        } else {
+          // Category not found -> Return empty results
+          return res.status(200).json({
+            success: true,
+            products: [],
+            total: 0,
+            data: [],
+            facets: {},
+            pagination: {
+              currentPage: parseInt(page),
+              totalPages: 0,
+              totalProducts: 0,
+              productsPerPage: parseInt(limit),
+              hasNextPage: false,
+              hasPrevPage: false
+            }
+          });
+        }
+      }
     }
 
     // Subcategory filter
@@ -206,12 +231,57 @@ exports.getAllProducts = async (req, res) => {
     const hasNextPage = parseInt(page) < totalPages;
     const hasPrevPage = parseInt(page) > 1;
 
+    // Calculate facets (filter counts)
+    const facetsData = await Product.aggregate([
+      { $match: filter },
+      {
+        $facet: {
+          fabric: [
+            { $group: { _id: '$fabric.type', count: { $sum: 1 } } }
+          ],
+          occasion: [
+            { $group: { _id: '$occasion', count: { $sum: 1 } } }
+          ],
+          color: [
+            { $unwind: '$availableColors' },
+            { $group: { _id: '$availableColors.name', count: { $sum: 1 } } }
+          ],
+          size: [
+            { $unwind: '$sizeAvailability.standardSizes' },
+            { $group: { _id: '$sizeAvailability.standardSizes', count: { $sum: 1 } } }
+          ],
+          type: [
+            { $group: { _id: '$type', count: { $sum: 1 } } }
+          ]
+        }
+      }
+    ]);
+
+    // Process facets into easier format: { Type: Count }
+    const facets = {
+      fabric: {},
+      occasion: {},
+      color: {},
+      size: {},
+      type: {}
+    };
+
+    if (facetsData && facetsData[0]) {
+      const f = facetsData[0];
+      if (f.fabric) f.fabric.forEach(i => i._id && (facets.fabric[i._id] = i.count));
+      if (f.occasion) f.occasion.forEach(i => i._id && (facets.occasion[i._id.toLowerCase()] = i.count));
+      if (f.color) f.color.forEach(i => i._id && (facets.color[i._id.toLowerCase()] = i.count));
+      if (f.size) f.size.forEach(i => i._id && (facets.size[i._id] = i.count));
+      if (f.type) f.type.forEach(i => i._id && (facets.type[i._id] = i.count));
+    }
+
     // Return response in format expected by frontend
     res.status(200).json({
       success: true,
       products: products,
       total: total,
-      data: products, // Also include for backward compatibility
+      data: products,
+      facets: facets,
       pagination: {
         currentPage: parseInt(page),
         totalPages,
@@ -243,13 +313,14 @@ exports.getProductById = async (req, res) => {
 
     const product = await Product.findById(id)
       .populate('category', 'name slug description')
-      .populate({
-        path: 'reviews',
-        populate: {
-          path: 'customer',
-          select: 'fullName profileImage'
-        }
-      });
+      .populate('category', 'name slug description');
+    /* .populate({
+      path: 'reviews',
+      populate: {
+        path: 'customer',
+        select: 'fullName profileImage'
+      }
+    }); */
 
     if (!product) {
       return res.status(404).json({
@@ -284,13 +355,14 @@ exports.getProductBySlug = async (req, res) => {
 
     const product = await Product.findOne({ slug })
       .populate('category', 'name slug description')
-      .populate({
-        path: 'reviews',
-        populate: {
-          path: 'customer',
-          select: 'fullName profileImage'
-        }
-      });
+      .populate('category', 'name slug description');
+    /* .populate({
+      path: 'reviews',
+      populate: {
+        path: 'customer',
+        select: 'fullName profileImage'
+      }
+    }); */
 
     if (!product) {
       return res.status(404).json({
@@ -333,7 +405,15 @@ exports.createProduct = async (req, res) => {
       seo,
       occasion,
       colors,
-      sizes
+      sizes,
+      // New fields
+      type,
+      articleName,
+      articleCode,
+      embroideryDetails,
+      suitComponents,
+      whatsIncluded,
+      features
     } = req.body;
 
     // Validate required fields
@@ -364,12 +444,13 @@ exports.createProduct = async (req, res) => {
       counter++;
     }
 
-    // Generate SKU
-    const sku = `LC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+    // Generate SKU if not provided or generate random one
+    const sku = req.body.sku || `LC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
     // Handle uploaded images
-    const images = req.files ? req.files.map(file => file.path) : [];
-    const primaryImage = images.length > 0 ? images[0] : '';
+    const images = req.files ? req.files.map(file => file.path) : (req.body.images || []);
+    // Ensure primary image is set
+    const primaryImage = req.body.primaryImage || (images.length > 0 ? images[0] : '');
 
     // Create product
     const product = await Product.create({
@@ -383,16 +464,27 @@ exports.createProduct = async (req, res) => {
       pricing,
       images,
       primaryImage,
-      availability: availability || 'in-stock',
+      availability: availability || { status: 'in-stock' },
       featured: featured || false,
       seo: {
         metaTitle: seo?.metaTitle || title,
         metaDescription: seo?.metaDescription || description.substring(0, 160),
-        keywords: seo?.keywords || []
+        keywords: seo?.keywords || [],
+        focusKeyword: seo?.focusKeyword || ''
       },
       occasion,
-      colors,
-      sizes
+      colors: colors || [],
+      sizes: sizes || {},
+      // New fields
+      type: type || 'ready-made',
+      articleName,
+      articleCode,
+      embroideryDetails: embroideryDetails || {},
+      suitComponents: suitComponents || {},
+      whatsIncluded: whatsIncluded || [],
+      features: features || [],
+      status: req.body.status || 'published', // Support draft status
+      aiGeneratedContent: req.body.aiGeneratedContent // Save AI content if passed
     });
 
     res.status(201).json({
@@ -449,7 +541,7 @@ exports.updateProduct = async (req, res) => {
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => file.path);
       updateData.images = [...product.images, ...newImages];
-      
+
       // Update primary image if not set or if requested
       if (!product.primaryImage || updateData.setPrimaryImage) {
         updateData.primaryImage = newImages[0];
@@ -544,7 +636,7 @@ exports.getFeaturedProducts = async (req, res) => {
   try {
     const { limit = 8 } = req.query;
 
-    const products = await Product.find({ 
+    const products = await Product.find({
       isFeatured: true,
       status: 'published',
       isActive: true,
@@ -970,7 +1062,7 @@ exports.createProductAdmin = async (req, res) => {
   try {
     // Parse form data (handles both JSON and form-data)
     let productData = {};
-    
+
     // If body is JSON string, parse it
     if (typeof req.body === 'string') {
       try {
@@ -1017,7 +1109,7 @@ exports.createProductAdmin = async (req, res) => {
           'custom-only': 'made-to-order',
           'out-of-stock': 'out-of-stock'
         };
-        productData.availability = { 
+        productData.availability = {
           status: statusMap[statusValue] || (validStatuses.includes(statusValue) ? statusValue : 'made-to-order')
         };
       }
@@ -1179,7 +1271,7 @@ exports.createProductAdmin = async (req, res) => {
       'Cambric', 'Marina', 'Net', 'Banarsi', 'Raw Silk',
       'Jamawar', 'Other'
     ];
-    
+
     if (productData.fabric && productData.fabric.type) {
       const inputType = productData.fabric.type.toLowerCase();
       const matchedType = validFabricTypes.find(t => t.toLowerCase() === inputType);
@@ -1187,7 +1279,7 @@ exports.createProductAdmin = async (req, res) => {
         productData.fabric.type = matchedType;
       }
     }
-    
+
     // Truncate embroideryDetails.description to 500 chars if exceeds
     if (productData.embroideryDetails && productData.embroideryDetails.description) {
       if (productData.embroideryDetails.description.length > 500) {
@@ -1330,7 +1422,7 @@ exports.getProductForEdit = async (req, res) => {
 exports.updateProductAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Parse form data
     let updateData = {};
     if (typeof req.body === 'string') {
@@ -1353,7 +1445,7 @@ exports.updateProductAdmin = async (req, res) => {
         }
       }
     });
-    
+
     // Process images with imageType labels if provided
     if (updateData.images && Array.isArray(updateData.images)) {
       updateData.images = updateData.images.map((img, idx) => ({
@@ -1494,7 +1586,7 @@ exports.deleteProductAdmin = async (req, res) => {
 exports.bulkDeleteProducts = async (req, res) => {
   const mongoose = require('mongoose');
   const session = await mongoose.startSession();
-  
+
   try {
     const { productIds } = req.body;
 
@@ -1515,7 +1607,7 @@ exports.bulkDeleteProducts = async (req, res) => {
     }
 
     let result;
-    
+
     // Use transaction for atomic operation
     await session.withTransaction(async () => {
       // Soft delete all products
@@ -1564,7 +1656,7 @@ exports.bulkUpdateProducts = async (req, res) => {
   const mongoose = require('mongoose');
   const { validateBulkUpdate } = require('../utils/productValidation');
   const session = await mongoose.startSession();
-  
+
   try {
     const { productIds, updates } = req.body;
 
@@ -1608,7 +1700,7 @@ exports.bulkUpdateProducts = async (req, res) => {
     updateObject.lastEditedAt = new Date();
 
     let result;
-    
+
     // Use transaction for atomic operation
     await session.withTransaction(async () => {
       result = await Product.updateMany(
@@ -1632,7 +1724,7 @@ exports.bulkUpdateProducts = async (req, res) => {
   } catch (error) {
     await session.endSession();
     console.error('Error in bulkUpdateProducts:', error);
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       return res.status(400).json({
@@ -1641,7 +1733,7 @@ exports.bulkUpdateProducts = async (req, res) => {
         error: error.message
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Failed to update products',
