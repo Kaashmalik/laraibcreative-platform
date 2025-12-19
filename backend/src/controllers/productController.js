@@ -304,23 +304,28 @@ exports.getAllProducts = async (req, res) => {
 
 /**
  * GET /api/products/:id
- * Get single product by ID
+ * Get single product by ID or slug (intelligent detection)
  * Public access
  */
 exports.getProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findById(id)
-      .populate('category', 'name slug description')
-      .populate('category', 'name slug description');
-    /* .populate({
-      path: 'reviews',
-      populate: {
-        path: 'customer',
-        select: 'fullName profileImage'
-      }
-    }); */
+    let product;
+
+    // Check if id is a valid MongoDB ObjectId (24 hex characters)
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) &&
+      (String(new mongoose.Types.ObjectId(id)) === id);
+
+    if (isValidObjectId) {
+      // Query by MongoDB ObjectId
+      product = await Product.findById(id)
+        .populate('category', 'name slug description');
+    } else {
+      // Query by slug (SEO-friendly URL)
+      product = await Product.findOne({ slug: id })
+        .populate('category', 'name slug description');
+    }
 
     if (!product) {
       return res.status(404).json({
@@ -738,11 +743,24 @@ exports.incrementViews = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByIdAndUpdate(
-      id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).select('views');
+    // Check if id is a valid MongoDB ObjectId
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) &&
+      (String(new mongoose.Types.ObjectId(id)) === id);
+
+    let product;
+    if (isValidObjectId) {
+      product = await Product.findByIdAndUpdate(
+        id,
+        { $inc: { views: 1 } },
+        { new: true }
+      ).select('views');
+    } else {
+      product = await Product.findOneAndUpdate(
+        { slug: id },
+        { $inc: { views: 1 } },
+        { new: true }
+      ).select('views');
+    }
 
     if (!product) {
       return res.status(404).json({
@@ -776,8 +794,17 @@ exports.getRelatedProducts = async (req, res) => {
     const { id } = req.params;
     const { limit = 6, type, category } = req.query;
 
-    // Get current product
-    const product = await Product.findById(id).select('category subcategory occasion type');
+    // Check if id is a valid MongoDB ObjectId
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(id) &&
+      (String(new mongoose.Types.ObjectId(id)) === id);
+
+    // Get current product by ID or slug
+    let product;
+    if (isValidObjectId) {
+      product = await Product.findById(id).select('_id category subcategory occasion type');
+    } else {
+      product = await Product.findOne({ slug: id }).select('_id category subcategory occasion type');
+    }
 
     if (!product) {
       return res.status(404).json({
@@ -788,7 +815,7 @@ exports.getRelatedProducts = async (req, res) => {
 
     // Build filter for related products
     const filter = {
-      _id: { $ne: id }, // Exclude current product
+      _id: { $ne: product._id }, // Exclude current product
       isActive: true,
       $or: [
         { category: category || product.category },
