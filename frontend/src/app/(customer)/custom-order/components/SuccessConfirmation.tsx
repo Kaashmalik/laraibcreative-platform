@@ -66,7 +66,7 @@ export default function SuccessConfirmation({
           {/* Next Steps */}
           <div className="space-y-4 mb-8 text-left">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">What happens next?</h2>
-            
+
             <div className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
               <MessageSquare className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
@@ -121,7 +121,7 @@ export default function SuccessConfirmation({
               Need immediate assistance?
             </p>
             <a
-              href="https://wa.me/923020718182?text=Hi!%20I%20just%20placed%20order%20${orderNumber}"
+              href="https://wa.me/923038111297?text=Hello!%20I%20have%20a%20question%20about%20my%20recent%20order"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"

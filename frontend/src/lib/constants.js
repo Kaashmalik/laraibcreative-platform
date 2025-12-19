@@ -603,8 +603,8 @@ export const SEO_DEFAULTS = {
  * Contact information
  */
 export const CONTACT_INFO = {
-  phone: '03020718182',
-  whatsapp: '03020718182',
+  phone: '03038111297',
+  whatsapp: '03038111297',
   email: 'laraibcreative.business@gmail.com',
   supportEmail: 'laraibcreative.business@gmail.com',
   address: 'Your Address, Lahore, Punjab, Pakistan',
@@ -620,7 +620,7 @@ export const SOCIAL_LINKS = {
   twitter: 'https://twitter.com/laraibcreative',
   pinterest: 'https://pinterest.com/laraibcreative',
   youtube: 'https://youtube.com/@laraibcreative',
-  whatsapp: 'https://wa.me/923020718182'
+  whatsapp: 'https://wa.me/923038111297'
 };
 
 // ============================================================================

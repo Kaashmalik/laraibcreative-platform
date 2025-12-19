@@ -5,17 +5,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Search, 
-  ShoppingCart, 
-  User, 
-  Menu, 
-  ChevronDown,
-  Heart,
-  Package,
-  LogOut,
-  Settings,
-  MessageCircle
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Menu,
+  ChevronDown,
+  Heart,
+  Package,
+  LogOut,
+  Settings,
+  MessageCircle
 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
 import { useCart } from '@/context/CartContext'
@@ -25,282 +25,281 @@ import MiniCart from './MiniCart'
 import NavLink from './NavLink'
 
 /**
- * Header Component - Production Ready
- *  * Features:
- * - SEO optimized with semantic HTML and schema markup
- * - Fully accessible (WCAG 2.1 AA compliant)
- * - Performance optimized with memoization
- * - Responsive design (mobile-first approach)
- * - Sticky header with smooth animations
- * - Category mega menu with hover/focus states
- * - Search with debouncing
- * - Cart preview drawer
- * - User account dropdown
- * - WhatsApp quick contact
- * - Error boundary protection
- * - Analytics integration ready
- *  * @component
- * @example
- * <Header />
- */
+ * Header Component - Production Ready
+ *  * Features:
+ * - SEO optimized with semantic HTML and schema markup
+ * - Fully accessible (WCAG 2.1 AA compliant)
+ * - Performance optimized with memoization
+ * - Responsive design (mobile-first approach)
+ * - Sticky header with smooth animations
+ * - Category mega menu with hover/focus states
+ * - Search with debouncing
+ * - Cart preview drawer
+ * - User account dropdown
+ * - WhatsApp quick contact
+ * - Error boundary protection
+ * - Analytics integration ready
+ *  * @component
+ * @example
+ * <Header />
+ */
 export default function Header() {
-  const pathname = usePathname()
+  const pathname = usePathname()
   const { user, logout } = useAuth()
   const { items: cartItems, totalItems: cartCount } = useCart()
-  
-  // Refs
-  const headerRef = useRef(null)
-  const userMenuRef = useRef(null)
-  const megaMenuTimeoutRef = useRef(null)
-  
-  // UI States
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const [openMegaMenu, setOpenMegaMenu] = useState(null)
-  const [mounted, setMounted] = useState(false)
 
-  // Handle hydration
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Refs
+  const headerRef = useRef(null)
+  const userMenuRef = useRef(null)
+  const megaMenuTimeoutRef = useRef(null)
 
-  // Handle scroll for sticky header with performance optimization
-  useEffect(() => {
-    let ticking = false
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 50)
-          ticking = false
-        })
-        ticking = true
-      }
-    }
+  // UI States
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [openMegaMenu, setOpenMegaMenu] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false)
-    setIsSearchOpen(false)
-    setIsCartOpen(false)
-    setIsUserMenuOpen(false)
-  }, [pathname])
+  // Handle scroll for sticky header with performance optimization
+  useEffect(() => {
+    let ticking = false
 
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-      document.body.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`
-    } else {
-      document.body.style.overflow = ''
-      document.body.style.paddingRight = ''
-    }
-    
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.paddingRight = ''
-    }
-  }, [isMobileMenuOpen])
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 50)
+          ticking = false
+        })
+        ticking = true
+      }
+    }
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setIsUserMenuOpen(false)
-      }
-    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+    setIsSearchOpen(false)
+    setIsCartOpen(false)
+    setIsUserMenuOpen(false)
+  }, [pathname])
 
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Escape key closes all dropdowns
-      if (e.key === 'Escape') {
-        setIsUserMenuOpen(false)
-        setOpenMegaMenu(null)
-        setIsCartOpen(false)
-        setIsSearchOpen(false)
-      }
-    }
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.paddingRight = `${window.innerWidth - document.documentElement.clientWidth}px`
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
+    }
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
+    }
+  }, [isMobileMenuOpen])
 
-  // Navigation structure with SEO metadata
-  const navLinks = [
-    { 
-      name: 'Home', 
-      href: '/',
-      ariaLabel: 'Go to homepage'
-    },
-    { 
-      name: 'Products', 
-      href: '/products',
-      ariaLabel: 'Browse our products',
-      megaMenu: true,
-      categories: [
-        { 
-          name: 'Bridal Wear', 
-          href: '/products?category=bridal',
-          description: 'Elegant bridal suits and lehengas'
-        },
-        { 
-          name: 'Party Wear', 
-          href: '/products?category=party',
-          description: 'Stunning party dresses and outfits'
-        },
-        { 
-          name: 'Casual Wear', 
-          href: '/products?category=casual',
-          description: 'Comfortable everyday wear'
-        },
-        { 
-          name: 'Formal Wear', 
-          href: '/products?category=formal',
-          description: 'Professional and formal attire'
-        },
-        { 
-          name: 'Designer Replicas', 
-          href: '/products?category=designer',
-          description: 'Premium designer inspired pieces'
-        },
-      ]
-    },
-    { 
-      name: 'Custom Order', 
-      href: '/custom-order',
-      ariaLabel: 'Create your custom order'
-    },
-    { 
-      name: 'Blog', 
-      href: '/blog',
-      ariaLabel: 'Read our fashion blog'
-    },
-    { 
-      name: 'About', 
-      href: '/about',
-      ariaLabel: 'Learn about LaraibCreative'
-    },
-    { 
-      name: 'Contact', 
-      href: '/contact',
-      ariaLabel: 'Get in touch with us'
-    },
-  ]
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false)
+      }
+    }
 
-  // User menu items with proper routing
-  const userMenuItems = [
-    { 
-      icon: User, 
-      label: 'My Profile', 
-      href: '/account/profile',
-      ariaLabel: 'View your profile'
-    },
-    { 
-      icon: Package, 
-      label: 'My Orders', 
-      href: '/account/orders',
-      ariaLabel: 'View your orders'
-    },
-    { 
-      icon: Heart, 
-      label: 'Wishlist', 
-      href: '/account/wishlist',
-      ariaLabel: 'View your wishlist'
-    },
-    { 
-      icon: Settings, 
-      label: 'Settings', 
-      href: '/account/settings',
-      ariaLabel: 'Account settings'
-    },
-  ]
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  // Memoized handlers
-  const handleMobileMenuToggle = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev)
-  }, [])
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Escape key closes all dropdowns
+      if (e.key === 'Escape') {
+        setIsUserMenuOpen(false)
+        setOpenMegaMenu(null)
+        setIsCartOpen(false)
+        setIsSearchOpen(false)
+      }
+    }
 
-  const handleSearchToggle = useCallback(() => {
-    setIsSearchOpen(prev => !prev)
-  }, [])
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
-  const handleCartToggle = useCallback(() => {
-    setIsCartOpen(prev => !prev)
-  }, [])
+  // Navigation structure with SEO metadata
+  const navLinks = [
+    {
+      name: 'Home',
+      href: '/',
+      ariaLabel: 'Go to homepage'
+    },
+    {
+      name: 'Products',
+      href: '/products',
+      ariaLabel: 'Browse our products',
+      megaMenu: true,
+      categories: [
+        {
+          name: 'Bridal Wear',
+          href: '/products?category=bridal',
+          description: 'Elegant bridal suits and lehengas'
+        },
+        {
+          name: 'Party Wear',
+          href: '/products?category=party',
+          description: 'Stunning party dresses and outfits'
+        },
+        {
+          name: 'Casual Wear',
+          href: '/products?category=casual',
+          description: 'Comfortable everyday wear'
+        },
+        {
+          name: 'Formal Wear',
+          href: '/products?category=formal',
+          description: 'Professional and formal attire'
+        },
+        {
+          name: 'Designer Replicas',
+          href: '/products?category=designer',
+          description: 'Premium designer inspired pieces'
+        },
+      ]
+    },
+    {
+      name: 'Custom Order',
+      href: '/custom-order',
+      ariaLabel: 'Create your custom order'
+    },
+    {
+      name: 'Blog',
+      href: '/blog',
+      ariaLabel: 'Read our fashion blog'
+    },
+    {
+      name: 'About',
+      href: '/about',
+      ariaLabel: 'Learn about LaraibCreative'
+    },
+    {
+      name: 'Contact',
+      href: '/contact',
+      ariaLabel: 'Get in touch with us'
+    },
+  ]
 
-  const handleUserMenuToggle = useCallback(() => {
-    setIsUserMenuOpen(prev => !prev)
-  }, [])
+  // User menu items with proper routing
+  const userMenuItems = [
+    {
+      icon: User,
+      label: 'My Profile',
+      href: '/account/profile',
+      ariaLabel: 'View your profile'
+    },
+    {
+      icon: Package,
+      label: 'My Orders',
+      href: '/account/orders',
+      ariaLabel: 'View your orders'
+    },
+    {
+      icon: Heart,
+      label: 'Wishlist',
+      href: '/account/wishlist',
+      ariaLabel: 'View your wishlist'
+    },
+    {
+      icon: Settings,
+      label: 'Settings',
+      href: '/account/settings',
+      ariaLabel: 'Account settings'
+    },
+  ]
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await logout()
-      setIsUserMenuOpen(false)
-      // Optional: Show success toast
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Optional: Show error toast
-    }
-  }, [logout])
+  // Memoized handlers
+  const handleMobileMenuToggle = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev)
+  }, [])
 
-  // Mega menu handlers with delay for better UX
-  const handleMegaMenuEnter = useCallback((menuName) => {
-    if (megaMenuTimeoutRef.current) {
-      clearTimeout(megaMenuTimeoutRef.current)
-    }
-    setOpenMegaMenu(menuName)
-  }, [])
+  const handleSearchToggle = useCallback(() => {
+    setIsSearchOpen(prev => !prev)
+  }, [])
 
-  const handleMegaMenuLeave = useCallback(() => {
-    megaMenuTimeoutRef.current = setTimeout(() => {
-      setOpenMegaMenu(null)
-    }, 200)
-  }, [])
+  const handleCartToggle = useCallback(() => {
+    setIsCartOpen(prev => !prev)
+  }, [])
 
-  // Don't render until mounted to avoid hydration issues
-  if (!mounted) {
-    return (
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white py-4">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="w-48 h-10 bg-gray-200 animate-pulse rounded" />
-            <div className="w-32 h-10 bg-gray-200 animate-pulse rounded" />
-          </div>
-        </div>
-      </header>
-    )
-  }
+  const handleUserMenuToggle = useCallback(() => {
+    setIsUserMenuOpen(prev => !prev)
+  }, [])
 
-  return (
-    <>
-      {/* Skip to main content for accessibility */}
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg"
-      >
-        Skip to main content
-      </a>
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout()
+      setIsUserMenuOpen(false)
+      // Optional: Show success toast
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Optional: Show error toast
+    }
+  }, [logout])
+
+  // Mega menu handlers with delay for better UX
+  const handleMegaMenuEnter = useCallback((menuName) => {
+    if (megaMenuTimeoutRef.current) {
+      clearTimeout(megaMenuTimeoutRef.current)
+    }
+    setOpenMegaMenu(menuName)
+  }, [])
+
+  const handleMegaMenuLeave = useCallback(() => {
+    megaMenuTimeoutRef.current = setTimeout(() => {
+      setOpenMegaMenu(null)
+    }, 200)
+  }, [])
+
+  // Don't render until mounted to avoid hydration issues
+  if (!mounted) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white py-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="w-48 h-10 bg-gray-200 animate-pulse rounded" />
+            <div className="w-32 h-10 bg-gray-200 animate-pulse rounded" />
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  return (
+    <>
+      {/* Skip to main content for accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg"
+      >
+        Skip to main content
+      </a>
 
       {/* Main Header - Semantic HTML with proper ARIA */}
       <header
         ref={headerRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
-          isScrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled
             ? 'bg-white/95 backdrop-blur-md shadow-sm'
             : 'bg-white/80 backdrop-blur-sm'
-        }`}
+          }`}
         role="banner"
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -318,8 +317,8 @@ export default function Header() {
             </button>
 
             {/* Logo with SEO optimization */}
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg"
               aria-label="LaraibCreative - Home"
             >
@@ -329,7 +328,7 @@ export default function Header() {
                 width={32}
                 height={32}
                 className="transition-all duration-300"
-                style={{ 
+                style={{
                   width: '32px',
                   height: '32px'
                 }}
@@ -344,8 +343,8 @@ export default function Header() {
             </Link>
 
             {/* Center: Desktop Navigation */}
-            <nav 
-              className="hidden lg:flex items-center gap-8" 
+            <nav
+              className="hidden lg:flex items-center gap-8"
               role="navigation"
               aria-label="Main navigation"
             >
@@ -363,8 +362,8 @@ export default function Header() {
                     <span className="flex items-center gap-1">
                       {link.name}
                       {link.megaMenu && (
-                        <ChevronDown 
-                          className="w-3.5 h-3.5" 
+                        <ChevronDown
+                          className="w-3.5 h-3.5"
                           aria-hidden="true"
                         />
                       )}
@@ -423,7 +422,7 @@ export default function Header() {
 
             {/* WhatsApp Quick Contact - Hidden on mobile */}
             <a
-              href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+              href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:flex items-center gap-1.5 rounded-full bg-green-500 px-4 py-2 text-xs font-medium text-white hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -473,90 +472,90 @@ export default function Header() {
                     <ChevronDown className="w-3.5 h-3.5 hidden lg:block" aria-hidden="true" />
                   </button>
 
-                    {/* User Dropdown Menu */}
-                    <AnimatePresence>
-                      {isUserMenuOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
-                          role="menu"
-                          aria-label="User account menu"
-                        >
-                          {/* User Info */}
-                          <div className="px-4 py-3 border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {user.name || 'User'}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">
-                              {user.email || ''}
-                            </p>
-                          </div>
+                  {/* User Dropdown Menu */}
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
+                        role="menu"
+                        aria-label="User account menu"
+                      >
+                        {/* User Info */}
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {user.name || 'User'}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {user.email || ''}
+                          </p>
+                        </div>
 
-                          {/* Menu Items */}
-                          {userMenuItems.map((item) => (
-                            <Link
-                              key={item.label}
-                              href={item.href}
-                              className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors focus:outline-none focus:bg-primary-50"
-                              onClick={() => setIsUserMenuOpen(false)}
-                              role="menuitem"
-                              aria-label={item.ariaLabel}
-                            >
-                              <item.icon className="w-4 h-4" aria-hidden="true" />
-                              <span>{item.label}</span>
-                            </Link>
-                          ))}
+                        {/* Menu Items */}
+                        {userMenuItems.map((item) => (
+                          <Link
+                            key={item.label}
+                            href={item.href}
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors focus:outline-none focus:bg-primary-50"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            role="menuitem"
+                            aria-label={item.ariaLabel}
+                          >
+                            <item.icon className="w-4 h-4" aria-hidden="true" />
+                            <span>{item.label}</span>
+                          </Link>
+                        ))}
 
-                          {/* Logout */}
-                          <button
-                            onClick={handleLogout}
-                            className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors focus:outline-none focus:bg-red-50"
-                            role="menuitem"
-                            aria-label="Logout from your account"
-                          >
-                            <LogOut className="w-4 h-4" aria-hidden="true" />
-                            <span>Logout</span>
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </>
-                ) : (
-                  <Link
-                    href="/auth/login"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                    aria-label="Login to your account"
-                  >
-                    <User className="w-4 h-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">Login</span>
-                  </Link>
-                )}
-              </div>
+                        {/* Logout */}
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors focus:outline-none focus:bg-red-50"
+                          role="menuitem"
+                          aria-label="Logout from your account"
+                        >
+                          <LogOut className="w-4 h-4" aria-hidden="true" />
+                          <span>Logout</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  aria-label="Login to your account"
+                >
+                  <User className="w-4 h-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Login</span>
+                </Link>
+              )}
             </div>
           </div>
+        </div>
       </header>
 
-      {/* Mobile Menu Component */}
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        navLinks={navLinks}
-      />
+      {/* Mobile Menu Component */}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        navLinks={navLinks}
+      />
 
-      {/* Search Modal Component */}
-      <SearchBar
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
+      {/* Search Modal Component */}
+      <SearchBar
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
 
-      {/* Mini Cart Drawer Component */}
-      <MiniCart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-      />
-    </>
-  )
+      {/* Mini Cart Drawer Component */}
+      <MiniCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+      />
+    </>
+  )
 }

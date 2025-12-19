@@ -6,9 +6,9 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  X, 
-  ChevronRight, 
+import {
+  X,
+  ChevronRight,
   ChevronDown,
   Home,
   ShoppingBag,
@@ -121,7 +121,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
   // Handle logout with loading state
   const handleLogout = useCallback(async () => {
     if (isLoggingOut) return
-    
+
     setIsLoggingOut(true)
     try {
       await logout()
@@ -188,8 +188,8 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
                     <div className="w-14 h-14 bg-gradient-to-br from-primary-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl shadow-lg">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full" 
-                         aria-label="Online status" />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"
+                      aria-label="Online status" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 truncate text-base">
@@ -232,11 +232,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
                     {hasSubMenu ? (
                       <button
                         onClick={() => toggleMenu(link.name)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isActive
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${isActive
                             ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-md'
                             : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-                        }`}
+                          }`}
                         aria-expanded={isExpanded}
                         aria-controls={`submenu-${link.name}`}
                       >
@@ -255,11 +254,10 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
                       <Link
                         href={link.href}
                         onClick={handleLinkClick}
-                        className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-                          isActive
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${isActive
                             ? 'bg-gradient-to-r from-primary-600 to-purple-600 text-white shadow-md'
                             : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
-                        }`}
+                          }`}
                         aria-current={isActive ? 'page' : undefined}
                       >
                         <div className="flex items-center space-x-3">
@@ -367,7 +365,7 @@ export default function MobileMenu({ isOpen, onClose, navLinks }) {
             {/* Footer Section with CTA */}
             <div className="px-6 py-4 border-t border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 mt-auto">
               <a
-                href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+                href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 active:scale-95 transition-all font-medium shadow-lg shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"

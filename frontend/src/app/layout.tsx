@@ -178,7 +178,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               sameAs: [
                 'https://instagram.com/laraibcreative',
                 'https://facebook.com/laraibcreative',
-                'https://wa.me/923020718182'
+                'https://wa.me/923038111297'
               ],
             }),
           }}

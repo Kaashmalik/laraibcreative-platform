@@ -54,7 +54,7 @@ export default function OrderConfirmation({ order }: OrderConfirmationProps) {
   useEffect(() => {
     // Log order confirmation for analytics
     // Order placed successfully: order
-    
+
     // Optional: Trigger confetti animation or celebration effect
     // You can integrate a library like react-confetti here
   }, [order]);
@@ -115,7 +115,7 @@ export default function OrderConfirmation({ order }: OrderConfirmationProps) {
               <CheckCircle className="w-12 h-12 text-white" />
             </div>
           </div>
-          
+
           <h1 className="mt-6 text-4xl font-bold text-gray-900">
             Order Placed Successfully! 🎉
           </h1>
@@ -213,7 +213,7 @@ export default function OrderConfirmation({ order }: OrderConfirmationProps) {
                 <div>
                   <p className="text-sm font-medium text-yellow-900">Payment Verification Pending</p>
                   <p className="text-sm text-yellow-700 mt-1">
-                    We're verifying your payment receipt. This usually takes 2-4 hours. 
+                    We're verifying your payment receipt. This usually takes 2-4 hours.
                     You'll receive a confirmation once verified.
                   </p>
                 </div>
@@ -250,8 +250,8 @@ export default function OrderConfirmation({ order }: OrderConfirmationProps) {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {['bank-transfer', 'jazzcash', 'easypaisa'].includes(order.paymentMethod) 
-                    ? 'Payment Verification' 
+                  {['bank-transfer', 'jazzcash', 'easypaisa'].includes(order.paymentMethod)
+                    ? 'Payment Verification'
                     : 'Order Processing'}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
@@ -397,7 +397,7 @@ export default function OrderConfirmation({ order }: OrderConfirmationProps) {
               Email Us
             </Link>
             <a
-              href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+              href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
               target="_blank"
               rel="noopener noreferrer"
               className="text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"

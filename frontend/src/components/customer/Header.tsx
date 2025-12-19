@@ -323,8 +323,8 @@ export default function Header() {
           ease: 'easeInOut'
         }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled
-            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800'
-            : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'
+          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800'
+          : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'
           }`}
         role="banner"
       >
@@ -468,7 +468,7 @@ export default function Header() {
 
             {/* WhatsApp Quick Contact - Hidden on mobile */}
             <a
-              href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+              href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:flex items-center gap-1.5 rounded-full bg-green-500 dark:bg-green-600 px-4 py-2 text-xs font-medium text-white hover:bg-green-600 dark:hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 h-11"

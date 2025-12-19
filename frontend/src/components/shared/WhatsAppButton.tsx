@@ -15,9 +15,9 @@ interface WhatsAppButtonProps {
   className?: string;
 }
 
-export default function WhatsAppButton({ 
-  phoneNumber = '923020718182',
-  className = '' 
+export default function WhatsAppButton({
+  phoneNumber = '923038111297',
+  className = ''
 }: WhatsAppButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -28,20 +28,20 @@ export default function WhatsAppButton({
       const productName = document.querySelector('h1')?.textContent || 'this product';
       return `Hi! I'm interested in ${productName}. Can you tell me more about it?`;
     }
-    
+
     if (pathname?.includes('/custom-order')) {
       return 'Hi! I need help with my custom order. Can you assist me?';
     }
-    
+
     if (pathname?.includes('/cart')) {
       return 'Hi! I have items in my cart and need assistance with my order.';
     }
-    
+
     if (pathname?.includes('/account/orders/')) {
       const orderNumber = pathname.split('/').pop();
       return `Hi! I want to check the status of my order #${orderNumber}.`;
     }
-    
+
     // Default message
     return 'Hi! I\'m interested in your custom tailoring services. Can you help me?';
   };

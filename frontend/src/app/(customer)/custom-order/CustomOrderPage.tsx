@@ -202,10 +202,10 @@ function CustomOrderPage() {
 
       if (response.success) {
         setSubmittedOrder(response);
-        
+
         // Clear draft
         localStorage.removeItem('laraibcreative-custom-order-draft');
-        
+
         // Trigger WhatsApp notification (if phone provided)
         // TODO: Implement WhatsApp notification
         // if (formData.customerInfo.phone) {
@@ -437,7 +437,7 @@ function CustomOrderPage() {
         <div className="text-center mt-6 text-sm text-gray-600">
           Need help? Contact us on{' '}
           <a
-            href="https://wa.me/923020718182?text=Hi!%20I'm%20interested%20in%20LaraibCreative%20products"
+            href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
             className="text-purple-600 hover:underline font-medium"
             target="_blank"
             rel="noopener noreferrer"

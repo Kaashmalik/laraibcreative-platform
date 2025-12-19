@@ -160,7 +160,7 @@ const SizeGuidePage = () => {
             Perfect Fit <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Size Guide</span>
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Learn how to take accurate measurements at home for custom stitching. 
+            Learn how to take accurate measurements at home for custom stitching.
             Follow our simple guide for the perfect fit every time!
           </p>
         </div>
@@ -172,41 +172,37 @@ const SizeGuidePage = () => {
           <div className="flex gap-1 overflow-x-auto">
             <button
               onClick={() => setActiveTab('chart')}
-              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${
-                activeTab === 'chart'
+              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${activeTab === 'chart'
                   ? 'border-pink-600 text-pink-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Size Chart
             </button>
             <button
               onClick={() => setActiveTab('measure')}
-              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${
-                activeTab === 'measure'
+              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${activeTab === 'measure'
                   ? 'border-pink-600 text-pink-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               How to Measure
             </button>
             <button
               onClick={() => setActiveTab('tips')}
-              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${
-                activeTab === 'tips'
+              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${activeTab === 'tips'
                   ? 'border-pink-600 text-pink-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Tips & Tricks
             </button>
             <button
               onClick={() => setActiveTab('video')}
-              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${
-                activeTab === 'video'
+              className={`px-6 py-4 font-medium whitespace-nowrap transition border-b-4 ${activeTab === 'video'
                   ? 'border-pink-600 text-pink-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Video Tutorial
             </button>
@@ -217,7 +213,7 @@ const SizeGuidePage = () => {
       {/* Tab Content */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          
+
           {/* Size Chart Tab */}
           {activeTab === 'chart' && (
             <div className="max-w-6xl mx-auto">
@@ -294,8 +290,8 @@ const SizeGuidePage = () => {
               {/* Note */}
               <div className="mt-8 bg-pink-50 border border-pink-200 rounded-xl p-6">
                 <p className="text-gray-700">
-                  <strong className="text-pink-600">Note:</strong> All measurements are in inches. 
-                  These are standard sizes and may vary based on body type. For the most accurate fit, 
+                  <strong className="text-pink-600">Note:</strong> All measurements are in inches.
+                  These are standard sizes and may vary based on body type. For the most accurate fit,
                   we strongly recommend providing your custom measurements.
                 </p>
               </div>
@@ -519,8 +515,8 @@ const SizeGuidePage = () => {
                   <p className="text-sm text-gray-700 mb-4">
                     Still confused about measurements? Our team is here to help you!
                   </p>
-                  <a 
-                    href="https://wa.me/923020718182?text=Hi%21%20I%27m%20interested%20in%20LaraibCreative%20products"
+                  <a
+                    href="https://wa.me/923038111297?text=Hello!%20I'd%20like%20to%20inquire%20about%20LaraibCreative's%20bespoke%20tailoring%20services."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium text-sm"

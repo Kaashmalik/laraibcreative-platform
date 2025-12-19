@@ -19,7 +19,7 @@ export default function WhatsAppButton() {
   const [showTooltip, setShowTooltip] = useState(false);
 
   // WhatsApp business number (replace with actual number)
-  const whatsappNumber = '923020718182'; // Format: country code + number (no + or spaces)
+  const whatsappNumber = '923038111297'; // Format: country code + number (no + or spaces)
   const defaultMessage = 'Hi! I\'m interested in LaraibCreative products';
 
   // Show button after page loads
@@ -96,7 +96,7 @@ export default function WhatsAppButton() {
         >
           {/* Pulse animation ring */}
           <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-75" />
-          
+
           {/* WhatsApp Icon */}
           <MessageCircle className="w-8 h-8 text-white relative z-10" />
 
