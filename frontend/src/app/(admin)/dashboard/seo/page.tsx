@@ -6,9 +6,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Search, TrendingUp, AlertTriangle, CheckCircle, 
-  RefreshCw, Zap, BarChart3, FileText, Settings,
+import {
+  Search, TrendingUp, AlertTriangle, CheckCircle,
+  RefreshCw, Zap, BarChart3, FileText,
   ChevronRight, Star, Target, Sparkles, Eye
 } from 'lucide-react';
 
@@ -89,11 +89,11 @@ export default function SEODashboardPage() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard data');
       }
-      
+
       const data = await response.json();
       if (data.success) {
         setDashboardData(data.data);
@@ -115,16 +115,16 @@ export default function SEODashboardPage() {
         ...(filter.grade && { grade: filter.grade }),
         ...(filter.search && { search: filter.search })
       });
-      
+
       const response = await fetch(`${API_BASE}/api/v1/admin/seo/products-analysis?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) throw new Error('Failed to fetch products');
-      
+
       const data = await response.json();
       if (data.success) {
         setProducts(data.data);
@@ -147,17 +147,17 @@ export default function SEODashboardPage() {
         },
         body: JSON.stringify({ applyChanges: apply })
       });
-      
+
       if (!response.ok) throw new Error('Optimization failed');
-      
+
       const data = await response.json();
-      
+
       if (data.success && apply) {
         // Refresh data after applying changes
         await fetchDashboard();
         await fetchProducts();
       }
-      
+
       return data;
     } catch (err) {
       console.error('Optimization error:', err);
@@ -170,7 +170,7 @@ export default function SEODashboardPage() {
   // Bulk optimize
   const bulkOptimize = async () => {
     if (selectedProducts.length === 0) return;
-    
+
     setOptimizing('bulk');
     try {
       const token = getAuthToken();
@@ -185,11 +185,11 @@ export default function SEODashboardPage() {
           applyChanges: true
         })
       });
-      
+
       if (!response.ok) throw new Error('Bulk optimization failed');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setSelectedProducts([]);
         await fetchDashboard();
@@ -264,15 +264,14 @@ export default function SEODashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* AI Service Status */}
-            <div className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-              dashboardData?.aiService.configured 
-                ? 'bg-green-100 text-green-800' 
+            <div className={`px-4 py-2 rounded-lg flex items-center gap-2 ${dashboardData?.aiService.configured
+                ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
-            }`}>
+              }`}>
               <Zap className="w-4 h-4" />
               <span className="text-sm font-medium">
-                {dashboardData?.aiService.configured 
-                  ? `AI: ${dashboardData.aiService.activeProvider?.toUpperCase()}` 
+                {dashboardData?.aiService.configured
+                  ? `AI: ${dashboardData.aiService.activeProvider?.toUpperCase()}`
                   : 'AI Not Configured'}
               </span>
             </div>
@@ -306,11 +305,10 @@ export default function SEODashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === tab.id
                     ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50/50'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -399,7 +397,7 @@ export default function SEODashboardPage() {
                         </span>
                         <div className="flex-1">
                           <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full ${getGradeColor(grade).split(' ')[0]}`}
                               style={{ width: `${percentage}%` }}
                             />
@@ -440,7 +438,7 @@ export default function SEODashboardPage() {
                   <Target className="w-5 h-5 text-red-500" />
                   Products Needing Optimization
                 </h3>
-                <button 
+                <button
                   onClick={() => setActiveTab('products')}
                   className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center gap-1"
                 >
@@ -466,7 +464,7 @@ export default function SEODashboardPage() {
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-center gap-2">
                             <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className={`h-full ${getScoreColor(product.percentage)}`}
                                 style={{ width: `${product.percentage}%` }}
                               />
@@ -604,7 +602,7 @@ export default function SEODashboardPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <div className="w-20 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full ${getScoreColor(product.percentage)}`}
                               style={{ width: `${product.percentage}%` }}
                             />
