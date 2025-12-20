@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
 
   // Get token from cookies
   const token = request.cookies.get('accessToken')?.value
-  const userStr = request.cookies.get('user')?.value // Optional: check user role from cookie if available
+  // const userStr = request.cookies.get('user')?.value // Optional: check user role from cookie if available
 
   // Route protection
   const isAuthPage = pathname.startsWith('/auth')
