@@ -21,7 +21,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: ''
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -44,7 +44,7 @@ export default function RegisterPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -53,12 +53,12 @@ export default function RegisterPage() {
         return newErrors;
       });
     }
-    
+
     // Clear conflict error when user changes email or phone
     if (conflictError && (name === 'email' || name === 'phone')) {
       setConflictError(null);
     }
-    
+
     // Clear submit error when user starts typing
     if (errors.submit) {
       setErrors(prev => {
@@ -115,15 +115,15 @@ export default function RegisterPage() {
 
     setSubmitting(true);
     setConflictError(null); // Clear previous conflict errors
-    
+
     try {
       const result = await registerUser({
         fullName: formData.fullName,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone.replace(/[\s-]/g, ''),
         password: formData.password
       });
-      
+
       if (result.success) {
         // Show success message about email verification
         setRegistrationSuccess(true);
@@ -164,7 +164,7 @@ export default function RegisterPage() {
   const formatPhoneNumber = (value) => {
     // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
+
     // Format as Pakistani number: 0300-1234567
     if (digits.length <= 4) {
       return digits;
@@ -224,7 +224,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-200 p-8">
         <h1 className="text-3xl font-bold mb-2 text-gray-900">Create Account</h1>
         <p className="text-sm text-gray-600 mb-6">Join LaraibCreative to start ordering</p>
-        
+
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Full Name Field */}
           <div>
@@ -238,11 +238,10 @@ export default function RegisterPage() {
               onChange={handleChange}
               onBlur={() => handleBlur('fullName')}
               required
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${
-                errors.fullName && touched.fullName
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.fullName && touched.fullName
                   ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
                   : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
-              }`}
+                }`}
               placeholder="Enter your full name"
             />
             {errors.fullName && touched.fullName && (
@@ -262,11 +261,10 @@ export default function RegisterPage() {
               onChange={handleChange}
               onBlur={() => handleBlur('email')}
               required
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${
-                errors.email && touched.email
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.email && touched.email
                   ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
                   : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
-              }`}
+                }`}
               placeholder="you@example.com"
             />
             {errors.email && touched.email && (
@@ -287,11 +285,10 @@ export default function RegisterPage() {
               onBlur={() => handleBlur('phone')}
               required
               maxLength={12}
-              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${
-                errors.phone && touched.phone
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.phone && touched.phone
                   ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
                   : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
-              }`}
+                }`}
               placeholder="0300-1234567"
             />
             {errors.phone && touched.phone && (
@@ -313,11 +310,10 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 onBlur={() => handleBlur('password')}
                 required
-                className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${
-                  errors.password && touched.password
+                className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.password && touched.password
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
                     : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
-                }`}
+                  }`}
                 placeholder="Create a strong password"
               />
               <button
@@ -333,7 +329,7 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
-            
+
             {/* Password Strength Indicator */}
             {formData.password && passwordStrength && (
               <div className="mt-3 space-y-2">
@@ -343,7 +339,7 @@ export default function RegisterPage() {
                   </span>
                   <span className="text-xs text-gray-500">{passwordStrength.score}%</span>
                 </div>
-                
+
                 {/* Strength Bar */}
                 <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
@@ -407,20 +403,20 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Suggestions */}
-                {passwordStrength.suggestions && passwordStrength.suggestions.length > 0 && 
-                 passwordStrength.suggestions[0] !== 'Great! Your password meets all requirements' && (
-                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs font-medium text-blue-900 mb-1">Suggestions:</p>
-                    <ul className="text-xs text-blue-700 space-y-0.5">
-                      {passwordStrength.suggestions.map((suggestion, index) => (
-                        <li key={index}>• {suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {passwordStrength.suggestions && passwordStrength.suggestions.length > 0 &&
+                  passwordStrength.suggestions[0] !== 'Great! Your password meets all requirements' && (
+                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-medium text-blue-900 mb-1">Suggestions:</p>
+                      <ul className="text-xs text-blue-700 space-y-0.5">
+                        {passwordStrength.suggestions.map((suggestion, index) => (
+                          <li key={index}>• {suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
             )}
-            
+
             {errors.password && touched.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password}</p>
             )}
@@ -439,11 +435,10 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 onBlur={() => handleBlur('confirmPassword')}
                 required
-                className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${
-                  errors.confirmPassword && touched.confirmPassword
+                className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.confirmPassword && touched.confirmPassword
                     ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
                     : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
-                }`}
+                  }`}
                 placeholder="Confirm your password"
               />
               <button
@@ -474,12 +469,12 @@ export default function RegisterPage() {
                 <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <h3 className="font-semibold text-orange-900 mb-2">
-                    {conflictError.type === 'email' 
-                      ? 'Email Already Registered' 
+                    {conflictError.type === 'email'
+                      ? 'Email Already Registered'
                       : 'Phone Number Already Registered'}
                   </h3>
                   <p className="text-sm text-orange-800 mb-3">
-                    {conflictError.type === 'email' 
+                    {conflictError.type === 'email'
                       ? `An account with the email ${formData.email} already exists.`
                       : `The phone number ${formData.phone} is already registered.`}
                   </p>

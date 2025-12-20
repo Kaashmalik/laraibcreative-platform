@@ -8,8 +8,9 @@ import { ALL_CITIES, MEASUREMENT_FIELDS } from './constants';
 /**
  * Phone number regex for Pakistani numbers
  * Supports: 03001234567, 923001234567, +923001234567
+ * Also supports formatted versions: 0300-1234567, +92 300 1234567
  */
-const PHONE_REGEX = /^(\+92|92|0)?(3\d{2}|2\d{2}|4\d{2}|5\d{2}|6\d{2}|7\d{2}|8\d{2}|9\d{2})\d{7}$/;
+const PHONE_REGEX = /^(\+92|92|0)?[\s-]?(3\d{2}|2\d{2}|4\d{2}|5\d{2}|6\d{2}|7\d{2}|8\d{2}|9\d{2})[\s-]?\d{7}$/;
 
 /**
  * Login form validation schema
