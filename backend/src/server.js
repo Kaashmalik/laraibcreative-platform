@@ -92,18 +92,18 @@ const { rateLimiterService } = require('./services/rateLimiterService');
 async function initializeDatabases() {
   try {
     logger.info('🔧 Initializing databases...');
-    
+
     // Initialize DatabaseManager (handles both TiDB and MongoDB)
     await databaseManager.initialize();
-    
+
     // Create indexes on startup
     await models.ensureIndexes();
-    
+
     // Seed default settings (only on first run)
     await models.Settings.seedDefaults();
-    
+
     logger.info('✅ All databases ready!');
-    
+
   } catch (error) {
     logger.error('❌ Database initialization failed:', error);
     process.exit(1);
@@ -117,13 +117,13 @@ async function initializeServices() {
   try {
     // Initialize rate limiter (uses in-memory by default, Redis if configured)
     await rateLimiterService.initialize();
-    
+
     // Run startup verification for external services
     await runStartupVerification({
       exitOnCriticalFailure: process.env.NODE_ENV === 'production',
       verifyCloudinaryConnection: true
     });
-    
+
   } catch (error) {
     logger.warn('⚠️ Services initialization warning:', error.message);
     // Don't exit - let the app try to run
@@ -138,18 +138,18 @@ function configureRoutes() {
   const routes = require('./routes');
   const uploadRoutes = require('./routes/upload.routes');
   const healthRoutes = require('./routes/health.routes');
-  
+
   // Health check routes (no auth required)
   app.use('/api/health', healthRoutes);
-  
+
   // Apply specific timeouts for different route types
-  app.use('/api/admin/ai', aiTimeout);
+  app.use('/api/v1/admin/ai', aiTimeout);
   app.use('/api/upload', uploadTimeout);
-  
+
   // Main API routes
   app.use('/api', routes);
   app.use('/api/upload', uploadRoutes);
-  
+
   // Update user context after auth middleware runs
   app.use(updateUserContext);
 }
@@ -185,7 +185,7 @@ function configureErrorHandling() {
         ip: req.ip
       });
     }
-    
+
     // Handle timeout errors
     if (req.timedout) {
       if (!res.headersSent) {
@@ -197,10 +197,10 @@ function configureErrorHandling() {
       }
       return;
     }
-    
+
     // Don't leak error details in production
     const isDevelopment = process.env.NODE_ENV === 'development';
-    
+
     if (!res.headersSent) {
       res.status(err.status || err.statusCode || 500).json({
         success: false,
@@ -221,10 +221,10 @@ async function gracefulShutdown(signal) {
     logger.warn(`${signal} received again, forcing exit...`);
     process.exit(1);
   }
-  
+
   isShuttingDown = true;
   logger.info(`🔄 ${signal} received, starting graceful shutdown...`);
-  
+
   // Stop accepting new connections
   if (server) {
     server.close((err) => {
@@ -235,34 +235,34 @@ async function gracefulShutdown(signal) {
       }
     });
   }
-  
+
   // Set a hard timeout for shutdown
   const shutdownTimeout = setTimeout(() => {
     logger.error('⏱️ Shutdown timeout exceeded, forcing exit');
     process.exit(1);
   }, 30000); // 30 seconds max
-  
+
   try {
     // Close database connections
     logger.info('Closing database connections...');
-    
+
     await Promise.all([
       databaseManager.shutdown(),
       mongoose.connection.close(),
     ]);
-    
+
     logger.info('✅ Database connections closed');
-    
+
     // Close rate limiter connections
     if (rateLimiterService && rateLimiterService.shutdown) {
       await rateLimiterService.shutdown();
       logger.info('✅ Rate limiter closed');
     }
-    
+
     clearTimeout(shutdownTimeout);
     logger.info('✅ Graceful shutdown complete');
     process.exit(0);
-    
+
   } catch (error) {
     logger.error('Error during shutdown:', error);
     clearTimeout(shutdownTimeout);
@@ -278,7 +278,7 @@ process.on('uncaughtException', (error) => {
     message: error.message,
     stack: error.stack,
   });
-  
+
   // Attempt graceful shutdown on uncaught exception
   gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
@@ -288,7 +288,7 @@ process.on('unhandledRejection', (reason, promise) => {
     reason: reason instanceof Error ? reason.message : reason,
     stack: reason instanceof Error ? reason.stack : undefined,
   });
-  
+
   // Log but don't exit for unhandled rejections
   // They're often recoverable
 });
@@ -306,22 +306,22 @@ async function startServer() {
   try {
     await initializeDatabases();
     await initializeServices();
-    
+
     // Configure routes
     configureRoutes();
-    
+
     // Configure error handling (must be last)
     configureErrorHandling();
-    
+
     // Create HTTP server
     const PORT = process.env.PORT || 5000;
     server = http.createServer(app);
-    
+
     // Configure server timeouts
     server.timeout = 120000; // 2 minutes
     server.keepAliveTimeout = 65000; // Slightly higher than ALB default
     server.headersTimeout = 66000; // Slightly higher than keepAliveTimeout
-    
+
     // Handle server errors
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
@@ -330,7 +330,7 @@ async function startServer() {
       }
       logger.error('Server error:', error);
     });
-    
+
     // Start listening
     server.listen(PORT, () => {
       const dbStatus = databaseManager.getStatus();
@@ -340,14 +340,14 @@ async function startServer() {
       logger.info(`📈 Detailed Health: GET /api/health/detailed`);
       logger.info(`📊 Metrics: GET /api/health/metrics`);
       logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      
+
       // Console output for development
       if (process.env.NODE_ENV !== 'production') {
         console.log(`\n🚀 Server running at http://localhost:${PORT}`);
         console.log(`📊 Health Check: http://localhost:${PORT}/api/health`);
       }
     });
-    
+
   } catch (error) {
     logger.error('❌ Failed to start server:', error);
     process.exit(1);

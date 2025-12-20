@@ -53,13 +53,13 @@ import axios from '@/lib/axios';
  * @param {boolean} props.isEdit - Edit mode flag
  * @returns {JSX.Element}
  */
-export default function ProductForm({ 
-  initialData = null, 
-  onSubmit, 
+export default function ProductForm({
+  initialData = null,
+  onSubmit,
   onCancel,
   onPreview,
   loading = false,
-  isEdit = false 
+  isEdit = false
 }) {
   // Form state
   const [formData, setFormData] = useState({
@@ -109,9 +109,23 @@ export default function ProductForm({
       metaTitle: '',
       metaDescription: '',
       keywords: []
+    },
+    // Missing required fields
+    customization: {
+      allowFullyCustom: true,
+      allowBrandArticle: true,
+      allowOwnFabric: true,
+      maxReferenceImages: 5,
+      estimatedStitchingDays: 10,
+      availableAddOns: []
+    },
+    sizeAvailability: {
+      standardSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      customSizeOnly: false,
+      measurementGuide: ''
     }
   });
-  
+
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [errors, setErrors] = useState({});
@@ -120,7 +134,7 @@ export default function ProductForm({
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [draftSaving, setDraftSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-  
+
   /**
    * Load initial data if editing
    */
@@ -184,23 +198,36 @@ export default function ProductForm({
           metaTitle: initialData.seo?.metaTitle || '',
           metaDescription: initialData.seo?.metaDescription || '',
           keywords: initialData.seo?.keywords || []
+        },
+        customization: {
+          allowFullyCustom: initialData.customization?.allowFullyCustom ?? true,
+          allowBrandArticle: initialData.customization?.allowBrandArticle ?? true,
+          allowOwnFabric: initialData.customization?.allowOwnFabric ?? true,
+          maxReferenceImages: initialData.customization?.maxReferenceImages || 5,
+          estimatedStitchingDays: initialData.customization?.estimatedStitchingDays || 10,
+          availableAddOns: initialData.customization?.availableAddOns || []
+        },
+        sizeAvailability: {
+          standardSizes: initialData.sizeAvailability?.standardSizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+          customSizeOnly: initialData.sizeAvailability?.customSizeOnly ?? false,
+          measurementGuide: initialData.sizeAvailability?.measurementGuide || ''
         }
       });
     }
   }, [initialData, isEdit]);
-  
+
   /**
    * Fetch categories with loading state
    */
   useEffect(() => {
     const controller = new AbortController();
-    
+
     const fetchCategories = async () => {
       setCategoriesLoading(true);
       try {
         const response = await Promise.race([
           axios.get('/categories', { signal: controller.signal }),
-          new Promise((_, reject) => 
+          new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Categories fetch timeout')), 10000)
           )
         ]);
@@ -215,12 +242,12 @@ export default function ProductForm({
         setCategoriesLoading(false);
       }
     };
-    
+
     fetchCategories();
-    
+
     return () => controller.abort();
   }, []);
-  
+
   /**
    * Load draft from localStorage on mount (only for new products)
    */
@@ -245,13 +272,13 @@ export default function ProductForm({
       }
     }
   }, [isEdit]);
-  
+
   /**
    * Auto-save draft to localStorage (debounced)
    */
   useEffect(() => {
     if (isEdit) return; // Don't auto-save for edit mode
-    
+
     const saveTimeout = setTimeout(() => {
       if (formData.title || formData.description) {
         setDraftSaving(true);
@@ -269,10 +296,10 @@ export default function ProductForm({
         }
       }
     }, 2000); // Save after 2 seconds of inactivity
-    
+
     return () => clearTimeout(saveTimeout);
   }, [formData, isEdit]);
-  
+
   /**
    * Clear draft from localStorage
    */
@@ -280,7 +307,7 @@ export default function ProductForm({
     localStorage.removeItem('productFormDraft');
     setLastSaved(null);
   };
-  
+
   /**
    * Fetch subcategories when category changes
    */
@@ -292,7 +319,7 @@ export default function ProductForm({
       setSubcategories([]);
     }
   }, [formData.category, categories]);
-  
+
   /**
    * Auto-generate slug from title
    */
@@ -302,7 +329,7 @@ export default function ProductForm({
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title, isEdit]);
-  
+
   /**
    * Auto-generate SKU if empty
    */
@@ -312,7 +339,7 @@ export default function ProductForm({
       setFormData(prev => ({ ...prev, sku }));
     }
   }, [formData.title, formData.sku]);
-  
+
   /**
    * Track form changes
    */
@@ -322,7 +349,7 @@ export default function ProductForm({
       sessionStorage.setItem('productFormDirty', 'true');
     }
   }, [formData, isEdit, initialData]);
-  
+
   /**
    * Handle input changes
    */
@@ -331,7 +358,7 @@ export default function ProductForm({
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error for this field
     if (errors[field]) {
       setErrors(prev => {
@@ -341,7 +368,7 @@ export default function ProductForm({
       });
     }
   };
-  
+
   /**
    * Handle nested object changes (fabric, pricing, seo)
    */
@@ -354,7 +381,7 @@ export default function ProductForm({
       }
     }));
   };
-  
+
   /**
    * Handle image upload
    */
@@ -365,7 +392,7 @@ export default function ProductForm({
       primaryImage: images[0] || prev.primaryImage
     }));
   };
-  
+
   /**
    * Handle primary image selection
    */
@@ -375,7 +402,7 @@ export default function ProductForm({
       primaryImage: imageUrl
     }));
   };
-  
+
   /**
    * Handle keyword addition
    */
@@ -395,7 +422,7 @@ export default function ProductForm({
       setKeywordInput('');
     }
   };
-  
+
   /**
    * Handle keyword removal
    */
@@ -408,7 +435,7 @@ export default function ProductForm({
       }
     }));
   };
-  
+
   /**
    * Handle AI-generated content application (all fields)
    */
@@ -432,7 +459,7 @@ export default function ProductForm({
       }
     }));
   };
-  
+
   /**
    * Handle AI-generated content application (single field)
    */
@@ -455,73 +482,73 @@ export default function ProductForm({
       }));
     }
   };
-  
+
   /**
    * Validate form - matches backend Mongoose schema requirements
    */
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Title: required, min 5 chars, max 200 chars
     if (!formData.title.trim()) {
       newErrors.title = 'Product title is required';
     } else if (formData.title.trim().length < 5) {
       newErrors.title = 'Title must be at least 5 characters';
     }
-    
+
     // Description: required, min 20 chars
     if (!formData.description.trim()) {
       newErrors.description = 'Product description is required';
     } else if (formData.description.trim().length < 20) {
       newErrors.description = 'Description must be at least 20 characters';
     }
-    
+
     // Category: required
     if (!formData.category) {
       newErrors.category = 'Category is required';
     }
-    
+
     // Images: required
     if (!formData.images || formData.images.length === 0) {
       newErrors.images = 'At least one product image is required';
     }
-    
+
     // Fabric type: required enum
     if (!formData.fabric?.type) {
       newErrors.fabricType = 'Fabric type is required';
     }
-    
+
     // Pricing: basePrice required and > 0
     if (!formData.pricing?.basePrice || parseFloat(formData.pricing.basePrice) <= 0) {
       newErrors.basePrice = 'Base price must be greater than 0';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   /**
    * Handle form submission
    */
   const handleSubmit = (e, draft = false) => {
     e.preventDefault();
-    
+
     // Validate only if publishing (not draft)
     if (!draft && !validateForm()) {
       return;
     }
-    
+
     // Clear dirty flag and draft
     sessionStorage.removeItem('productFormDirty');
     localStorage.removeItem('productFormDraft');
     setIsDirty(false);
     setLastSaved(null);
-    
+
     // Transform data before submission to match backend schema
     const transformedData = {
       ...formData,
       // Convert availability string to object format for backend
-      availability: typeof formData.availability === 'string' 
+      availability: typeof formData.availability === 'string'
         ? { status: formData.availability === 'custom-only' ? 'made-to-order' : formData.availability }
         : formData.availability,
       // Ensure pricing discount is a number
@@ -532,11 +559,11 @@ export default function ProductForm({
         discount: parseFloat(formData.pricing.discount) || 0
       }
     };
-    
+
     // Submit transformed form data
     onSubmit(transformedData, draft);
   };
-  
+
   /**
    * Handle preview
    */
@@ -545,7 +572,7 @@ export default function ProductForm({
       onPreview(formData);
     }
   };
-  
+
   /**
    * Calculate final price after discount
    */
@@ -554,7 +581,7 @@ export default function ProductForm({
     const discount = parseFloat(formData.pricing.discount) || 0;
     return basePrice - (basePrice * discount / 100);
   };
-  
+
   return (
     <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8">
       {/* Basic Information */}
@@ -562,7 +589,7 @@ export default function ProductForm({
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Basic Information
         </h2>
-        
+
         <div className="space-y-4">
           {/* Title */}
           <div>
@@ -575,7 +602,7 @@ export default function ProductForm({
               helperText="Choose a descriptive, keyword-rich title"
             />
           </div>
-          
+
           {/* AI Content Generator */}
           <AIContentGenerator
             title={formData.title}
@@ -586,7 +613,7 @@ export default function ProductForm({
             onApplyField={handleApplyAIField}
             currentContent={formData}
           />
-          
+
           {/* Slug and SKU */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -597,7 +624,7 @@ export default function ProductForm({
               error={errors.slug}
               helperText="Auto-generated from title"
             />
-            
+
             <Input
               label="SKU (Stock Keeping Unit) *"
               placeholder="LC-BRD-001"
@@ -607,7 +634,7 @@ export default function ProductForm({
               helperText="Unique product identifier"
             />
           </div>
-          
+
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -624,13 +651,13 @@ export default function ProductForm({
           </div>
         </div>
       </section>
-      
+
       {/* Classification - Category, Type & Occasion */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Product Classification
         </h2>
-        
+
         <div className="space-y-4">
           {/* Category, Type, Occasion in one row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -658,7 +685,7 @@ export default function ProductForm({
                 </div>
               )}
             </div>
-            
+
             <Select
               label="Product Type *"
               value={formData.type}
@@ -669,7 +696,7 @@ export default function ProductForm({
               <option value="karhai">Machine Karhai</option>
               <option value="hand-karhai">Hand Karhai (Artisan)</option>
             </Select>
-            
+
             <Select
               label="Occasion"
               value={formData.occasion}
@@ -687,7 +714,7 @@ export default function ProductForm({
               <option value="Everyday">Everyday</option>
             </Select>
           </div>
-          
+
           {/* Article Name & Code - optional identifiers */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
@@ -697,7 +724,7 @@ export default function ProductForm({
               onChange={(e) => handleChange('articleName', e.target.value)}
               helperText="Optional: Unique name for this design"
             />
-            
+
             <Input
               label="Article Code"
               placeholder="e.g., HK-001, RG-2024"
@@ -708,7 +735,7 @@ export default function ProductForm({
           </div>
         </div>
       </section>
-      
+
       {/* Hand Karhai / Embroidery Details - Only show for karhai types */}
       {(formData.type === 'karhai' || formData.type === 'hand-karhai') && (
         <section className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6 border border-pink-200">
@@ -716,7 +743,7 @@ export default function ProductForm({
             <span className="text-2xl">âœ¨</span>
             {formData.type === 'hand-karhai' ? 'Hand Karhai Details' : 'Embroidery Details'}
           </h2>
-          
+
           <div className="space-y-4">
             {/* Work Type and Complexity */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -747,7 +774,7 @@ export default function ProductForm({
                 <option value="kashmiri">Kashmiri</option>
                 <option value="mixed">Mixed Techniques</option>
               </Select>
-              
+
               <Select
                 label="Complexity Level"
                 value={formData.embroideryDetails.complexity}
@@ -759,7 +786,7 @@ export default function ProductForm({
                 <option value="heavy">Heavy (Dense coverage)</option>
                 <option value="bridal">Bridal (Premium quality)</option>
               </Select>
-              
+
               <Select
                 label="Coverage Area"
                 value={formData.embroideryDetails.coverage}
@@ -772,7 +799,7 @@ export default function ProductForm({
                 <option value="all-over">All-Over (90-100%)</option>
               </Select>
             </div>
-            
+
             {/* Placement Checkboxes */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -798,7 +825,7 @@ export default function ProductForm({
                 ))}
               </div>
             </div>
-            
+
             {/* Estimated Hours and Additional Cost */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
@@ -810,7 +837,7 @@ export default function ProductForm({
                 min="0"
                 helperText="Approximate hours for embroidery work"
               />
-              
+
               <Input
                 label="Additional Embroidery Cost (PKR)"
                 type="number"
@@ -821,7 +848,7 @@ export default function ProductForm({
                 helperText="Extra cost for embroidery work"
               />
             </div>
-            
+
             {/* Embroidery Description */}
             <Textarea
               label="Embroidery Description"
@@ -839,14 +866,14 @@ export default function ProductForm({
           </div>
         </section>
       )}
-      
+
       {/* Suit Components */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
           <span className="text-2xl">ðŸ“¦</span>
           What's Included
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Shirt */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -898,7 +925,7 @@ export default function ProductForm({
               </div>
             )}
           </div>
-          
+
           {/* Dupatta */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
@@ -949,7 +976,7 @@ export default function ProductForm({
               </div>
             )}
           </div>
-          
+
           {/* Trouser */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-3">
@@ -1002,13 +1029,13 @@ export default function ProductForm({
           </div>
         </div>
       </section>
-      
+
       {/* Images */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Product Images *
         </h2>
-        
+
         <ImageUploadMultiple
           images={formData.images}
           primaryImage={formData.primaryImage}
@@ -1017,18 +1044,18 @@ export default function ProductForm({
           maxImages={10}
           error={errors.images}
         />
-        
+
         <p className="mt-2 text-sm text-gray-600">
           Upload at least 5 high-quality images from different angles. First image will be the primary image.
         </p>
       </section>
-      
+
       {/* Fabric Details */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Fabric Details
         </h2>
-        
+
         <div className="space-y-4">
           <Select
             label="Fabric Type"
@@ -1055,7 +1082,7 @@ export default function ProductForm({
             <option value="Raw Silk">Raw Silk</option>
             <option value="Other">Other</option>
           </Select>
-          
+
           <Textarea
             label="Fabric Composition"
             placeholder="e.g., 100% Pure Silk, 70% Cotton 30% Polyester"
@@ -1070,7 +1097,7 @@ export default function ProductForm({
               {formData.fabric.composition.length}/200 characters
             </p>
           )}
-          
+
           <Textarea
             label="Care Instructions"
             placeholder="e.g., Dry clean only, Hand wash in cold water, Iron on low heat"
@@ -1087,13 +1114,13 @@ export default function ProductForm({
           )}
         </div>
       </section>
-      
+
       {/* Pricing */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Pricing
         </h2>
-        
+
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
@@ -1106,7 +1133,7 @@ export default function ProductForm({
               min="0"
               step="0.01"
             />
-            
+
             <Input
               label="Custom Stitching Charge (PKR)"
               type="number"
@@ -1117,7 +1144,7 @@ export default function ProductForm({
               step="0.01"
               helperText="Additional charge for custom stitching"
             />
-            
+
             <Input
               label="Discount (%)"
               type="number"
@@ -1130,7 +1157,7 @@ export default function ProductForm({
               step="0.01"
             />
           </div>
-          
+
           {/* Price Preview */}
           {formData.pricing.basePrice && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1156,13 +1183,13 @@ export default function ProductForm({
           )}
         </div>
       </section>
-      
+
       {/* Availability */}
       <section>
         <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
           Availability
         </h2>
-        
+
         <div className="space-y-4">
           <Select
             label="Availability Status"
@@ -1173,7 +1200,7 @@ export default function ProductForm({
             <option value="custom-only">Custom Order Only</option>
             <option value="out-of-stock">Out of Stock</option>
           </Select>
-          
+
           <Checkbox
             label="Featured Product"
             checked={formData.featured}
@@ -1182,7 +1209,7 @@ export default function ProductForm({
           />
         </div>
       </section>
-      
+
       {/* SEO Optimization */}
       <section className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
@@ -1191,7 +1218,7 @@ export default function ProductForm({
         <p className="text-sm text-gray-600 mb-4">
           AI can auto-generate SEO content. Use the AI Content Generator above to fill these fields automatically.
         </p>
-        
+
         <div className="space-y-4">
           <Input
             label="Meta Title"
@@ -1201,7 +1228,7 @@ export default function ProductForm({
             maxLength={60}
             helperText={`${formData.seo.metaTitle.length}/60 characters â€” Include your main keyword`}
           />
-          
+
           <div>
             <Textarea
               label="Meta Description"
@@ -1216,7 +1243,7 @@ export default function ProductForm({
               {formData.seo.metaDescription.length}/160 characters â€” Include a call-to-action
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Long-Tail Keywords
@@ -1231,7 +1258,7 @@ export default function ProductForm({
               onKeyDown={handleAddKeyword}
               helperText="Examples: 'custom stitched party wear Pakistan', 'zardozi embroidery bridal suit'"
             />
-            
+
             {/* Keywords Pills */}
             {formData.seo.keywords.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -1252,7 +1279,7 @@ export default function ProductForm({
                 ))}
               </div>
             )}
-            
+
             {formData.seo.keywords.length === 0 && (
               <p className="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
                 ðŸ’¡ Tip: Add 5-10 long-tail keywords for better search rankings
@@ -1261,7 +1288,7 @@ export default function ProductForm({
           </div>
         </div>
       </section>
-      
+
       {/* Form Actions */}
       <div className="flex items-center justify-between pt-6 border-t border-gray-200">
         <Button
@@ -1272,7 +1299,7 @@ export default function ProductForm({
         >
           Cancel
         </Button>
-        
+
         <div className="flex items-center gap-3">
           {onPreview && (
             <Button
@@ -1285,7 +1312,7 @@ export default function ProductForm({
               Preview
             </Button>
           )}
-          
+
           <Button
             type="button"
             variant="outlined"
@@ -1294,7 +1321,7 @@ export default function ProductForm({
           >
             Save Draft
           </Button>
-          
+
           <Button
             type="submit"
             loading={loading}
@@ -1304,7 +1331,7 @@ export default function ProductForm({
           </Button>
         </div>
       </div>
-      
+
       {/* Unsaved Changes & Auto-save Status */}
       {(isDirty || lastSaved || draftSaving) && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-lg flex items-center gap-3">

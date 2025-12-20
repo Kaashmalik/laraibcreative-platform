@@ -9,6 +9,7 @@
 
 const express = require('express');
 const router = express.Router();
+console.log('✅ AI Routes file loaded');
 const aiController = require('../controllers/aiController');
 const { protect, adminOnly } = require('../middleware/auth.middleware');
 

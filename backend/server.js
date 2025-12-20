@@ -403,6 +403,14 @@ try {
   app.use('/api/v1/auth/admin-login', authLimiter);
   app.use('/api/v1/auth/register', authLimiter);
   console.log('✅ All routes loaded successfully');
+
+  // FIX: Explicitly mount AI routes to ensure they are loaded
+  const aiRoutesPath = path.join(__dirname, 'src/routes/aiRoutes.js');
+  if (fs.existsSync(aiRoutesPath)) {
+    const aiRoutes = require(aiRoutesPath);
+    app.use('/api/v1/admin/ai', aiRoutes);
+    console.log('✅ FORCED LOAD: AI Routes mounted at /api/v1/admin/ai');
+  }
 } catch (error) {
   console.error('❌ Error loading routes:', error.message);
   // Fallback to individual route loading
@@ -421,6 +429,7 @@ try {
   loadRoute('./src/routes/dashboard.routes.js', '/api/v1/admin/dashboard');
   loadRoute('./src/routes/adminProduct.routes.js', '/api/v1/admin/products');
   loadRoute('./src/routes/adminOrder.routes.js', '/api/v1/admin/orders');
+  loadRoute('./src/routes/aiRoutes.js', '/api/v1/admin/ai');
 }
 
 // =================================================================

@@ -22,6 +22,7 @@ const productionQueueRoutes = require('./productionQueue.routes');
 const referralRoutes = require('./referral.routes');
 const loyaltyRoutes = require('./loyalty.routes');
 const aiRoutes = require('./aiRoutes');
+const seoDashboardRoutes = require('./seoDashboard.routes');
 
 // Health check routes (mounted at root level - no version)
 const healthRoutes = require('./health.routes');
@@ -53,6 +54,7 @@ router.use(`${API_VERSION}/loyalty`, loyaltyRoutes);
 router.use(`${API_VERSION}/alerts`, require('./alerts.routes'));
 router.use(`${API_VERSION}/facebook`, require('./facebook-conversion.routes'));
 router.use(`${API_VERSION}/admin/ai`, aiRoutes);
+router.use(`${API_VERSION}/admin/seo`, seoDashboardRoutes);
 
 // Root endpoint
 router.get('/', (req, res) => {
