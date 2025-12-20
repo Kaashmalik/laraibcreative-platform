@@ -70,13 +70,9 @@ const register = async (req, res) => {
       role: 'customer'
     });
 
-    // Send welcome email with verification link
-    try {
-      await sendWelcomeEmail(user.email, user.fullName, verificationToken);
-    } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
-      // Don't fail registration if email fails
-    }
+    // Send welcome email with verification link (non-blocking)
+    sendWelcomeEmail(user.email, user.fullName, verificationToken)
+      .catch(emailError => console.error('Failed to send welcome email:', emailError));
 
     // Generate tokens
     const accessToken = generateAccessToken(user._id);

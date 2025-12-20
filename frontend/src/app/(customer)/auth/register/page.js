@@ -125,12 +125,10 @@ export default function RegisterPage() {
       });
 
       if (result.success) {
-        // Show success message about email verification
-        setRegistrationSuccess(true);
-        // Redirect to account page after a short delay
-        setTimeout(() => {
-          router.replace('/account');
-        }, 3000);
+        // Immediate redirect to account page
+        // The store handles setting the user/token state
+        router.replace('/account');
+        return;
       } else {
         // Check if it's a conflict error (email/phone already exists)
         if (result.conflictType) {
@@ -239,8 +237,8 @@ export default function RegisterPage() {
               onBlur={() => handleBlur('fullName')}
               required
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.fullName && touched.fullName
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
                 }`}
               placeholder="Enter your full name"
             />
@@ -262,8 +260,8 @@ export default function RegisterPage() {
               onBlur={() => handleBlur('email')}
               required
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.email && touched.email
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
                 }`}
               placeholder="you@example.com"
             />
@@ -286,8 +284,8 @@ export default function RegisterPage() {
               required
               maxLength={12}
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.phone && touched.phone
-                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
-                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
                 }`}
               placeholder="0300-1234567"
             />
@@ -311,8 +309,8 @@ export default function RegisterPage() {
                 onBlur={() => handleBlur('password')}
                 required
                 className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.password && touched.password
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
-                    : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
                   }`}
                 placeholder="Create a strong password"
               />
@@ -436,8 +434,8 @@ export default function RegisterPage() {
                 onBlur={() => handleBlur('confirmPassword')}
                 required
                 className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:outline-none focus:ring-4 transition ${errors.confirmPassword && touched.confirmPassword
-                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
-                    : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                  : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
                   }`}
                 placeholder="Confirm your password"
               />

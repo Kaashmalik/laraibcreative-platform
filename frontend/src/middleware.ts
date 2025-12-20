@@ -3,35 +3,16 @@
  * Handles Supabase Auth session refresh and route protection
  */
 
-import { createServerClient } from '@supabase/ssr'
+
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // Refresh session
-  const { data: { user } } = await supabase.auth.getUser()
-
+// Custom Middleware for JWT Auth
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Get token from cookies
+  const token = request.cookies.get('accessToken')?.value
+  const userStr = request.cookies.get('user')?.value // Optional: check user role from cookie if available
 
   // Route protection
   const isAuthPage = pathname.startsWith('/auth')
@@ -40,10 +21,10 @@ export async function middleware(request: NextRequest) {
   const isCheckoutPage = pathname.startsWith('/checkout')
   const isApiRoute = pathname.startsWith('/api')
 
-  if (isApiRoute) return supabaseResponse
+  if (isApiRoute) return NextResponse.next()
 
   // Redirect unauthenticated users from protected pages
-  if (!user && (isAccountPage || isCheckoutPage)) {
+  if (!token && (isAccountPage || isCheckoutPage)) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     url.searchParams.set('returnUrl', pathname)
@@ -51,7 +32,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  if (user && isAuthPage && !pathname.includes('logout')) {
+  if (token && isAuthPage && !pathname.includes('logout')) {
     const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/account'
     const url = request.nextUrl.clone()
     url.pathname = returnUrl
@@ -59,16 +40,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin route protection
-  // Skip protection for admin login page - it uses localStorage auth, not Supabase
-  if (isAdminPage && pathname !== '/admin/login') {
-    // Admin routes use localStorage-based auth from Express backend
-    // The ProtectedAdminRoute component handles client-side auth checking
-    // So we don't block here - just let the page handle its own auth
-    // This allows the admin panel to work with Express backend auth
+  // Admin route protection handled by client components mostly, but basic check here
+  if (isAdminPage && pathname !== '/admin/login' && !token) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin/login'
+    return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {
