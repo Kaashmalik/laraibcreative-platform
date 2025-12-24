@@ -2,8 +2,7 @@
 
 
 import { Suspense } from 'react';
-import Link from 'next/link';
-import dynamicImport from 'next/dynamic';
+
 import HeroSection from '@/components/customer/HeroSection';
 import FeaturedCarousel from '@/components/customer/FeaturedCarousel';
 import CategoryCard from '@/components/customer/CategoryCard';
@@ -13,55 +12,41 @@ import NewsletterSection from '@/components/customer/NewsletterSection';
 import WhatsAppButton from '@/components/customer/WhatsAppButton';
 import { useFeaturedProducts, useCategories } from '@/hooks/useFeaturedProducts';
 
-import {
-  Sparkles,
-  Package,
-  Shield,
-  Clock,
-  TrendingUp,
-  Award,
-  Heart,
-  Scissors,
-  Star,
-  Truck,
-  Users,
-  ChevronRight,
-  Play,
-  Instagram,
-  Facebook,
-  MessageCircle,
-  Phone,
-  Mail,
-  MapPin,
-  CheckCircle2,
-  ArrowRight
-} from 'lucide-react';
 
-// Dynamic imports for performance
-const InstagramFeed = dynamicImport(() => import('@/components/customer/InstagramFeed'), {
-  loading: () => <InstagramSkeleton />,
-  ssr: false
-});
 
-const VideoTestimonials = dynamicImport(() => import('@/components/customer/VideoTestimonials'), {
-  loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
-  ssr: false
-});
+import type { Product } from '@/types/product';
+
+interface Category {
+  _id?: string;
+  name: string;
+  slug?: string;
+  image?: string;
+  [key: string]: any;
+}
+
+interface HomePageClientProps {
+  featuredProducts?: Product[];
+  categories?: Category[];
+  testimonials?: any[];
+}
 
 /**
  * Homepage Client Component
  * Handles all client-side interactivity
  * Now with client-side fallback fetching for reliability
  */
-export default function HomePageClient({ featuredProducts: initialProducts = [], categories: initialCategories = [], testimonials }) {
+export default function HomePageClient({
+  featuredProducts: initialProducts = [],
+  categories: initialCategories = []
+}: HomePageClientProps) {
   // Use client-side fallback hooks with initial data
   const { products: fallbackProducts, loading: productsLoading } = useFeaturedProducts(initialProducts, 8);
-  const { categories: fallbackCategories, loading: categoriesLoading } = useCategories(initialCategories);
-  
+  const { categories: fallbackCategories } = useCategories(initialCategories);
+
   // Use server data if available, otherwise use client data
   const featuredProducts = initialProducts.length > 0 ? initialProducts : fallbackProducts;
   const categories = initialCategories.length > 0 ? initialCategories : fallbackCategories;
-  
+
   console.log('HomePageClient display:', {
     initialCount: initialProducts.length,
     fallbackCount: fallbackProducts.length,
@@ -180,11 +165,7 @@ export default function HomePageClient({ featuredProducts: initialProducts = [],
 }
 
 // Loading skeleton components
-function InstagramSkeleton() {
-  return (
-    <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />
-  );
-}
+
 
 function CarouselSkeleton() {
   return (

@@ -74,15 +74,15 @@ export default async function HomePage(): Promise<JSX.Element> {
   try {
     // Fetch data for homepage in parallel with timeout
     console.log('Fetching homepage data...');
-    
+
     // Create a timeout promise that resolves with empty data instead of rejecting
-    const timeoutPromise = new Promise((resolve) => 
+    const timeoutPromise = new Promise((resolve) =>
       setTimeout(() => {
         console.warn('Fetch timeout, using empty data');
         resolve([{ success: false, data: [] }, { success: false, data: [] }]);
       }, 10000)
     );
-    
+
     const fetchPromise = Promise.all([
       api.products.getFeatured(8).catch((e) => {
         console.error('Error fetching featured products:', e);
@@ -93,16 +93,16 @@ export default async function HomePage(): Promise<JSX.Element> {
         return { success: false, data: [] };
       })
     ]);
-    
+
     // Race between fetch and timeout - both resolve with same structure
-    const [featuredProductsResponse, categoriesResponse] = await Promise.race([fetchPromise, timeoutPromise]);
+    const [featuredProductsResponse, categoriesResponse] = await Promise.race([fetchPromise, timeoutPromise]) as [any, any];
 
     console.log('Featured Products Response:', JSON.stringify(featuredProductsResponse, null, 2));
     // console.log('Categories Response:', JSON.stringify(categoriesResponse, null, 2));
 
     // Type-safe extraction of products
     let featuredProducts: Product[] = [];
-    
+
     // Handle different response formats consistently
     if (featuredProductsResponse && featuredProductsResponse.success && Array.isArray(featuredProductsResponse.data)) {
       // Standard API response: { success: true, data: [...] }
@@ -122,7 +122,7 @@ export default async function HomePage(): Promise<JSX.Element> {
 
     // Type-safe extraction of categories
     let categories: Category[] = [];
-    
+
     if (categoriesResponse && categoriesResponse.success && Array.isArray(categoriesResponse.data)) {
       // Standard API response: { success: true, data: [...] }
       categories = categoriesResponse.data;

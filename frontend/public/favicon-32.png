@@ -1,0 +1,26 @@
+<!-- Favicon 32x32 for browsers -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D946A6" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+
+  <rect width="32" height="32" rx="8" fill="url(#iconGradient)" />
+  
+  <g transform="translate(4, 4) scale(0.047)">
+    <path d="M140 120 V 380 H 280" 
+          stroke="white" 
+          stroke-width="48" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          fill="none"/>
+          
+    <path d="M420 180 A 100 100 0 1 0 420 340" 
+          stroke="white" 
+          stroke-width="48" 
+          stroke-linecap="round" 
+          fill="none"/>
+  </g>
+</svg>
