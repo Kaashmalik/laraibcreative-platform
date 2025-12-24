@@ -17,6 +17,7 @@ export default function ProductCard({ product }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -34,17 +35,20 @@ export default function ProductCard({ product }) {
       });
     }
 
-    if (product.primaryImage && !images.includes(product.primaryImage)) {
+    // Handle different image field names
+    const primaryImg = product.primaryImage || product.image || product.featuredImage;
+    if (primaryImg && !images.includes(primaryImg)) {
       // Ensure primary image is first
-      const primaryIndex = images.indexOf(product.primaryImage);
+      const primaryIndex = images.indexOf(primaryImg);
       if (primaryIndex > -1) {
         images.splice(primaryIndex, 1);
       }
-      images.unshift(product.primaryImage);
+      images.unshift(primaryImg);
     }
 
+    // Add placeholder if no images
     if (images.length === 0) {
-      images.push('/images/placeholder.png');
+      images.push('/images/placeholder-product.svg');
     }
 
     return images;
@@ -53,16 +57,21 @@ export default function ProductCard({ product }) {
   const productImages = getProductImages();
   const hasMultipleImages = productImages.length > 1;
 
+  // Reset image error when changing images
+  useEffect(() => {
+    setImageError(false);
+  }, [currentImageIndex]);
+
   // Auto-slide on hover
   useEffect(() => {
     let interval;
-    if (isHovered && hasMultipleImages) {
+    if (isHovered && hasMultipleImages && !imageError) {
       interval = setInterval(() => {
         setCurrentImageIndex(prev => (prev + 1) % productImages.length);
       }, 1500);
     }
     return () => clearInterval(interval);
-  }, [isHovered, hasMultipleImages, productImages.length]);
+  }, [isHovered, hasMultipleImages, productImages.length, imageError]);
 
   // Reset to first image when not hovering
   useEffect(() => {
@@ -90,14 +99,29 @@ export default function ProductCard({ product }) {
       <Link href={`/products/${slug}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100">
 
         {/* Product Images */}
-        <Image
-          src={productImages[currentImageIndex]}
-          alt={product.title || product.name || 'Product Image'}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          priority={false}
-        />
+        {!imageError ? (
+          <Image
+            src={productImages[currentImageIndex]}
+            alt={product.title || product.name || 'Product Image'}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={false}
+            onError={() => setImageError(true)}
+            onLoad={() => setImageError(false)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="text-center p-4">
+              <div className="w-16 h-16 mx-auto mb-2 bg-gray-200 rounded-lg flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500">Image not available</p>
+            </div>
+          </div>
+        )}
 
         {/* Overlay gradient for text contrast if needed */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

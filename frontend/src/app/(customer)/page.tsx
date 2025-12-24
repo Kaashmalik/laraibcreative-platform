@@ -23,7 +23,7 @@ interface Category {
  * Revalidate homepage every 600 seconds (10 minutes)
  * Homepage content (featured products, categories) changes frequently
  */
-export const revalidate = 600;
+export const revalidate = 300; // Revalidate every 5 minutes to balance freshness and performance
 
 /**
  * Generate metadata for homepage
@@ -72,50 +72,69 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function HomePage(): Promise<JSX.Element> {
   try {
-    // Fetch data for homepage in parallel
+    // Fetch data for homepage in parallel with timeout
     console.log('Fetching homepage data...');
-    const [featuredProductsResponse, categoriesResponse] = await Promise.all([
+    
+    // Create a timeout promise that resolves with empty data instead of rejecting
+    const timeoutPromise = new Promise((resolve) => 
+      setTimeout(() => {
+        console.warn('Fetch timeout, using empty data');
+        resolve([{ success: false, data: [] }, { success: false, data: [] }]);
+      }, 10000)
+    );
+    
+    const fetchPromise = Promise.all([
       api.products.getFeatured(8).catch((e) => {
         console.error('Error fetching featured products:', e);
-        return { products: [] };
+        return { success: false, data: [] };
       }),
       api.categories.getAll().catch((e) => {
         console.error('Error fetching categories:', e);
-        return { data: [] };
+        return { success: false, data: [] };
       })
     ]);
+    
+    // Race between fetch and timeout - both resolve with same structure
+    const [featuredProductsResponse, categoriesResponse] = await Promise.race([fetchPromise, timeoutPromise]);
 
     console.log('Featured Products Response:', JSON.stringify(featuredProductsResponse, null, 2));
     // console.log('Categories Response:', JSON.stringify(categoriesResponse, null, 2));
 
     // Type-safe extraction of products
     let featuredProducts: Product[] = [];
-    if (featuredProductsResponse && typeof featuredProductsResponse === 'object') {
-      if ('products' in featuredProductsResponse && Array.isArray(featuredProductsResponse.products)) {
-        featuredProducts = featuredProductsResponse.products;
-      } else if ('data' in featuredProductsResponse && Array.isArray(featuredProductsResponse.data)) {
-        // Handle { success: true, data: [...] } format from backend
-        featuredProducts = featuredProductsResponse.data as Product[];
-      } else if ('data' in featuredProductsResponse && featuredProductsResponse.data &&
-        typeof featuredProductsResponse.data === 'object' &&
-        'products' in featuredProductsResponse.data &&
-        Array.isArray(featuredProductsResponse.data.products)) {
-        featuredProducts = featuredProductsResponse.data.products;
-      } else if (Array.isArray(featuredProductsResponse)) {
-        featuredProducts = featuredProductsResponse as Product[];
-      }
+    
+    // Handle different response formats consistently
+    if (featuredProductsResponse && featuredProductsResponse.success && Array.isArray(featuredProductsResponse.data)) {
+      // Standard API response: { success: true, data: [...] }
+      featuredProducts = featuredProductsResponse.data;
+    } else if (featuredProductsResponse && Array.isArray(featuredProductsResponse.data)) {
+      // Direct data response: { data: [...] }
+      featuredProducts = featuredProductsResponse.data;
+    } else if (Array.isArray(featuredProductsResponse)) {
+      // Direct array response
+      featuredProducts = featuredProductsResponse;
+    } else {
+      console.warn('Unexpected featured products response format:', featuredProductsResponse);
+      featuredProducts = [];
     }
 
     console.log(`Extracted ${featuredProducts.length} featured products`);
 
     // Type-safe extraction of categories
     let categories: Category[] = [];
-    if (categoriesResponse && typeof categoriesResponse === 'object') {
-      if ('data' in categoriesResponse && Array.isArray(categoriesResponse.data)) {
-        categories = categoriesResponse.data;
-      } else if (Array.isArray(categoriesResponse)) {
-        categories = categoriesResponse as Category[];
-      }
+    
+    if (categoriesResponse && categoriesResponse.success && Array.isArray(categoriesResponse.data)) {
+      // Standard API response: { success: true, data: [...] }
+      categories = categoriesResponse.data;
+    } else if (categoriesResponse && Array.isArray(categoriesResponse.data)) {
+      // Direct data response: { data: [...] }
+      categories = categoriesResponse.data;
+    } else if (Array.isArray(categoriesResponse)) {
+      // Direct array response
+      categories = categoriesResponse;
+    } else {
+      console.warn('Unexpected categories response format:', categoriesResponse);
+      categories = [];
     }
 
     // Fetch testimonials if available

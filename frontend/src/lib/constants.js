@@ -13,6 +13,16 @@ export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // API and Site URLs
 const getApiBaseUrl = () => {
+  // In production, ensure we have a valid API URL
+  if (process.env.NODE_ENV === 'production') {
+    const url = process.env.NEXT_PUBLIC_API_URL;
+    if (!url) {
+      console.warn('NEXT_PUBLIC_API_URL not set in production. Using fallback.');
+      return 'https://laraibcreative-backend.onrender.com/api/v1';
+    }
+    return url.replace(/\/$/, '').includes('/api/v1') ? url.replace(/\/$/, '') : `${url.replace(/\/$/, '')}/api/v1`;
+  }
+  
   let url = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1';
 
   // Remove trailing slash

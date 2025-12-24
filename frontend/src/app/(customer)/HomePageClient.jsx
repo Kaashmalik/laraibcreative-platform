@@ -11,6 +11,7 @@ import ServicePlansSection from '@/components/customer/ServicePlansSection';
 import TestimonialsSection from '@/components/customer/TestimonialsSection';
 import NewsletterSection from '@/components/customer/NewsletterSection';
 import WhatsAppButton from '@/components/customer/WhatsAppButton';
+import { useFeaturedProducts, useCategories } from '@/hooks/useFeaturedProducts';
 
 import {
   Sparkles,
@@ -50,12 +51,22 @@ const VideoTestimonials = dynamicImport(() => import('@/components/customer/Vide
 /**
  * Homepage Client Component
  * Handles all client-side interactivity
+ * Now with client-side fallback fetching for reliability
  */
-export default function HomePageClient({ featuredProducts, categories, testimonials }) {
-  console.log('HomePageClient received:', {
-    featuredCount: featuredProducts?.length,
-    featuredProducts,
-    categoriesCount: categories?.length
+export default function HomePageClient({ featuredProducts: initialProducts = [], categories: initialCategories = [], testimonials }) {
+  // Use client-side fallback hooks with initial data
+  const { products: fallbackProducts, loading: productsLoading } = useFeaturedProducts(initialProducts, 8);
+  const { categories: fallbackCategories, loading: categoriesLoading } = useCategories(initialCategories);
+  
+  // Use server data if available, otherwise use client data
+  const featuredProducts = initialProducts.length > 0 ? initialProducts : fallbackProducts;
+  const categories = initialCategories.length > 0 ? initialCategories : fallbackCategories;
+  
+  console.log('HomePageClient display:', {
+    initialCount: initialProducts.length,
+    fallbackCount: fallbackProducts.length,
+    finalCount: featuredProducts.length,
+    productsLoading
   });
 
   return (
