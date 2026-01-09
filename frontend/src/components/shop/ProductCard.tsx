@@ -6,7 +6,6 @@
  */
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, ShoppingBag, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -14,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/cart-store'
 import { useWishlistStore } from '@/store/wishlist-store'
 import { cloudinaryPresets } from '@/lib/cloudinary'
+import { ProductImage } from '@/components/shared/ProductImage'
 import type { Product } from '@/lib/tidb/products'
 
 interface ProductCardProps {
@@ -24,21 +24,25 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className, priority = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false)
-  
+
   const addItem = useCartStore((s) => s.addItem)
   const { toggleItem, isInWishlist } = useWishlistStore()
-  
+
   const isWishlisted = isInWishlist(product.id)
   
-  // Parse pricing
-  const pricing = typeof product.pricing === 'string' 
+  // Parse pricing - handle both old and new API formats
+  let pricing = typeof product.pricing === 'string' 
     ? JSON.parse(product.pricing) 
     : product.pricing
-  const hasDiscount = pricing.sale && pricing.sale < pricing.base
-  const displayPrice = pricing.sale || pricing.base
+  
+  // Normalize pricing structure
+  const basePrice = pricing.basePrice || pricing.comparePrice || 0
+  const salePrice = pricing.discount?.amount ? (pricing.basePrice - pricing.discount.amount) : 0
+  
+  const hasDiscount = salePrice > 0 && salePrice < basePrice
+  const displayPrice = hasDiscount ? salePrice : basePrice
   const discountPercent = hasDiscount 
-    ? Math.round((1 - pricing.sale / pricing.base) * 100) 
+    ? Math.round((1 - salePrice / basePrice) * 100) 
     : 0
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -88,24 +92,17 @@ export function ProductCard({ product, className, priority = false }: ProductCar
         {/* Image Container */}
         <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100">
           {/* Main Image */}
-          <Image
+          <ProductImage
             src={cloudinaryPresets.thumbnail(product.thumbnail_image || product.primary_image || '')}
             alt={product.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className={cn(
               'object-cover transition-transform duration-500',
-              isHovered && 'scale-105',
-              !imageLoaded && 'opacity-0'
+              isHovered && 'scale-105'
             )}
             priority={priority}
-            onLoad={() => setImageLoaded(true)}
           />
-          
-          {/* Loading Skeleton */}
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gradient-to-br from-neutral-100 to-neutral-200 animate-pulse" />
-          )}
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">

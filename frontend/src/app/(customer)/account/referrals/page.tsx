@@ -4,9 +4,7 @@
  */
 
 'use client';
-
 export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Copy, Share2, Gift, Users, TrendingUp } from 'lucide-react';
@@ -188,4 +186,3 @@ export default function ReferralsPage() {
     </div>
   );
 }
-

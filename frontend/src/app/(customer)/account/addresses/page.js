@@ -1,6 +1,5 @@
-"use client";
-
 export const dynamic = 'force-dynamic';
+"use client";
 
 // app/(customer)/account/addresses/page.js
 import { useState, useEffect } from 'react';

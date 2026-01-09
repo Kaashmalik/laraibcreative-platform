@@ -81,48 +81,41 @@ export const useWishlistStore = create<WishlistStore>()(
   )
 )
 
-// Sync wishlist to Supabase
-// TODO: Regenerate Supabase types after running migrations
-export async function syncWishlistToSupabase(userId: string) {
-  const { createClient } = await import('@/lib/supabase/client')
-  const supabase = createClient()
+// Sync wishlist to backend API
+// Unified with backend JWT authentication
+export async function syncWishlistToBackend() {
   const items = useWishlistStore.getState().items
 
-  // Clear existing wishlist for user
-  await supabase.from('wishlists').delete().eq('user_id', userId)
-
-  // Insert current wishlist items
-  if (items.length > 0) {
-    const wishlistData = items.map(item => ({
-      user_id: userId,
-      product_id: item.productId,
-      created_at: item.addedAt
-    }))
-    // @ts-expect-error - Types will be available after running: npx supabase gen types
-    await supabase.from('wishlists').insert(wishlistData)
+  try {
+    // TODO: Implement wishlist sync with backend API
+    // await api.customers.syncWishlist({ items: items.map(item => ({
+    //   productId: item.productId,
+    //   addedAt: item.addedAt
+    // })) })
+    console.log('Wishlist sync not yet implemented', items.length, 'items')
+  } catch (error) {
+    console.error('Failed to sync wishlist to backend:', error)
   }
 }
 
-// Load wishlist from Supabase
-export async function loadWishlistFromSupabase(userId: string) {
-  const { createClient } = await import('@/lib/supabase/client')
-  const supabase = createClient()
-
-  const { data: wishlistItems } = await supabase
-    .from('wishlists')
-    .select('product_id, created_at')
-    .eq('user_id', userId) as { data: { product_id: string; created_at: string }[] | null }
-
-  if (!wishlistItems || wishlistItems.length === 0) return
-
-  // Merge with local wishlist (local takes priority for product details)
-  const store = useWishlistStore.getState()
-  const localItems = store.items
-  
-  wishlistItems.forEach((item) => {
-    const exists = localItems.some((local: WishlistItem) => local.productId === item.product_id)
-    if (!exists) {
-      store.addItem(item.product_id)
-    }
-  })
+// Load wishlist from backend API
+export async function loadWishlistFromBackend() {
+  try {
+    // TODO: Implement wishlist loading from backend API
+    // const response = await api.customers.getWishlist()
+    // if (response.success && response.data) {
+    //   const store = useWishlistStore.getState()
+    //   const localItems = store.items
+    //   
+    //   response.data.forEach((item: any) => {
+    //     const exists = localItems.some((local: WishlistItem) => local.productId === item.productId)
+    //     if (!exists) {
+    //       store.addItem(item.productId)
+    //     }
+    //   })
+    // }
+    console.log('Wishlist load from backend not yet implemented')
+  } catch (error) {
+    console.error('Failed to load wishlist from backend:', error)
+  }
 }

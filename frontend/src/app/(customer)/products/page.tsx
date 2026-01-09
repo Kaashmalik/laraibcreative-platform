@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { SITE_URL } from '@/lib/constants';
 import ProductsClient from './ProductsClient';
 
+// Force dynamic rendering to avoid build hanging
 /**
  * Products List Page Metadata
  * Production-ready SEO metadata following Next.js 14 best practices

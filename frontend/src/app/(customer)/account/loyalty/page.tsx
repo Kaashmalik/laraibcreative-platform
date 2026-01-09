@@ -4,9 +4,7 @@
  */
 
 'use client';
-
 export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Coins, TrendingUp, History, Gift } from 'lucide-react';
@@ -242,4 +240,3 @@ export default function LoyaltyPage() {
     </div>
   );
 }
-

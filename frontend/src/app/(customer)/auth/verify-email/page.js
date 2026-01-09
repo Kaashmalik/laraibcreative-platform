@@ -1,6 +1,5 @@
-"use client";
-
 export const dynamic = 'force-dynamic';
+"use client";
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -234,4 +233,3 @@ export default function VerifyEmailPage() {
     </Suspense>
   );
 }
-

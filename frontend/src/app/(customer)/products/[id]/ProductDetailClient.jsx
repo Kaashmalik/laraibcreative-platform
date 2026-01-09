@@ -23,7 +23,7 @@ export default function ProductDetailClient({ params: serverParams }) {
   const clientParams = useParams();
   const router = useRouter();
   const params = serverParams || clientParams;
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
   
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -39,16 +39,39 @@ export default function ProductDetailClient({ params: serverParams }) {
 
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!params.id) {
+        console.error('Product ID/Slug is undefined');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
-        const response = await api.products.getById(params.id);
-        const productData = response?.product || response;
+        // Try to fetch by slug first (since URL uses slug), fallback to ID
+        const response = await api.products.getBySlug(params.id).catch(() => 
+          api.products.getById(params.id)
+        );
+        
+        // Axios interceptor returns response.data, which is { success: true, data: product }
+        // So we need to extract the product from response.data
+        const productData = response?.data || response?.product || response;
+        
+        // Log for debugging
+        console.log('Full API response:', response);
+        console.log('Extracted product data:', productData);
+        console.log('Product _id:', productData?._id);
+        console.log('Product pricing:', productData?.pricing);
+        console.log('Product images:', productData?.images);
+        console.log('Product title:', productData?.title);
+        
         setProduct(productData);
         
         // Fetch related products
-        if (productData) {
+        if (productData && (productData._id || productData.id)) {
           try {
-            const related = await api.products.getRelated(productData._id || productData.id, {
+            const productId = productData._id || productData.id;
+            console.log('Fetching related products for ID:', productId);
+            const related = await api.products.getRelated(productId, {
               type: productData.type,
               category: productData.category?._id || productData.category,
               limit: 8,
@@ -58,44 +81,71 @@ export default function ProductDetailClient({ params: serverParams }) {
             console.error('Error fetching related products:', error);
             setRelatedProducts([]);
           }
+        } else {
+          console.warn('Product data missing _id or id field:', productData);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
     };
 
-    if (params.id) {
-      fetchProduct();
-    }
+    fetchProduct();
   }, [params.id]);
 
   const handleAddToCart = () => {
     if (product) {
-      const cartItem = {
-        id: product._id || product.id,
-        name: product.title || product.name,
-        price: calculatedPrice?.totalPrice || product.pricing?.basePrice || product.price,
-        image: product.primaryImage || product.images?.[0] || product.image,
+      // Normalize pricing structure
+      const pricing = product.pricing || {};
+      const normalizedPrice = pricing.basePrice || pricing.base || pricing.price || product.price || 0;
+      const validPrice = typeof normalizedPrice === 'number' && !isNaN(normalizedPrice) ? normalizedPrice : 0;
+      
+      const customizations = {
         size: selectedSize,
         color: selectedColor,
-        quantity,
-        customizations: {
-          replicaFiles: product.type === 'replica' ? replicaFiles : null,
-          embroidery: product.type === 'karhai' ? embroideryOptions : null,
-          priceBreakdown: calculatedPrice,
-        },
+        replicaFiles: product.type === 'replica' ? replicaFiles : null,
+        embroidery: product.type === 'karhai' ? embroideryOptions : null,
+        priceBreakdown: calculatedPrice,
       };
-      addToCart(cartItem);
+      
+      // Log the complete product object being passed
+      console.log('=== ADD TO CART DEBUG ===');
+      console.log('Product object:', product);
+      console.log('Product ID:', product._id || product.id);
+      console.log('Product title:', product.title);
+      console.log('Product name:', product.name);
+      console.log('Product pricing:', product.pricing);
+      console.log('Normalized price:', validPrice);
+      console.log('Product images:', product.images);
+      console.log('Product primaryImage:', product.primaryImage);
+      console.log('Quantity:', quantity);
+      console.log('Customizations:', customizations);
+      console.log('=========================');
+      
+      // Pass the full product object with quantity and customizations
+      addItem(product, quantity, customizations);
     }
   };
 
   // Safely handle images array
   const images = product?.images?.length > 0 
-    ? product.images.map(img => typeof img === 'string' ? img : img?.url || img)
-    : (product?.primaryImage || product?.image ? [product.primaryImage || product.image] : []);
-  const currentImage = images[currentImageIndex] || images[0] || '/images/placeholder.png';
+    ? product.images.map(img => {
+        // Handle different image formats
+        let imageUrl = '';
+        if (typeof img === 'string') {
+          imageUrl = img;
+        } else if (img?.url) {
+          imageUrl = img.url;
+        } else if (typeof img === 'object') {
+          imageUrl = img;
+        }
+        // Remove any extra quotes from URL
+        return imageUrl.replace(/^"|"$/g, '');
+      })
+    : (product?.primaryImage || product?.image ? [(product.primaryImage || product.image).replace(/^"|"$/g, '')] : []);
+  const currentImage = (images[currentImageIndex] || images[0] || '/images/placeholder.png').replace(/^"|"$/g, '');
   
   // Ensure currentImageIndex is within bounds
   useEffect(() => {

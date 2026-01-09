@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import HomePageClient from './HomePageClient';
 import api from '@/lib/api';
@@ -71,6 +72,33 @@ export async function generateMetadata(): Promise<Metadata> {
  * Now inside customer route group to use customer layout with Header/Footer
  */
 export default async function HomePage(): Promise<JSX.Element> {
+  // Skip data fetching during build time to avoid timeouts
+  // Check if we're in build phase
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' ||
+                      process.env.NEXT_PHASE === 'phase-development-build' ||
+                      process.env.BUILD_ID !== undefined;
+
+  if (isBuildTime) {
+    console.log('Build time detected - skipping data fetching');
+    const organizationSchema = generateOrganizationStructuredData();
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
+        <HomePageClient
+          featuredProducts={[]}
+          categories={[]}
+          testimonials={[]}
+        />
+      </>
+    );
+  }
+
   try {
     // Fetch data for homepage in parallel with timeout
     console.log('Fetching homepage data...');
@@ -80,7 +108,7 @@ export default async function HomePage(): Promise<JSX.Element> {
       setTimeout(() => {
         console.warn('Fetch timeout, using empty data');
         resolve([{ success: false, data: [] }, { success: false, data: [] }]);
-      }, 10000)
+      }, 5000) // Reduced timeout to 5 seconds
     );
 
     const fetchPromise = Promise.all([
@@ -184,4 +212,3 @@ export default async function HomePage(): Promise<JSX.Element> {
     );
   }
 }
-

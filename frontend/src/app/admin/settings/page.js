@@ -1,6 +1,5 @@
-"use client";
-
 export const dynamic = 'force-dynamic';
+"use client";
 
 import Link from 'next/link';
 import { Settings, Mail, CreditCard, Truck, Search, Users, User, Globe } from 'lucide-react';

@@ -137,55 +137,49 @@ export const useCartStore = create<CartStore>()(
   )
 )
 
-// Hook to sync cart with Supabase when user logs in
-export async function syncCartToSupabase(userId: string) {
-  const { createClient } = await import('@/lib/supabase/client')
-  const supabase = createClient()
+// Hook to sync cart with backend API when user logs in
+// Unified with backend JWT authentication
+export async function syncCartToBackend() {
   const items = useCartStore.getState().items
 
-  // Clear existing cart items for user
-  await supabase.from('cart_items').delete().eq('user_id', userId)
-
-  // Insert current cart items
-  if (items.length > 0) {
-    await supabase.from('cart_items').insert(
-      items.map(item => ({
-        user_id: userId,
-        product_id: item.productId,
-        variant_id: item.variantId || null,
-        quantity: item.quantity,
-        customization: item.customization || null,
-      })) as any
-    )
+  try {
+    // TODO: Implement cart sync with backend API
+    // await api.cart.sync({ items: items.map(item => ({
+    //   productId: item.productId,
+    //   variantId: item.variantId,
+    //   quantity: item.quantity,
+    //   customization: item.customization
+    // })) })
+    console.log('Cart sync not yet implemented', items.length, 'items')
+  } catch (error) {
+    console.error('Failed to sync cart to backend:', error)
   }
 }
 
-// Hook to load cart from Supabase when user logs in
-// TODO: Implement batch product fetching from TiDB
-export async function loadCartFromSupabase(userId: string) {
-  const { createClient } = await import('@/lib/supabase/client')
-  const supabase = createClient()
+// Hook to load cart from backend API when user logs in
+// Unified with backend JWT authentication
+export async function loadCartFromBackend() {
+  try {
+    // TODO: Implement cart loading from backend API
+    // const response = await api.cart.get()
+    // if (response.success && response.data) {
+    //   const store = useCartStore.getState()
+    //   const localItems = store.items
+    //   
+    //   response.data.items.forEach((item: any) => {
+    //     const exists = localItems.some(
+    //       (local: CartItem) => local.productId === item.productId && local.variantId === item.variantId
+    //     )
 
-  const { data: cartItems } = await supabase
-    .from('cart_items')
-    .select('*')
-    .eq('user_id', userId)
-
-  if (!cartItems || cartItems.length === 0) return
-
-  // Merge with local cart
-  const localItems = useCartStore.getState().items
-  
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  for (const item of cartItems as any[]) {
-    const exists = localItems.some(
-      (local: CartItem) => local.productId === item.product_id && local.variantId === item.variant_id
-    )
-    
-    if (!exists) {
-      // TODO: Fetch product details from TiDB using batch API
-      // For now, items without product details are skipped
-      console.log('Cart item needs product details:', item.product_id)
-    }
+    //     if (!exists) {
+    //       // TODO: Fetch product details from TiDB using batch API
+    //       // For now, items without product details are skipped
+    //       console.log('Cart item needs product details:', item.product_id)
+    //     }
+    //   })
+    // }
+    console.log('Cart load from backend not yet implemented')
+  } catch (error) {
+    console.error('Failed to load cart from backend:', error)
   }
 }

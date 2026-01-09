@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import { FileText, Image, Home } from 'lucide-react';
 import Link from 'next/link';
 

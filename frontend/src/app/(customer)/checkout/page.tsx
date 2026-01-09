@@ -6,9 +6,7 @@
  */
 
 'use client';
-
 export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
@@ -476,4 +474,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

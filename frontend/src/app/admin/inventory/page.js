@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import { Package, Scissors, Sparkles, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';

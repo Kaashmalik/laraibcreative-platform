@@ -4,9 +4,7 @@
  */
 
 'use client';
-
 export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Check, User } from 'lucide-react';
 import api from '@/lib/api';
@@ -305,4 +303,3 @@ function ProfileFormModal({
     </div>
   );
 }
-

@@ -31,16 +31,38 @@ export default function CartItem({ item, onRemove }: CartItemProps) {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   const product = item.product;
-  const productId = product._id || product.id || '';
-  const productSlug = product.slug || productId;
-  const productName = product.title || product.name || 'Product';
-  const productImage = (typeof product.primaryImage === 'string' ? product.primaryImage : (product.primaryImage as any)?.url) 
-    || (typeof product.images?.[0] === 'string' ? product.images[0] : (product.images?.[0] as any)?.url)
-    || (typeof product.image === 'string' ? product.image : (product.image as any)?.url)
+  
+  // Extract product ID
+  const productId = product?._id || product?.id || item.productId || '';
+  
+  // Extract product slug
+  const productSlug = product?.slug || productId;
+  
+  // Extract product name with fallbacks
+  const productName = product?.title || product?.name || item.customizations?.name || 'Product';
+  
+  // Extract and clean image URL
+  const getImageUrl = (img: any) => {
+    if (!img) return null;
+    if (typeof img === 'string') return img.replace(/^"|"$/g, '');
+    if (img?.url) return img.url.replace(/^"|"$/g, '');
+    return null;
+  };
+  
+  const productImage = getImageUrl(product?.primaryImage) 
+    || getImageUrl(product?.images?.[0])
+    || getImageUrl(product?.image)
+    || getImageUrl(item.customizations?.image)
     || '/images/placeholder.png';
-  const productPrice = item.priceAtAdd || product.pricing?.basePrice || product.price || 0;
-  const subtotal = productPrice * localQuantity;
-  const stockAvailable = item.stockAvailable || (product as any).inventory?.quantity || product.stockQuantity || 0;
+  
+  // Extract product price with validation
+  const productPrice = typeof item.priceAtAdd === 'number' && !isNaN(item.priceAtAdd)
+    ? item.priceAtAdd
+    : (product?.pricing?.basePrice || product?.pricing?.comparePrice || product?.price || 0);
+  
+  const validPrice = typeof productPrice === 'number' && !isNaN(productPrice) ? productPrice : 0;
+  const subtotal = validPrice * localQuantity;
+  const stockAvailable = item.stockAvailable || product?.inventory?.stockQuantity || product?.stockQuantity || 0;
   const isOutOfStock = stockAvailable > 0 && localQuantity > stockAvailable;
 
   // Handle quantity change

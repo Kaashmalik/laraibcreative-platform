@@ -1,5 +1,5 @@
 'use client';
-
+export const dynamic = 'force-dynamic';
 import { Bell, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 

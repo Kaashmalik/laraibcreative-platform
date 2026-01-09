@@ -15,9 +15,9 @@
  */
 
 'use client';
-
+export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { useDashboard } from '@/hooks/useDashboard';
 import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
 import { ChartLoading } from '@/components/shared/LoadingComponents';
@@ -34,7 +34,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 
 // Dynamically import chart components (heavy recharts library)
-const RevenueChart = dynamic(
+const RevenueChart = nextDynamic(
   () => import('./components/RevenueChart'),
   {
     loading: () => (
@@ -46,7 +46,7 @@ const RevenueChart = dynamic(
   }
 );
 
-const OrdersPieChart = dynamic(
+const OrdersPieChart = nextDynamic(
   () => import('./components/OrdersPieChart'),
   {
     loading: () => (
@@ -58,7 +58,7 @@ const OrdersPieChart = dynamic(
   }
 );
 
-const PopularProductsChart = dynamic(
+const PopularProductsChart = nextDynamic(
   () => import('./components/PopularProductsChart'),
   {
     loading: () => (
@@ -70,7 +70,7 @@ const PopularProductsChart = dynamic(
   }
 );
 
-const SuitTypeSalesChart = dynamic(
+const SuitTypeSalesChart = nextDynamic(
   () => import('./components/SuitTypeSalesChart'),
   {
     loading: () => (
@@ -82,7 +82,7 @@ const SuitTypeSalesChart = dynamic(
   }
 );
 
-const SEOReports = dynamic(
+const SEOReports = nextDynamic(
   () => import('./components/SEOReports'),
   {
     loading: () => (

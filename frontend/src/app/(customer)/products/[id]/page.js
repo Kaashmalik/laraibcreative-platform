@@ -64,24 +64,24 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    const productTitle = product.seoTitle || product.title || product.name;
+    const productTitle = product.seoTitle || product.title || product.name || 'Product';
     const productDescription = product.seoDescription || 
       product.description?.substring(0, 160) || 
       `Shop ${productTitle} at LaraibCreative. Premium quality Pakistani fashion with custom stitching options. Fast delivery across Pakistan.`;
     
     const productUrl = `${SITE_URL}/products/${params.id}`;
-    const productImage = product.primaryImage || product.images?.[0] || `${SITE_URL}/images/og-default.jpg`;
+    const productImage = product.primaryImage || product.images?.[0]?.url || product.images?.[0] || `${SITE_URL}/images/og-default.jpg`;
     const productPrice = product.pricing?.basePrice || product.price || 0;
 
     // Ensure title is 50-60 characters
-    const title = productTitle.length > 55 
+    const title = productTitle && productTitle.length > 55 
       ? `${productTitle.substring(0, 52)}...` 
-      : productTitle;
+      : (productTitle || 'Product');
     
     // Ensure description is 150-160 characters
-    const description = productDescription.length > 160
+    const description = productDescription && productDescription.length > 160
       ? productDescription.substring(0, 157) + '...'
-      : productDescription;
+      : (productDescription || 'Browse our collection of premium Pakistani fashion at LaraibCreative.');
 
     return {
       title: `${title} | LaraibCreative`,
@@ -111,7 +111,7 @@ export async function generateMetadata({ params }) {
         canonical: productUrl,
       },
       openGraph: {
-        type: 'product',
+        type: 'website',
         title: `${title} | LaraibCreative`,
         description,
         url: productUrl,

@@ -1,9 +1,10 @@
 /**
  * Loyalty & Referral System - Phase 7
  * Points, rewards, and referral tracking
+ * Unified with backend JWT authentication
  */
 
-import { createClient } from '@/lib/supabase/client'
+import axiosInstance from '@/lib/axios'
 
 // Points earning rates
 export const POINTS_CONFIG = {
@@ -51,36 +52,29 @@ export interface LoyaltyBalance {
 /**
  * Get user's loyalty balance
  */
-export async function getLoyaltyBalance(userId: string): Promise<LoyaltyBalance> {
-  const supabase = createClient()
+export async function getLoyaltyBalance(): Promise<LoyaltyBalance> {
+  try {
+    const response = await axiosInstance.get('/customers/loyalty/balance')
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data
+    }
+  } catch (error) {
+    console.error('Failed to get loyalty balance:', error)
+  }
   
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('loyalty_points, lifetime_points')
-    .eq('id', userId)
-    .single() as { data: { loyalty_points?: number; lifetime_points?: number } | null }
-
-  const availablePoints = profile?.loyalty_points || 0
-  const lifetimePoints = profile?.lifetime_points || availablePoints
-
-  // Calculate tier
-  const tier = calculateTier(lifetimePoints)
-  const nextTierPoints = calculateNextTierPoints(lifetimePoints)
-
+  // Fallback return
   return {
-    total_points: availablePoints,
-    available_points: availablePoints,
-    pending_points: 0, // Could track points that are pending (e.g., from orders not yet delivered)
-    lifetime_points: lifetimePoints,
-    tier,
-    next_tier_points: nextTierPoints,
+    total_points: 0,
+    available_points: 0,
+    pending_points: 0,
+    lifetime_points: 0,
+    tier: 'BRONZE',
+    next_tier_points: null,
   }
 }
 
-/**
- * Calculate loyalty tier based on lifetime points
- */
-function calculateTier(lifetimePoints: number): keyof typeof POINTS_CONFIG.TIERS {
+// Calculate loyalty tier based on lifetime points
+export function calculateTier(lifetimePoints: number): keyof typeof POINTS_CONFIG.TIERS {
   const { TIERS } = POINTS_CONFIG
   
   if (lifetimePoints >= TIERS.PLATINUM.min) return 'PLATINUM'
@@ -89,10 +83,8 @@ function calculateTier(lifetimePoints: number): keyof typeof POINTS_CONFIG.TIERS
   return 'BRONZE'
 }
 
-/**
- * Calculate points needed for next tier
- */
-function calculateNextTierPoints(lifetimePoints: number): number | null {
+// Calculate points needed for next tier
+export function calculateNextTierPoints(lifetimePoints: number): number | null {
   const { TIERS } = POINTS_CONFIG
   
   if (lifetimePoints < TIERS.SILVER.min) return TIERS.SILVER.min - lifetimePoints
@@ -105,19 +97,18 @@ function calculateNextTierPoints(lifetimePoints: number): number | null {
  * Get loyalty transaction history
  */
 export async function getLoyaltyHistory(
-  userId: string,
   limit = 20
 ): Promise<LoyaltyTransaction[]> {
-  const supabase = createClient()
+  try {
+    const response = await axiosInstance.get('/customers/loyalty/history', { params: { limit } })
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data
+    }
+  } catch (error) {
+    console.error('Failed to get loyalty history:', error)
+  }
   
-  const { data } = await supabase
-    .from('loyalty_transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
-  return (data || []) as LoyaltyTransaction[]
+  return []
 }
 
 /**
@@ -169,7 +160,6 @@ export function calculateMaxRedeemablePoints(
  * Redeem points for discount
  */
 export async function redeemPoints(
-  userId: string,
   points: number,
   orderId: string
 ): Promise<{ success: boolean; error?: string }> {
@@ -177,42 +167,16 @@ export async function redeemPoints(
     return { success: false, error: `Minimum ${POINTS_CONFIG.MIN_REDEEM_POINTS} points required` }
   }
 
-  const supabase = createClient()
-  
-  // Get current balance
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('loyalty_points')
-    .eq('id', userId)
-    .single()
-
-  const currentPoints = (profile as { loyalty_points?: number } | null)?.loyalty_points || 0
-  if (!profile || currentPoints < points) {
-    return { success: false, error: 'Insufficient points' }
-  }
-
-  // Deduct points
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any)
-    .from('profiles')
-    .update({ loyalty_points: currentPoints - points })
-    .eq('id', userId)
-
-  if (updateError) {
+  try {
+    const response = await axiosInstance.post('/customers/loyalty/redeem', {
+      points,
+      orderId
+    })
+    return { success: response.data?.success || false, error: response.data?.error }
+  } catch (error) {
+    console.error('Failed to redeem points:', error)
     return { success: false, error: 'Failed to redeem points' }
   }
-
-  // Record transaction
-  await supabase.from('loyalty_transactions').insert({
-    user_id: userId,
-    points: -points,
-    type: 'redeemed',
-    source: 'order',
-    description: `Redeemed for order discount`,
-    order_id: orderId,
-  } as any)
-
-  return { success: true }
 }
 
 // ==========================================
@@ -230,40 +194,17 @@ export interface ReferralStats {
 /**
  * Get user's referral stats
  */
-export async function getReferralStats(userId: string): Promise<ReferralStats | null> {
-  const supabase = createClient()
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('referral_code')
-    .eq('id', userId)
-    .single() as { data: { referral_code?: string } | null }
-
-  if (!profile?.referral_code) return null
-
-  const { data: referrals } = await supabase
-    .from('referrals')
-    .select('status, points_awarded')
-    .eq('referrer_id', userId) as { data: Array<{ status: string; points_awarded?: number }> | null }
-
-  const stats = (referrals || []).reduce(
-    (acc, ref) => {
-      acc.total_referrals++
-      if (ref.status === 'completed') {
-        acc.successful_referrals++
-        acc.points_earned += ref.points_awarded || 0
-      } else if (ref.status === 'pending') {
-        acc.pending_referrals++
-      }
-      return acc
-    },
-    { total_referrals: 0, successful_referrals: 0, pending_referrals: 0, points_earned: 0 }
-  )
-
-  return {
-    referral_code: profile.referral_code,
-    ...stats,
+export async function getReferralStats(): Promise<ReferralStats | null> {
+  try {
+    const response = await axiosInstance.get('/customers/referrals/stats')
+    if (response.data && response.data.success && response.data.data) {
+      return response.data.data
+    }
+  } catch (error) {
+    console.error('Failed to get referral stats:', error)
   }
+  
+  return null
 }
 
 /**

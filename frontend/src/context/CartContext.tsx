@@ -78,6 +78,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     syncCart: store.syncCart,
     loadCart: store.loadCart,
     validateCart: store.validateCart,
+    clearCorruptedCart: () => {
+      console.warn('clearCorruptedCart not implemented in store');
+    },
   };
 
   return (

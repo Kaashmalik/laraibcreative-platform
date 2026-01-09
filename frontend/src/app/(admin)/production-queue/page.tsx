@@ -4,8 +4,7 @@
  */
 
 'use client';
-
-
+export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -172,4 +171,3 @@ export default function ProductionQueuePage() {
     </div>
   );
 }
-

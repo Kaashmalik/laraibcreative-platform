@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { SITE_URL } from '@/lib/constants';
 import ContactClient from './ContactClient';
 

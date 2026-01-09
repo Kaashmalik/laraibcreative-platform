@@ -4,8 +4,7 @@
  */
 
 'use client';
-
-
+export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { 
@@ -222,4 +221,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
