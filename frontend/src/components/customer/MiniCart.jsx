@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingBag, Plus, Minus, Trash2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCart } from '@/context/CartContext'
+import { useCart } from '@/hooks/useCart'
 
 /**
  * MiniCart Component - Production Ready
@@ -36,13 +36,17 @@ export default function MiniCart({ isOpen, onClose }) {
   const { 
     items: cartItems, 
     totalItems: cartCount, 
-    totalPrice: cartSubtotal,
+    subtotal: cartSubtotal,
     updateQuantity, 
     removeItem: removeFromCart,
     isLoading: isUpdating 
   } = useCart()
 
   const drawerRef = useRef(null)
+  
+  // Validate and protect against NaN
+  const validCartCount = typeof cartCount === 'number' && !isNaN(cartCount) ? cartCount : 0
+  const validCartSubtotal = typeof cartSubtotal === 'number' && !isNaN(cartSubtotal) ? cartSubtotal : 0
 
   // Close on escape key
   useEffect(() => {
@@ -162,9 +166,9 @@ export default function MiniCart({ isOpen, onClose }) {
               <h2 className="text-lg font-semibold flex items-center">
                 <ShoppingBag className="w-5 h-5 mr-2" aria-hidden="true" />
                 Shopping Cart
-                {cartCount > 0 && (
+                {validCartCount > 0 && (
                   <span className="ml-2 px-2 py-0.5 bg-white/20 rounded-full text-sm">
-                    {cartCount}
+                    {validCartCount}
                   </span>
                 )}
               </h2>
@@ -324,7 +328,7 @@ export default function MiniCart({ isOpen, onClose }) {
                     <span className="text-xs text-gray-500">Taxes calculated at checkout</span>
                   </div>
                   <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-                    {formatPrice(cartSubtotal)}
+                    {formatPrice(validCartSubtotal)}
                   </span>
                 </div>
 

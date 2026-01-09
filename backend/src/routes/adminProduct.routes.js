@@ -23,6 +23,27 @@ router.use(protect, adminOnly);
 router.get('/', productController.getAllProductsAdmin);
 
 /**
+ * @route   DELETE /api/v1/admin/products/bulk-delete
+ * @desc    Bulk delete products
+ * @access  Private (Admin)
+ */
+router.delete('/bulk-delete', productController.bulkDeleteProducts);
+
+/**
+ * @route   PATCH /api/v1/admin/products/bulk-update
+ * @desc    Bulk update products
+ * @access  Private (Admin)
+ */
+router.patch('/bulk-update', productController.bulkUpdateProducts);
+
+/**
+ * @route   GET /api/v1/admin/products/export
+ * @desc    Export products to CSV
+ * @access  Private (Admin)
+ */
+router.get('/export', productController.exportProducts);
+
+/**
  * @route   POST /api/v1/admin/products
  * @desc    Create new product
  * @access  Private (Admin)
@@ -59,32 +80,11 @@ router.put(
 router.delete('/:id', productController.deleteProductAdmin);
 
 /**
- * @route   DELETE /api/v1/admin/products/bulk-delete
- * @desc    Bulk delete products
- * @access  Private (Admin)
- */
-router.delete('/bulk-delete', productController.bulkDeleteProducts);
-
-/**
- * @route   PATCH /api/v1/admin/products/bulk-update
- * @desc    Bulk update products
- * @access  Private (Admin)
- */
-router.patch('/bulk-update', productController.bulkUpdateProducts);
-
-/**
  * @route   POST /api/v1/admin/products/:id/duplicate
  * @desc    Duplicate existing product
  * @access  Private (Admin)
  */
 router.post('/:id/duplicate', productController.duplicateProduct);
-
-/**
- * @route   GET /api/v1/admin/products/export
- * @desc    Export products to CSV
- * @access  Private (Admin)
- */
-router.get('/export', productController.exportProducts);
 
 module.exports = router;
 

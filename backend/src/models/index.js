@@ -7,6 +7,8 @@ const Settings = require('./Settings');
 const Category = require('./Category');
 const Product = require('./Product');
 const Order = require('./Order');
+const Cart = require('./Cart');
+const PromoCode = require('./PromoCode');
 
 // Optional models - load if they exist
 let Review, Blog;
@@ -28,6 +30,8 @@ module.exports = {
   Category,
   Product,
   Order,
+  Cart,
+  PromoCode,
   Settings,
   Review,
   Blog,
@@ -38,7 +42,7 @@ module.exports = {
    */
   ensureIndexes: async function() {
     logger.info('Creating database indexes...');
-    const models = [User, Category, Product, Order, Settings];
+    const models = [User, Category, Product, Order, Cart, PromoCode, Settings];
     
     // Add optional models if loaded
     if (Review) models.push(Review);

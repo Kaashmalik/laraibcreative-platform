@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
-import { useAuth } from '@/context/AuthContext'
+import useAuth from '@/hooks/useAuth'
 import type { CheckoutData } from '@/app/actions/orders'
 
 interface ShippingStepProps {
@@ -28,13 +28,13 @@ const CITIES = [
 ]
 
 export function ShippingStep({ data, onUpdate, onNext }: ShippingStepProps) {
-  const { user, profile } = useAuth()
-  
+  const { user } = useAuth()
+
   const { register, handleSubmit, formState: { errors } } = useForm<ShippingForm>({
     defaultValues: {
       email: user?.email || data.email || '',
-      phone: profile?.phone || data.phone || '',
-      full_name: profile?.full_name || data.shippingAddress?.full_name || '',
+      phone: user?.phone || data.phone || '',
+      full_name: user?.fullName || data.shippingAddress?.full_name || '',
       address_line1: data.shippingAddress?.address_line1 || '',
       address_line2: data.shippingAddress?.address_line2 || '',
       city: data.shippingAddress?.city || '',

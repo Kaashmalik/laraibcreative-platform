@@ -139,6 +139,9 @@ export interface CartActions {
     valid: boolean; 
     errors: Array<{ itemId: string; productId: string; message: string }> 
   }>;
+
+  /** Clear corrupted cart items */
+  clearCorruptedCart: () => void;
 }
 
 /**

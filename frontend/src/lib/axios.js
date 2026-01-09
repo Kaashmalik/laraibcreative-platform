@@ -1,22 +1,21 @@
 ﻿import axios from 'axios';
 import { API_BASE_URL } from './constants';
-import * as storage from './storage';
 import { toast } from 'react-hot-toast';
 
 /**
  * Configured Axios Instance for API Requests
  * Production-ready with retry logic, request tracking, and comprehensive error handling
+ * Unified with backend JWT authentication using httpOnly cookies
  */
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 seconds
+  withCredentials: true, // Include cookies for JWT authentication (accessToken, refreshToken)
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
-  // Enable credentials for CORS
-  withCredentials: false
 });
 
 const isBrowser = typeof window !== 'undefined';
@@ -32,18 +31,15 @@ const RETRY_DELAY = 1000; // 1 second
 
 /**
  * Request Interceptor
- * - Adds authentication token
+ * - JWT httpOnly cookies are sent automatically with withCredentials: true
  * - Logs requests in development
  * - Tracks requests for retry logic
  * - Adds request timestamp
  */
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Add auth token if available
-    const token = storage.getItem('auth_token');
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // JWT httpOnly cookies (accessToken, refreshToken) are sent automatically
+    // No need to manually add Authorization header from localStorage
 
     // Add request timestamp for performance tracking
     config.metadata = { startTime: Date.now() };
@@ -51,7 +47,7 @@ axiosInstance.interceptors.request.use(
     // Log requests in development
     if (process.env.NODE_ENV === 'development') {
       // console.log(
-      //   `ðŸš€ [API] ${config.method?.toUpperCase()} ${config.url}`,
+      //   `🚀 [API] ${config.method?.toUpperCase()} ${config.url}`,
       //   config.params || config.data || ''
       // );
     }
@@ -88,7 +84,7 @@ axiosInstance.interceptors.response.use(
     if (process.env.NODE_ENV === 'development' && response.config.metadata) {
       const duration = Date.now() - response.config.metadata.startTime;
       // console.log(
-      //   `âœ… [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
+      //   `✅ [API] ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`
       // );
     }
 
@@ -116,7 +112,7 @@ axiosInstance.interceptors.response.use(
     } catch (_) {
       // Ignore errors in cancel detection
     }
-    
+
     const originalRequest = error.config;
     const requestId = originalRequest?.requestId;
     const requestInfo = requestId ? ongoingRequests.get(requestId) : null;
@@ -124,7 +120,7 @@ axiosInstance.interceptors.response.use(
     // Log error in development
     if (process.env.NODE_ENV === 'development') {
       console.error(
-        `âŒ [API] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`,
+        `❌ [API] ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`,
         error.response?.status,
         error.response?.data || error.message
       );
@@ -134,29 +130,29 @@ axiosInstance.interceptors.response.use(
     if (!error.response) {
       // Check if it's a timeout error - don't retry timeouts aggressively
       const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
-      
+
       // Retry logic for network errors (but limit retries for timeouts)
       if (requestInfo && requestInfo.retryCount < MAX_RETRIES && !isTimeout) {
         requestInfo.retryCount++;
-        
+
         safeToastError(`Connection failed. Retrying... (${requestInfo.retryCount}/${MAX_RETRIES})`);
-        
+
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * requestInfo.retryCount));
-        
+
         return axiosInstance(originalRequest);
       }
 
       // Clear request from tracking
       ongoingRequests.delete(requestId);
-      
+
       // Show appropriate error message
       if (isTimeout) {
         safeToastError('Request timed out. The server may be slow or unavailable.');
       } else {
         safeToastError('Unable to connect. Please check your internet connection.');
       }
-      
+
       return Promise.reject(error);
     }
 
@@ -165,7 +161,7 @@ axiosInstance.interceptors.response.use(
     const errorMessage = data?.message || data?.error || 'Something went wrong';
 
     // Skip retry for validation-related errors to prevent infinite loops
-    const isValidationError = errorMessage.includes('validation') || 
+    const isValidationError = errorMessage.includes('validation') ||
                               errorMessage.includes('Validation') ||
                               errorMessage.includes('cannot exceed') ||
                               errorMessage.includes('is required') ||
@@ -174,11 +170,11 @@ axiosInstance.interceptors.response.use(
     // Implement retry logic for 5xx errors (but not for validation errors)
     if (status >= 500 && requestInfo && requestInfo.retryCount < MAX_RETRIES && !isValidationError) {
       requestInfo.retryCount++;
-      
+
       // Wait before retry with exponential backoff
       const delay = RETRY_DELAY * Math.pow(2, requestInfo.retryCount - 1);
       await new Promise(resolve => setTimeout(resolve, delay));
-      
+
       return axiosInstance(originalRequest);
     }
 
@@ -219,7 +215,7 @@ axiosInstance.interceptors.response.use(
       case 429: // Too Many Requests
         const retryAfter = error.response.headers['retry-after'];
         safeToastError(
-          retryAfter 
+          retryAfter
             ? `Too many requests. Please try again in ${retryAfter} seconds.`
             : 'Too many requests. Please try again later.'
         );
@@ -249,27 +245,49 @@ axiosInstance.interceptors.response.use(
 
 /**
  * Handle unauthorized errors (401)
- * Clears auth token and redirects to login
+ * Attempts to refresh token and retry request
  */
-function handleUnauthorized(originalRequest) {
-  // Clear auth token
-  storage.removeItem('auth_token');
-  storage.removeItem('user-data');
-  
-  // Don't show toast if request was to login/register endpoints
-  const authEndpoints = ['/auth/login', '/auth/register', '/auth/verify-token'];
-  const isAuthEndpoint = authEndpoints.some(endpoint => 
+async function handleUnauthorized(originalRequest) {
+  // Don't retry for auth endpoints
+  const authEndpoints = ['/auth/login', '/auth/register', '/auth/verify-token', '/auth/refresh-token'];
+  const isAuthEndpoint = authEndpoints.some(endpoint =>
     originalRequest.url?.includes(endpoint)
   );
-  
-  if (!isAuthEndpoint) {
+
+  if (isAuthEndpoint) {
     safeToastError('Session expired. Please login again.');
+    redirectToLogin();
+    return Promise.reject(new Error('Unauthorized'));
   }
-  
-  // Redirect to login if not already there
+
+  // Don't show toast for token refresh - we'll handle silently
+  // Attempt to refresh token
+  try {
+    const refreshResponse = await axiosInstance.post('/auth/refresh-token', {}, {
+      skipAuthRefresh: true // Prevent infinite loop
+    });
+
+    if (refreshResponse.success) {
+      // Token refreshed successfully, retry original request
+      return axiosInstance(originalRequest);
+    }
+  } catch (refreshError) {
+    console.error('Token refresh failed:', refreshError);
+  }
+
+  // Refresh failed, redirect to login
+  safeToastError('Session expired. Please login again.');
+  redirectToLogin();
+  return Promise.reject(new Error('Unauthorized'));
+}
+
+/**
+ * Redirect to login page
+ */
+function redirectToLogin() {
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname;
-    
+
     if (!currentPath.includes('/auth/')) {
       // Save current path to return after login
       const returnUrl = currentPath !== '/' ? currentPath : '';
@@ -292,7 +310,7 @@ function handleValidationError(data) {
       const firstError = errors[0];
       const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
       safeToastError(errorMessage);
-      
+
       // Log all errors in development
       if (process.env.NODE_ENV === 'development') {
         // console.log('Validation errors:', data.errors);
@@ -326,9 +344,9 @@ export function cancelAllRequests() {
   ongoingRequests.forEach((_, requestId) => {
     ongoingRequests.delete(requestId);
   });
-  
+
   if (process.env.NODE_ENV === 'development') {
-    // console.log('ðŸš« [API] All requests cancelled');
+    // console.log('🚫 [API] All requests cancelled');
   }
 }
 
@@ -346,7 +364,7 @@ export function getPendingRequestsCount() {
  */
 export function createCancellableRequest(config) {
   const source = axios.CancelToken.source();
-  
+
   const request = axiosInstance({
     ...config,
     cancelToken: source.token
@@ -364,13 +382,13 @@ export async function batchRequests(requests) {
     const results = await Promise.allSettled(
       requests.map(req => axiosInstance(req))
     );
-    
+
     return results.map((result, index) => {
       if (result.status === 'fulfilled') {
         return { success: true, data: result.value };
       } else {
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: result.reason,
           request: requests[index]
         };
@@ -394,12 +412,12 @@ export function isAxiosError(error) {
  */
 export function getErrorMessage(error) {
   if (axios.isAxiosError(error)) {
-    return error.response?.data?.message 
-      || error.response?.data?.error 
-      || error.message 
+    return error.response?.data?.message
+      || error.response?.data?.error
+      || error.message
       || 'An error occurred';
   }
-  
+
   return error?.message || 'An unexpected error occurred';
 }
 
@@ -408,29 +426,6 @@ export function getErrorMessage(error) {
  */
 export function isNetworkError(error) {
   return axios.isAxiosError(error) && !error.response;
-}
-
-/**
- * Set authorization token
- * Useful for setting token after login
- */
-export function setAuthToken(token) {
-  if (token) {
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    storage.setItem('auth_token', token);
-  } else {
-    delete axiosInstance.defaults.headers.common['Authorization'];
-    storage.removeItem('auth_token');
-  }
-}
-
-/**
- * Clear authorization token
- */
-export function clearAuthToken() {
-  delete axiosInstance.defaults.headers.common['Authorization'];
-  storage.removeItem('auth_token');
-  storage.removeItem('user-data');
 }
 
 export default axiosInstance;

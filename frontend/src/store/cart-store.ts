@@ -1,185 +1,396 @@
 /**
  * Cart Store (Zustand)
- * Persists to localStorage + syncs to Supabase for logged-in users
+ * Persists to localStorage + syncs to backend API
  */
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import type { Product } from '@/types/product'
+import type { CartItem, CartItemCustomizations, ShippingAddress } from '@/types/cart'
 
-export interface CartItem {
-  id: string
-  productId: string
-  variantId?: string
-  quantity: number
-  customization?: {
-    isStitched: boolean
-    measurementId?: string
-    neckStyle?: string
-    sleeveStyle?: string
-    bottomStyle?: string
-  }
-  product: {
-    title: string
-    slug: string
-    image: string
-    price: number
-    salePrice?: number
-    stitchingPrice?: number
-  }
+interface CartState {
+  items: CartItem[]
+  totalItems: number
+  subtotal: number
+  tax: number
+  shipping: number
+  discount: number
+  total: number
+  promoCode?: string
+  isLoading: boolean
+  error: string | null
+  lastSynced?: string
 }
 
-interface CartStore {
-  items: CartItem[]
+interface CartActions {
+  addItem: (product: Product, quantity?: number, customizations?: CartItemCustomizations) => Promise<void>
+  removeItem: (itemId: string) => Promise<void>
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
+  isInCart: (productId: string) => boolean
+  getItem: (productId: string) => CartItem | undefined
+  getProductQuantity: (productId: string) => number
+  applyPromoCode: (code: string) => Promise<{ success: boolean; discount: number; message?: string }>
+  removePromoCode: () => void
+  calculateShipping: (address?: ShippingAddress) => Promise<number>
+  syncCart: () => Promise<void>
+  loadCart: () => Promise<void>
+  validateCart: () => Promise<{ valid: boolean; errors: Array<{ itemId: string; productId: string; message: string }> }>
+  clearCorruptedCart: () => void
+}
+
+interface CartStore extends CartState, CartActions {
   isOpen: boolean
-  
-  // Actions
-  addItem: (item: Omit<CartItem, 'id'>) => void
-  updateQuantity: (itemId: string, quantity: number) => void
-  updateCustomization: (itemId: string, customization: CartItem['customization']) => void
-  removeItem: (itemId: string) => void
-  clearCart: () => void
-  
-  // Drawer
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
-  
-  // Computed
-  getItemCount: () => number
-  getSubtotal: () => number
-  getStitchingTotal: () => number
-  getTotal: () => number
-  getItemById: (id: string) => CartItem | undefined
+  getItemById: (itemId: string) => CartItem | undefined
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      totalItems: 0,
+      subtotal: 0,
+      tax: 0,
+      shipping: 0,
+      discount: 0,
+      total: 0,
+      promoCode: undefined,
+      isLoading: false,
+      error: null,
       isOpen: false,
 
-      addItem: (newItem) => {
-        const id = crypto.randomUUID()
-        set((state) => {
-          // Check if same product+variant+customization exists
-          const existingIndex = state.items.findIndex(
-            item => 
-              item.productId === newItem.productId && 
-              item.variantId === newItem.variantId &&
-              JSON.stringify(item.customization) === JSON.stringify(newItem.customization)
-          )
+      addItem: async (product, quantity = 1, customizations) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const productId = product._id || product.id || ''
+          const newItem: CartItem = {
+            id: `${productId}-${Date.now()}`,
+            productId,
+            product,
+            quantity,
+            customizations,
+            addedAt: new Date().toISOString(),
+            priceAtAdd: product.price,
+          }
+
+          set((state) => {
+            // Check if same product+customization exists
+            const existingIndex = state.items.findIndex(
+              item =>
+                item.productId === product._id &&
+                JSON.stringify(item.customizations) === JSON.stringify(customizations)
+            )
+
+            if (existingIndex > -1) {
+              const updated = [...state.items]
+              updated[existingIndex].quantity += quantity
+              return {
+                items: updated,
+                totalItems: updated.reduce((sum, item) => sum + item.quantity, 0),
+                subtotal: updated.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+                total: updated.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+                isOpen: true
+              }
+            }
+
+            const newItems = [...state.items, newItem]
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum, item) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+              isOpen: true
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to add item to cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      removeItem: async (itemId) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          set((state) => {
+            const newItems = state.items.filter(item => item.id !== itemId)
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum, item) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to remove item from cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      updateQuantity: async (itemId, quantity) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          if (quantity <= 0) {
+            await get().removeItem(itemId)
+            return
+          }
+
+          set((state) => {
+            const newItems = state.items.map(item =>
+              item.id === itemId ? { ...item, quantity } : item
+            )
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum, item) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to update quantity' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      clearCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          set({
+            items: [],
+            totalItems: 0,
+            subtotal: 0,
+            total: 0,
+            discount: 0,
+            shipping: 0
+          })
+        } catch (error) {
+          set({ error: 'Failed to clear cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      isInCart: (productId) => {
+        return get().items.some(item => item.productId === productId)
+      },
+
+      getItem: (productId) => {
+        return get().items.find(item => item.productId === productId)
+      },
+
+      getProductQuantity: (productId) => {
+        return get().items
+          .filter(item => item.productId === productId)
+          .reduce((sum, item) => sum + item.quantity, 0)
+      },
+
+      applyPromoCode: async (code: string) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/promo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code })
+          })
           
-          if (existingIndex > -1) {
-            const updated = [...state.items]
-            updated[existingIndex].quantity += newItem.quantity
-            return { items: updated, isOpen: true }
+          const data = await response.json()
+          
+          if (data.success) {
+            set({
+              promoCode: code,
+              discount: data.discount || 0,
+              total: get().subtotal - (data.discount || 0) + get().shipping
+            })
+            return { success: true, discount: data.discount, message: data.message }
           }
           
-          return { items: [...state.items, { ...newItem, id }], isOpen: true }
+          return { success: false, discount: 0, message: data.message || 'Invalid promo code' }
+        } catch (error) {
+          set({ error: 'Failed to apply promo code' })
+          return { success: false, discount: 0, message: 'Network error' }
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      removePromoCode: () => {
+        set({
+          promoCode: undefined,
+          discount: 0,
+          total: get().subtotal + get().shipping
         })
       },
 
-      updateQuantity: (itemId, quantity) => {
-        if (quantity < 1) {
-          get().removeItem(itemId)
-          return
+      calculateShipping: async (address?: ShippingAddress) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/shipping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ address })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success) {
+            const shippingCost = data.cost || 0
+            set({
+              shipping: shippingCost,
+              total: get().subtotal - get().discount + shippingCost
+            })
+            return shippingCost
+          }
+          
+          return 0
+        } catch (error) {
+          set({ error: 'Failed to calculate shipping' })
+          return 0
+        } finally {
+          set({ isLoading: false })
         }
+      },
+
+      syncCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              items: get().items.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                priceAtAdd: item.priceAtAdd,
+                customizations: item.customizations,
+                isCustom: item.isCustom || false
+              }))
+            })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success && data.items) {
+            set({
+              items: data.items,
+              totalItems: data.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              lastSynced: new Date().toISOString()
+            })
+          }
+        } catch (error) {
+          set({ error: 'Failed to sync cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      loadCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart', {
+            credentials: 'include'
+          })
+          
+          const data = await response.json()
+          
+          if (data.success && data.items) {
+            set({
+              items: data.items,
+              totalItems: data.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - get().discount + get().shipping,
+              lastSynced: new Date().toISOString()
+            })
+          }
+        } catch (error) {
+          set({ error: 'Failed to load cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      validateCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/validate', {
+            method: 'POST',
+            credentials: 'include'
+          })
+          
+          const data = await response.json()
+          
+          if (data.success) {
+            return {
+              valid: data.valid,
+              errors: data.errors || []
+            }
+          }
+          
+          return {
+            valid: false,
+            errors: []
+          }
+        } catch (error) {
+          set({ error: 'Failed to validate cart' })
+          return {
+            valid: false,
+            errors: []
+          }
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      clearCorruptedCart: () => {
         set((state) => ({
-          items: state.items.map(item =>
-            item.id === itemId ? { ...item, quantity } : item
+          items: state.items.filter(item =>
+            item.id &&
+            item.productId &&
+            item.quantity > 0 &&
+            item.product &&
+            item.product.title &&
+            item.product.price
           )
         }))
       },
-
-      updateCustomization: (itemId, customization) => {
-        set((state) => ({
-          items: state.items.map(item =>
-            item.id === itemId ? { ...item, customization } : item
-          )
-        }))
-      },
-
-      removeItem: (itemId) => {
-        set((state) => ({
-          items: state.items.filter(item => item.id !== itemId)
-        }))
-      },
-
-      clearCart: () => set({ items: [] }),
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
-
-      getItemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
-
-      getSubtotal: () => get().items.reduce((sum, item) => {
-        const price = item.product.salePrice || item.product.price
-        return sum + (price * item.quantity)
-      }, 0),
-
-      getStitchingTotal: () => get().items.reduce((sum, item) => {
-        if (item.customization?.isStitched && item.product.stitchingPrice) {
-          return sum + (item.product.stitchingPrice * item.quantity)
-        }
-        return sum
-      }, 0),
-
-      getTotal: () => get().getSubtotal() + get().getStitchingTotal(),
-
-      getItemById: (id) => get().items.find(item => item.id === id),
+      getItemById: (itemId) => get().items.find(item => item.id === itemId),
     }),
     {
       name: 'laraib-cart',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items }), // Only persist items
+      partialize: (state) => ({ items: state.items, lastSynced: state.lastSynced }),
     }
   )
 )
 
-// Hook to sync cart with backend API when user logs in
-// Unified with backend JWT authentication
+// Helper functions
 export async function syncCartToBackend() {
-  const items = useCartStore.getState().items
-
-  try {
-    // TODO: Implement cart sync with backend API
-    // await api.cart.sync({ items: items.map(item => ({
-    //   productId: item.productId,
-    //   variantId: item.variantId,
-    //   quantity: item.quantity,
-    //   customization: item.customization
-    // })) })
-    console.log('Cart sync not yet implemented', items.length, 'items')
-  } catch (error) {
-    console.error('Failed to sync cart to backend:', error)
-  }
+  const store = useCartStore.getState()
+  await store.syncCart()
 }
 
-// Hook to load cart from backend API when user logs in
-// Unified with backend JWT authentication
 export async function loadCartFromBackend() {
-  try {
-    // TODO: Implement cart loading from backend API
-    // const response = await api.cart.get()
-    // if (response.success && response.data) {
-    //   const store = useCartStore.getState()
-    //   const localItems = store.items
-    //   
-    //   response.data.items.forEach((item: any) => {
-    //     const exists = localItems.some(
-    //       (local: CartItem) => local.productId === item.productId && local.variantId === item.variantId
-    //     )
-
-    //     if (!exists) {
-    //       // TODO: Fetch product details from TiDB using batch API
-    //       // For now, items without product details are skipped
-    //       console.log('Cart item needs product details:', item.product_id)
-    //     }
-    //   })
-    // }
-    console.log('Cart load from backend not yet implemented')
-  } catch (error) {
-    console.error('Failed to load cart from backend:', error)
-  }
+  const store = useCartStore.getState()
+  await store.loadCart()
 }

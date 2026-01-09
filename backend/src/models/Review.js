@@ -109,10 +109,6 @@ const reviewSchema = new Schema(
       trim: true,
       minlength: [10, 'Comment must be at least 10 characters'],
       maxlength: [1000, 'Comment cannot exceed 1000 characters'],
-      // Sanitize HTML
-      set: function(comment) {
-        return comment.replace(/<[^>]*>/g, '').trim();
-      }
     },
 
     images: {
@@ -121,17 +117,14 @@ const reviewSchema = new Schema(
       validate: {
         validator: function(images) {
           // Max 5 images per review
-          return images.length <= 5;
-        },
-        message: 'Maximum 5 images allowed per review'
-      },
-      // Validate each image URL
-      validate: {
-        validator: function(images) {
+          if (images.length > 5) {
+            return false;
+          }
+          // Validate each image URL
           const urlPattern = /^https?:\/\/.+\.(jpg|jpeg|png|webp|avif)$/i;
           return images.every(url => urlPattern.test(url));
         },
-        message: 'Invalid image URL format'
+        message: 'Maximum 5 images allowed and all images must be valid URLs (jpg, jpeg, png, webp, avif)'
       }
     },
 

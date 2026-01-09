@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { Star, Upload, X, Loader2 } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
+import useAuth from '@/hooks/useAuth'
 import { uploadReviewImage } from '@/lib/supabase/storage'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +20,7 @@ interface ReviewFormProps {
 }
 
 export function ReviewForm({ productId, productTitle, orderId, onSuccess, onCancel }: ReviewFormProps) {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   
   const [rating, setRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
@@ -88,7 +88,7 @@ export function ReviewForm({ productId, productTitle, orderId, onSuccess, onCanc
         body: JSON.stringify({
           product_id: productId,
           customer_id: user?.id,
-          customer_name: profile?.full_name || 'Anonymous',
+          customer_name: user?.fullName || 'Anonymous',
           customer_email: user?.email || '',
           rating,
           title: title.trim() || null,

@@ -42,8 +42,13 @@ export default function CartSummary() {
   const [couponSuccess, setCouponSuccess] = useState('');
 
   const FREE_SHIPPING_THRESHOLD = 5000;
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
-  const hasDiscount = discount > 0;
+  const validSubtotal = typeof subtotal === 'number' && !isNaN(subtotal) ? subtotal : 0;
+  const validTax = typeof tax === 'number' && !isNaN(tax) ? tax : 0;
+  const validShipping = typeof shipping === 'number' && !isNaN(shipping) ? shipping : 0;
+  const validDiscount = typeof discount === 'number' && !isNaN(discount) ? discount : 0;
+  const validTotal = typeof total === 'number' && !isNaN(total) ? total : 0;
+  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - validSubtotal);
+  const hasDiscount = validDiscount > 0;
 
   // Format price
   const formatPrice = useCallback((price: number) => {
@@ -121,7 +126,7 @@ export default function CartSummary() {
           <div className="flex justify-between items-center">
             <span className="text-gray-600 dark:text-gray-400">Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
             <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {formatPrice(subtotal)}
+              {formatPrice(validSubtotal)}
             </span>
           </div>
 
@@ -139,7 +144,7 @@ export default function CartSummary() {
                   Code: <span className="font-mono font-semibold">{promoCode}</span>
                 </p>
                 <p className="text-base font-semibold text-green-800 dark:text-green-300">
-                  - {formatPrice(discount)}
+                  - {formatPrice(validDiscount)}
                 </p>
               </div>
               <button
@@ -164,20 +169,20 @@ export default function CartSummary() {
               )}
             </div>
             <span className="font-semibold text-gray-900 dark:text-gray-100">
-              {shipping === 0 ? (
+              {validShipping === 0 ? (
                 <span className="text-green-600 dark:text-green-400">FREE</span>
               ) : (
-                formatPrice(shipping)
+                formatPrice(validShipping)
               )}
             </span>
           </div>
 
           {/* Tax */}
-          {tax > 0 && (
+          {validTax > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">Tax</span>
               <span className="font-semibold text-gray-900 dark:text-gray-100">
-                {formatPrice(tax)}
+                {formatPrice(validTax)}
               </span>
             </div>
           )}
@@ -186,7 +191,7 @@ export default function CartSummary() {
           <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Total</span>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-              {formatPrice(total)}
+              {formatPrice(validTotal)}
             </span>
           </div>
         </div>

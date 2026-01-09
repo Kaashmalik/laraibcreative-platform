@@ -22,6 +22,13 @@ router.use(protect, adminOnly);
 router.get('/', orderController.getAllOrdersAdmin);
 
 /**
+ * @route   GET /api/v1/admin/orders/export
+ * @desc    Export orders to CSV
+ * @access  Private (Admin)
+ */
+router.get('/export', orderController.exportOrdersAdmin);
+
+/**
  * @route   GET /api/v1/admin/orders/:id
  * @desc    Get order by ID for admin
  * @access  Private (Admin)
@@ -90,13 +97,6 @@ router.get('/:id/invoice', orderController.downloadInvoiceAdmin);
  * @access  Private (Admin)
  */
 router.post('/:id/notify', orderController.sendNotificationAdmin);
-
-/**
- * @route   GET /api/v1/admin/orders/export
- * @desc    Export orders to CSV
- * @access  Private (Admin)
- */
-router.get('/export', orderController.exportOrdersAdmin);
 
 module.exports = router;
 

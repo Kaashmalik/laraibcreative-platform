@@ -359,15 +359,7 @@ exports.getProductBySlug = async (req, res) => {
     const { slug } = req.params;
 
     const product = await Product.findOne({ slug })
-      .populate('category', 'name slug description')
       .populate('category', 'name slug description');
-    /* .populate({
-      path: 'reviews',
-      populate: {
-        path: 'customer',
-        select: 'fullName profileImage'
-      }
-    }); */
 
     if (!product) {
       return res.status(404).json({
@@ -1080,7 +1072,6 @@ exports.getAllProductsAdmin = async (req, res) => {
   }
 };
 
-/**
  * POST /api/v1/admin/products
  * Create new product (admin only)
  * @access Private (Admin)
@@ -1189,6 +1180,20 @@ exports.createProductAdmin = async (req, res) => {
       }
     }
 
+    // Handle existingImages from FormData (for images uploaded via ImageUploadMultiple)
+    let existingImages = [];
+    if (productData.existingImages) {
+      if (typeof productData.existingImages === 'string') {
+        try {
+          existingImages = JSON.parse(productData.existingImages);
+        } catch (e) {
+          existingImages = [productData.existingImages];
+        }
+      } else if (Array.isArray(productData.existingImages)) {
+        existingImages = productData.existingImages;
+      }
+    }
+
     // Validate required fields
     if (!productData.title || !productData.description || !productData.category || !productData.pricing?.basePrice) {
       return res.status(400).json({
@@ -1232,23 +1237,25 @@ exports.createProductAdmin = async (req, res) => {
       productData.inventory.sku = sku;
     }
 
-    // Handle uploaded images
-    const images = [];
+    // Handle uploaded images from multer
+    const uploadedImages = [];
     if (req.files && req.files.length > 0) {
       req.files.forEach(file => {
-        images.push({
+        uploadedImages.push({
           url: file.path || file.secure_url,
           publicId: file.filename || file.public_id,
           altText: productData.title,
-          displayOrder: images.length
+          displayOrder: uploadedImages.length
         });
       });
     }
 
-    // Use images from productData if provided (with imageType labels), otherwise use uploaded files
-    let finalImages = images;
-    if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
-      finalImages = productData.images.map((img, idx) => ({
+    // Combine existing images and newly uploaded images
+    let finalImages = [];
+    
+    // Add existing images first
+    if (existingImages.length > 0) {
+      finalImages = existingImages.map((img, idx) => ({
         url: typeof img === 'string' ? img : img.url,
         publicId: img.publicId || '',
         altText: img.altText || productData.title,
@@ -1256,6 +1263,20 @@ exports.createProductAdmin = async (req, res) => {
         imageType: img.imageType || 'other',
         caption: img.caption || ''
       }));
+    }
+    
+    // Add newly uploaded images
+    if (uploadedImages.length > 0) {
+      uploadedImages.forEach((img, idx) => {
+        finalImages.push({
+          url: img.url,
+          publicId: img.publicId,
+          altText: img.altText || productData.title,
+          displayOrder: finalImages.length,
+          imageType: 'other',
+          caption: ''
+        });
+      });
     }
 
     // Set primary image from finalImages

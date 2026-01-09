@@ -1,14 +1,14 @@
 /**
  * Auth Store (Zustand)
- * Replaces AuthContext with Zustand for better performance
+ * Unified with backend JWT authentication system
+ * Uses REST API instead of tRPC for consistency with backend
  */
 
 'use client';
 
-
 import { create } from 'zustand';
-import { persist, createJSONStorage, devtools } from 'zustand/middleware';
-import { vanillaTrpc as trpc } from '@/lib/trpc';
+import { persist, devtools } from 'zustand/middleware';
+import axiosInstance from '@/lib/axios';
 
 interface User {
   id: string;
@@ -21,11 +21,10 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  
+
   // Actions
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: {
@@ -38,16 +37,14 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   updateUser: (user: Partial<User>) => void;
-  setToken: (token: string | null) => void;
 }
 
 // Only create the store on the client side
-export const useAuthStore = typeof window === 'undefined' 
+export const useAuthStore = typeof window === 'undefined'
   ? // Server-side: return a mock function that returns default values
     ((selector?: any) => {
       const defaultState = {
         user: null,
-        token: null,
         loading: false,
         isAuthenticated: false,
         isAdmin: false,
@@ -56,7 +53,6 @@ export const useAuthStore = typeof window === 'undefined'
         logout: async () => {},
         checkAuth: async () => {},
         updateUser: () => {},
-        setToken: () => {},
       };
       return selector ? selector(defaultState) : defaultState;
     }) as any
@@ -66,7 +62,6 @@ export const useAuthStore = typeof window === 'undefined'
         persist(
           (set, get) => ({
             user: null,
-            token: null,
             loading: false,
             isAuthenticated: false,
             isAdmin: false,
@@ -74,22 +69,24 @@ export const useAuthStore = typeof window === 'undefined'
             login: async (email, password) => {
               set({ loading: true });
               try {
-                // Use tRPC for login
-                const result = await trpc.auth.login.mutate({ email, password });
-                
+                // Use REST API for login (backend JWT auth)
+                const response = await axiosInstance.post('/auth/login', {
+                  email,
+                  password
+                });
+
                 set({
-                  user: result.user,
-                  token: result.token,
+                  user: response.data.user,
                   isAuthenticated: true,
-                  isAdmin: result.user.role === 'admin' || result.user.role === 'super-admin',
+                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
                   loading: false,
                 });
                 return { success: true };
               } catch (error: any) {
                 set({ loading: false });
-                return { 
-                  success: false, 
-                  error: error.message || 'Login failed' 
+                return {
+                  success: false,
+                  error: error.response?.data?.message || error.message || 'Login failed'
                 };
               }
             },
@@ -97,11 +94,10 @@ export const useAuthStore = typeof window === 'undefined'
             register: async (userData) => {
               set({ loading: true });
               try {
-                const result = await trpc.auth.register.mutate(userData);
-                
+                const response = await axiosInstance.post('/auth/register', userData);
+
                 set({
-                  user: result.user,
-                  token: result.token,
+                  user: response.data.user,
                   isAuthenticated: true,
                   isAdmin: false,
                   loading: false,
@@ -109,22 +105,21 @@ export const useAuthStore = typeof window === 'undefined'
                 return { success: true };
               } catch (error: any) {
                 set({ loading: false });
-                return { 
-                  success: false, 
-                  error: error.message || 'Registration failed' 
+                return {
+                  success: false,
+                  error: error.response?.data?.message || error.message || 'Registration failed'
                 };
               }
             },
 
             logout: async () => {
               try {
-                await trpc.auth.logout.mutate();
+                await axiosInstance.post('/auth/logout');
               } catch (error) {
                 console.error('Logout error:', error);
               } finally {
                 set({
                   user: null,
-                  token: null,
                   isAuthenticated: false,
                   isAdmin: false,
                 });
@@ -134,17 +129,16 @@ export const useAuthStore = typeof window === 'undefined'
             checkAuth: async () => {
               set({ loading: true });
               try {
-                const user = await trpc.auth.me.query();
+                const response = await axiosInstance.get('/auth/me');
                 set({
-                  user,
+                  user: response.data.user,
                   isAuthenticated: true,
-                  isAdmin: user.role === 'admin' || user.role === 'super-admin',
+                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
                   loading: false,
                 });
               } catch (error) {
                 set({
                   user: null,
-                  token: null,
                   isAuthenticated: false,
                   isAdmin: false,
                   loading: false,
@@ -161,17 +155,9 @@ export const useAuthStore = typeof window === 'undefined'
               }
             },
 
-            setToken: (token) => {
-              set({ token });
-            },
           }),
           {
-            name: 'auth-storage',
-            storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({
-              token: state.token,
-              user: state.user,
-            }),
+            name: 'auth-storage'
           }
         ),
         { name: 'AuthStore' }

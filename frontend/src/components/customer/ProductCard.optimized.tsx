@@ -8,12 +8,11 @@
 
 // @react-compiler
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import type { Product } from '@/types/product';
-import { generateBlurPlaceholder } from '@/lib/image-loader';
+import { ProductImage } from '@/components/shared/ProductImage';
 
 interface ProductCardProps {
   product: Product;
@@ -30,7 +29,6 @@ export default function ProductCard({
   viewMode = 'grid',
   priority = false 
 }: ProductCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const productImageRaw = product.primaryImage || product.images?.[0] || '/images/placeholder.png';
@@ -60,22 +58,13 @@ export default function ProductCard({
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
             <div className="flex flex-col sm:flex-row">
               <div className="relative w-full sm:w-64 aspect-[4/3] sm:aspect-square overflow-hidden bg-gray-100 flex-shrink-0">
-                {!imageLoaded && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-                )}
-                <Image
+                <ProductImage
                   src={productImage}
                   alt={`${productTitle} - ${product.fabric?.type || 'Premium fabric'} ladies suit`}
                   fill
                   sizes="(max-width: 640px) 100vw, 256px"
-                  className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
-                    imageLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  onLoad={() => setImageLoaded(true)}
-                  quality={75}
-                  placeholder="blur"
-                  blurDataURL={generateBlurPlaceholder()}
-                  loading={priority ? 'eager' : 'lazy'}
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  priority={priority}
                 />
               </div>
               <div className="flex-1 p-6">
@@ -105,22 +94,13 @@ export default function ProductCard({
       <Link href={`/products/${productId}`} className="block">
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden transition-shadow hover:shadow-lg">
           <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-            {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-            )}
-            <Image
+            <ProductImage
               src={productImage}
               alt={`${productTitle} - ${product.fabric?.type || 'Premium fabric'} ladies suit`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
               priority={priority}
-              quality={75}
-              placeholder="blur"
-              blurDataURL={generateBlurPlaceholder()}
             />
             <button
               onClick={handleWishlistToggle}

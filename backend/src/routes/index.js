@@ -7,6 +7,7 @@ const authRoutes = require('./auth.routes');
 const productRoutes = require('./product.routes');
 const categoryRoutes = require('./category.routes');
 const orderRoutes = require('./order.routes');
+const cartRoutes = require('./cart.routes');
 const customerRoutes = require('./customer.routes');
 const reviewRoutes = require('./review.routes');
 const blogRoutes = require('./blog.routes');
@@ -23,6 +24,7 @@ const referralRoutes = require('./referral.routes');
 const loyaltyRoutes = require('./loyalty.routes');
 const aiRoutes = require('./aiRoutes');
 const seoDashboardRoutes = require('./seoDashboard.routes');
+const promoCodeRoutes = require('./promoCode.routes');
 
 // Health check routes (mounted at root level - no version)
 const healthRoutes = require('./health.routes');
@@ -36,6 +38,7 @@ router.use(`${API_VERSION}/auth`, authRoutes);
 router.use(`${API_VERSION}/products`, productRoutes);
 router.use(`${API_VERSION}/categories`, categoryRoutes);
 router.use(`${API_VERSION}/orders`, orderRoutes);
+router.use(`${API_VERSION}/cart`, cartRoutes);
 router.use(`${API_VERSION}/orders/custom`, require('./customOrder.routes'));
 router.use(`${API_VERSION}/customers`, customerRoutes);
 router.use(`${API_VERSION}/reviews`, reviewRoutes);
@@ -55,6 +58,7 @@ router.use(`${API_VERSION}/alerts`, require('./alerts.routes'));
 router.use(`${API_VERSION}/facebook`, require('./facebook-conversion.routes'));
 router.use(`${API_VERSION}/admin/ai`, aiRoutes);
 router.use(`${API_VERSION}/admin/seo`, seoDashboardRoutes);
+router.use(`${API_VERSION}/admin/promo-codes`, promoCodeRoutes);
 
 // Root endpoint
 router.get('/', (req, res) => {

@@ -207,6 +207,84 @@ const login = async (req, res) => {
     // Set cookies with rememberMe option
     setAuthCookies(res, accessToken, refreshToken, rememberMe);
 
+    // Merge guest cart with user cart if guestCart is provided
+    let mergedCart = null;
+    if (req.body.guestCart && Array.isArray(req.body.guestCart) && req.body.guestCart.length > 0) {
+      const Cart = require('../models/Cart');
+      const guestCart = req.body.guestCart;
+      
+      try {
+        let cart = await Cart.findOne({ userId: user._id });
+        
+        if (!cart) {
+          cart = new Cart({ userId: user._id, items: [] });
+        }
+
+        // Merge items: existing cart takes priority, add new items from guest cart
+        const existingItemsMap = new Map();
+        cart.items.forEach(item => {
+          const key = `${item.productId}_${JSON.stringify(item.customizations || {})}`;
+          existingItemsMap.set(key, item);
+        });
+
+        // Process incoming guest cart items
+        for (const item of guestCart) {
+          const key = `${item.productId}_${JSON.stringify(item.customizations || {})}`;
+          
+          if (existingItemsMap.has(key)) {
+            // Update quantity
+            const existingItem = existingItemsMap.get(key);
+            existingItem.quantity = Math.min(existingItem.quantity + item.quantity, 99);
+          } else {
+            // Add new item
+            existingItemsMap.set(key, {
+              productId: item.productId,
+              quantity: Math.min(item.quantity, 99),
+              priceAtAdd: item.priceAtAdd,
+              customizations: item.customizations,
+              isCustom: item.isCustom,
+              addedAt: new Date()
+            });
+          }
+        }
+
+        // Validate and update cart
+        const validItems = [];
+        const Product = require('../models/Product');
+        
+        for (const [key, item] of existingItemsMap) {
+          const product = await Product.findById(item.productId);
+          
+          if (!product || !product.isActive || product.isDeleted) {
+            continue;
+          }
+
+          const stockAvailable = product.inventory?.stockQuantity || product.stockQuantity || 0;
+          const validQuantity = stockAvailable > 0 ? Math.min(item.quantity, stockAvailable) : item.quantity;
+
+          if (validQuantity > 0) {
+            validItems.push({
+              ...item,
+              quantity: validQuantity
+            });
+          }
+        }
+
+        cart.items = validItems;
+        cart.lastSynced = new Date();
+        await cart.save();
+
+        mergedCart = {
+          items: validItems,
+          totalItems: validItems.reduce((sum, item) => sum + item.quantity, 0),
+          message: 'Guest cart merged successfully'
+        };
+      } catch (cartError) {
+        console.error('Cart merge error:', cartError);
+        // Don't fail login if cart merge fails
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Login successful!',
@@ -223,7 +301,8 @@ const login = async (req, res) => {
         tokens: {
           accessToken,
           refreshToken
-        }
+        },
+        cart: mergedCart
       }
     });
   } catch (error) {

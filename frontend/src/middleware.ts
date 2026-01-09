@@ -1,18 +1,17 @@
 /**
  * Next.js Middleware
- * Handles Supabase Auth session refresh and route protection
+ * Unified JWT authentication session management and route protection
+ * Uses httpOnly cookies (accessToken, refreshToken) for secure authentication
+ * Consistent with backend JWT auth system
  */
-
 
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Custom Middleware for JWT Auth
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Get token from cookies
+  // Get JWT access token from httpOnly cookie (backend sets this)
   const token = request.cookies.get('accessToken')?.value
-  // const userStr = request.cookies.get('user')?.value // Optional: check user role from cookie if available
 
   // Route protection
   const isAuthPage = pathname.startsWith('/auth')
@@ -21,6 +20,7 @@ export function middleware(request: NextRequest) {
   const isCheckoutPage = pathname.startsWith('/checkout')
   const isApiRoute = pathname.startsWith('/api')
 
+  // Allow API routes to pass through (handled by backend)
   if (isApiRoute) return NextResponse.next()
 
   // Redirect unauthenticated users from protected pages
@@ -31,7 +31,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from auth pages
+  // Redirect authenticated users away from auth pages (except logout)
   if (token && isAuthPage && !pathname.includes('logout')) {
     const returnUrl = request.nextUrl.searchParams.get('returnUrl') || '/account'
     const url = request.nextUrl.clone()
@@ -40,7 +40,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin route protection handled by client components mostly, but basic check here
+  // Admin route protection - basic check here, full role check on server
   if (isAdminPage && pathname !== '/admin/login' && !token) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin/login'

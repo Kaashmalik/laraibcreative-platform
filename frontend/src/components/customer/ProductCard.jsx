@@ -80,12 +80,13 @@ export default function ProductCard({ product }) {
     }
   }, [isHovered]);
 
-  const price = product.pricing?.basePrice || product.price || 0;
-  const salePrice = product.pricing?.salePrice;
+  // Normalize pricing structure
+  const price = product.pricing?.basePrice || product.pricing?.base || product.pricing?.price || product.price || 0;
+  const salePrice = product.pricing?.salePrice || product.pricing?.sale || product.pricing?.discountedPrice || 0;
   const slug = product.slug || product._id;
 
   // Calculate discount percentage
-  const discountPercentage = salePrice && price > salePrice
+  const discountPercentage = salePrice > 0 && price > salePrice
     ? Math.round(((price - salePrice) / price) * 100)
     : 0;
 

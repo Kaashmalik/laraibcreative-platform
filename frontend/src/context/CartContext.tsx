@@ -11,7 +11,7 @@
 
 
 import { createContext, useContext, useEffect } from 'react';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore } from '@/store/cart-store';
 import { useCartSync } from '@/hooks/useCartSync';
 import type { CartContextValue } from '@/types/cart';
 

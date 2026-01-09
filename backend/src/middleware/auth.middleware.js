@@ -1,5 +1,93 @@
+/**
+ * Unified JWT Authentication Middleware
+ * Combines the best features from auth.middleware.js and jwt.enhanced.ts
+ * Implements secure token management with httpOnly cookies
+ */
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+
+/**
+ * Generate JWT access token
+ * @param {string} userId - User ID to encode in token
+ * @returns {string} JWT access token
+ */
+const generateAccessToken = (userId) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined');
+  }
+  
+  return jwt.sign(
+    { id: userId, type: 'access' },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '15m' }
+  );
+};
+
+/**
+ * Generate JWT refresh token
+ * @param {string} userId - User ID to encode in token
+ * @returns {string} JWT refresh token
+ */
+const generateRefreshToken = (userId) => {
+  if (!process.env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT_REFRESH_SECRET is not defined');
+  }
+  
+  return jwt.sign(
+    { id: userId, type: 'refresh' },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
+  );
+};
+
+/**
+ * Set secure authentication cookies
+ * Uses httpOnly, Secure, and SameSite=Lax for cross-origin compatibility
+ */
+const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Access token cookie options (short-lived)
+  const accessTokenOptions = {
+    httpOnly: true, // Prevents XSS attacks
+    secure: isProduction, // HTTPS only in production
+    sameSite: 'lax', // CSRF protection with cross-origin support
+    maxAge: 15 * 60 * 1000, // 15 minutes
+    path: '/'
+  };
+
+  // Refresh token cookie options (long-lived if rememberMe)
+  const refreshTokenOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    maxAge: rememberMe 
+      ? 30 * 24 * 60 * 60 * 1000  // 30 days
+      : 7 * 24 * 60 * 60 * 1000,  // 7 days
+    path: '/'
+  };
+
+  res.cookie('accessToken', accessToken, accessTokenOptions);
+  res.cookie('refreshToken', refreshToken, refreshTokenOptions);
+};
+
+/**
+ * Clear authentication cookies
+ */
+const clearAuthCookies = (res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+    path: '/'
+  };
+  
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+};
 
 /**
  * Middleware to verify JWT access token
@@ -27,8 +115,23 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: 'JWT configuration error'
+      });
+    }
+
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Ensure this is an access token
+    if (decoded.type && decoded.type !== 'access') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token type'
+      });
+    }
 
     // Find user by ID from token payload
     const user = await User.findById(decoded.id).select('-password');
@@ -58,6 +161,7 @@ const verifyToken = async (req, res, next) => {
 
     // Attach user to request object
     req.user = user;
+    req.userId = user.id;
     next();
   } catch (error) {
     // Handle specific JWT errors
@@ -89,6 +193,130 @@ const verifyToken = async (req, res, next) => {
  * Protects routes requiring authentication
  */
 const protect = verifyToken;
+
+/**
+ * Middleware to verify refresh token
+ * Used specifically for token refresh endpoint
+ */
+const verifyRefreshToken = async (req, res, next) => {
+  try {
+    // Get refresh token from cookie or body
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token not provided.'
+      });
+    }
+
+    if (!process.env.JWT_REFRESH_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: 'JWT configuration error'
+      });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    
+    // Ensure this is a refresh token
+    if (decoded.type && decoded.type !== 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token type'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found. Invalid refresh token.'
+      });
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account deactivated.'
+      });
+    }
+
+    req.user = user;
+    req.userId = user.id;
+    req.refreshToken = refreshToken;
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token.'
+      });
+    }
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token expired. Please login again.'
+      });
+    }
+
+    console.error('Refresh token verification error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Token refresh failed.'
+    });
+  }
+};
+
+/**
+ * Middleware to check if user is authenticated (optional authentication)
+ * Similar to verifyToken but doesn't fail if no token provided
+ * Useful for endpoints that work differently for logged-in users
+ */
+const optionalAuth = async (req, res, next) => {
+  try {
+    let token;
+    
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    }
+
+    // If no token, continue without user
+    if (!token || !process.env.JWT_SECRET) {
+      req.user = null;
+      return next();
+    }
+
+    try {
+      // Verify and attach user if token exists
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).select('-password');
+
+      if (user && user.isActive && !user.isLocked) {
+        req.user = user;
+        req.userId = user.id;
+      } else {
+        req.user = null;
+      }
+    } catch {
+      // On verification error, just continue without user
+      req.user = null;
+    }
+
+    next();
+  } catch (error) {
+    // On any error, continue without user
+    req.user = null;
+    next();
+  }
+};
 
 /**
  * Middleware to check if user is admin
@@ -135,108 +363,6 @@ const superAdminOnly = (req, res, next) => {
 };
 
 /**
- * Middleware to verify refresh token
- * Used specifically for token refresh endpoint
- */
-const verifyRefreshToken = async (req, res, next) => {
-  try {
-    // Get refresh token from cookie or body
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        success: false,
-        message: 'Refresh token not provided.'
-      });
-    }
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
-    // Find user
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not found. Invalid refresh token.'
-      });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account deactivated.'
-      });
-    }
-
-    req.user = user;
-    req.refreshToken = refreshToken;
-    next();
-  } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid refresh token.'
-      });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Refresh token expired. Please login again.'
-      });
-    }
-
-    console.error('Refresh token verification error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Token refresh failed.'
-    });
-  }
-};
-
-/**
- * Middleware to check if user is authenticated (optional authentication)
- * Similar to verifyToken but doesn't fail if no token provided
- * Useful for endpoints that work differently for logged-in users
- */
-const optionalAuth = async (req, res, next) => {
-  try {
-    let token;
-    
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.accessToken) {
-      token = req.cookies.accessToken;
-    }
-
-    // If no token, continue without user
-    if (!token) {
-      req.user = null;
-      return next();
-    }
-
-    // Verify and attach user if token exists
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
-
-    if (user && user.isActive && !user.isLocked) {
-      req.user = user;
-    } else {
-      req.user = null;
-    }
-
-    next();
-  } catch (error) {
-    // On error, just continue without user
-    req.user = null;
-    next();
-  }
-};
-
-/**
  * Role-based authorization middleware
  * Allows access to users with specific roles
  * @param {...string} roles - Allowed roles (e.g., 'admin', 'super-admin')
@@ -262,94 +388,18 @@ const authorize = (...roles) => {
   };
 };
 
-/**
- * Generate JWT access token
- * @param {string} userId - User ID to encode in token
- * @returns {string} JWT access token
- */
-const generateAccessToken = (userId) => {
-  return jwt.sign(
-    { id: userId },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '15m' } // Default 15 minutes
-  );
-};
-
-/**
- * Generate JWT refresh token
- * @param {string} userId - User ID to encode in token
- * @returns {string} JWT refresh token
- */
-const generateRefreshToken = (userId) => {
-  return jwt.sign(
-    { id: userId },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' } // Default 7 days
-  );
-};
-
-/**
- * Set authentication cookies in response
- * @param {object} res - Express response object
- * @param {string} accessToken - JWT access token
- * @param {string} refreshToken - JWT refresh token
- * @param {boolean} rememberMe - Whether to set long-lived cookies
- */
-const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
-  // Determine sameSite based on environment
-  // 'lax' is safer than 'strict' for cross-origin requests while still providing CSRF protection
-  // 'none' is required for cross-origin cookies but requires secure: true
-  const isProduction = process.env.NODE_ENV === 'production';
-  const sameSiteValue = isProduction ? 'lax' : 'lax';
-  
-  // Cookie options for access token (short-lived)
-  const accessTokenOptions = {
-    httpOnly: true, // Prevents XSS attacks
-    secure: isProduction, // HTTPS only in production
-    sameSite: sameSiteValue, // CSRF protection with cross-origin support
-    maxAge: 15 * 60 * 1000 // 15 minutes
-  };
-
-  // Cookie options for refresh token (long-lived if rememberMe)
-  const refreshTokenOptions = {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: sameSiteValue,
-    maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000 // 30 days or 7 days
-  };
-
-  res.cookie('accessToken', accessToken, accessTokenOptions);
-  res.cookie('refreshToken', refreshToken, refreshTokenOptions);
-};
-
-/**
- * Clear authentication cookies
- * @param {object} res - Express response object
- */
-const clearAuthCookies = (res) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  res.clearCookie('accessToken', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax'
-  });
-  
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax'
-  });
-};
-
-// Alias for authorize (used in some route files as restrictTo)
+// Aliases for backward compatibility
 const restrictTo = authorize;
+
+// Alias for admin middleware (used in some routes)
+const admin = adminOnly;
 
 module.exports = {
   // Main auth middlewares
   verifyToken,
   protect, // Alias for verifyToken
   adminOnly,
+  admin, // Alias for adminOnly
   superAdminOnly,
   verifyRefreshToken,
   optionalAuth,

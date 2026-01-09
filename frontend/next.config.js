@@ -3,16 +3,16 @@ const nextConfig = {
   // ==================================================
   // PRODUCTION-READY NEXT.JS CONFIGURATION
   // ==================================================
-  
+
   // Output format for deployment
   output: 'standalone',
-  
+
   // ==================================================
   // PAGE GENERATION SETTINGS
   // ==================================================
   // Increase timeout to 10 minutes for initial build
   staticPageGenerationTimeout: 600,
-  
+
   // Dynamic rendering strategy
   experimental: {
     optimizeCss: true,
@@ -167,7 +167,7 @@ const nextConfig = {
         // Rewrite API calls to backend EXCEPT /api/trpc (which is handled by Next.js)
         {
           source: '/api/v1/:path*',
-          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/:path*`,
+          destination: `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000'}/api/v1/:path*`,
         },
       ],
     };

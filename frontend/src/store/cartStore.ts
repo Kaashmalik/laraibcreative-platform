@@ -1,547 +1,395 @@
 /**
- * Zustand Cart Store with Middleware
- * Production-ready cart state management
- * 
- * @module store/cartStore
+ * Cart Store (Zustand)
+ * Persists to localStorage + syncs to backend API
  */
 
-import { create } from 'zustand';
-import { persist, createJSONStorage, devtools } from 'zustand/middleware';
-import { subscribeWithSelector } from 'zustand/middleware';
-import type { CartStore, CartItem, CartItemCustomizations, ShippingAddress } from '@/types/cart';
-import type { Product } from '@/types/product';
-import api from '@/lib/api';
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import type { Product } from '@/types/product'
+import type { CartItem, CartItemCustomizations, ShippingAddress } from '@/types/cart'
 
-/**
- * Calculate cart totals
- */
-function calculateTotals(items: CartItem[], taxRate: number = 0.05, shipping: number = 0, discount: number = 0): {
-  totalItems: number;
-  subtotal: number;
-  tax: number;
-  shipping: number;
-  discount: number;
-  total: number;
-} {
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => {
-    const price = item.priceAtAdd || item.product.pricing?.basePrice || item.product.price || 0;
-    return sum + (price * item.quantity);
-  }, 0);
-  
-  const tax = subtotal * taxRate;
-  const total = Math.max(0, subtotal + tax + shipping - discount);
-  
-  return {
-    totalItems,
-    subtotal,
-    tax,
-    shipping,
-    discount,
-    total,
-  };
+interface CartState {
+  items: CartItem[]
+  totalItems: number
+  subtotal: number
+  tax: number
+  shipping: number
+  discount: number
+  total: number
+  promoCode?: string
+  isLoading: boolean
+  error: string | null
+  lastSynced?: string
 }
 
-/**
- * Cart Store with Persistence and Sync
- * SSR-safe: Only creates store on client side
- */
-export const useCartStore = typeof window === 'undefined'
-  ? // Server-side: return a mock function that returns default values
-    ((selector?: any) => {
-      const defaultState: CartStore = {
-        items: [],
-        totalItems: 0,
-        subtotal: 0,
-        tax: 0,
-        shipping: 0,
-        discount: 0,
-        total: 0,
-        isLoading: false,
-        error: null,
-        lastSynced: undefined,
-        addItem: async () => {},
-        removeItem: async () => {},
-        updateQuantity: async () => {},
-        clearCart: async () => {},
-        isInCart: () => false,
-        getItem: () => undefined,
-        getProductQuantity: () => 0,
-        applyPromoCode: async () => ({ success: false, discount: 0, message: 'SSR' }),
-        removePromoCode: () => {},
-        calculateShipping: async () => 0,
-        syncCart: async () => {},
-        loadCart: async () => {},
-        validateCart: async () => ({ valid: false, errors: [] }),
-      };
-      return selector ? selector(defaultState) : defaultState;
-    }) as any
-  : // Client-side: create the actual Zustand store
-    create<CartStore>()(
-      devtools(
-        persist(
-          subscribeWithSelector(
-          (set, get) => ({
-        // Initial State
-        items: [],
-        totalItems: 0,
-        subtotal: 0,
-        tax: 0,
-        shipping: 0,
-        discount: 0,
-        total: 0,
-        isLoading: false,
-        error: null,
-        lastSynced: undefined,
+interface CartActions {
+  addItem: (product: Product, quantity?: number, customizations?: CartItemCustomizations) => Promise<void>
+  removeItem: (itemId: string) => Promise<void>
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>
+  clearCart: () => Promise<void>
+  isInCart: (productId: string) => boolean
+  getItem: (productId: string) => CartItem | undefined
+  getProductQuantity: (productId: string) => number
+  applyPromoCode: (code: string) => Promise<{ success: boolean; discount: number; message?: string }>
+  removePromoCode: () => void
+  calculateShipping: (address?: ShippingAddress) => Promise<number>
+  syncCart: () => Promise<void>
+  loadCart: () => Promise<void>
+  validateCart: () => Promise<{ valid: boolean; errors: Array<{ itemId: string; productId: string; message: string }> }>
+  clearCorruptedCart: () => void
+}
 
-        // Actions
-        addItem: async (product: Product, quantity: number = 1, customizations?: CartItemCustomizations) => {
-          try {
-            set({ isLoading: true, error: null });
+interface CartStore extends CartState, CartActions {
+  isOpen: boolean
+  openCart: () => void
+  closeCart: () => void
+  toggleCart: () => void
+  getItemById: (itemId: string) => CartItem | undefined
+}
 
-            // Validate quantity
-            if (quantity < 1 || quantity > 99) {
-              throw new Error('Quantity must be between 1 and 99');
-            }
+export const useCartStore = create<CartStore>()(
+  persist(
+    (set, get) => ({
+      items: [],
+      totalItems: 0,
+      subtotal: 0,
+      tax: 0,
+      shipping: 0,
+      discount: 0,
+      total: 0,
+      promoCode: undefined,
+      isLoading: false,
+      error: null,
+      isOpen: false,
 
-            // Check stock availability
-            const stockAvailable = product.inventory?.stockQuantity || product.stockQuantity || 0;
-            if (stockAvailable > 0 && quantity > stockAvailable) {
-              throw new Error(`Only ${stockAvailable} items available in stock`);
-            }
-
-            const currentItems = get().items;
-            const existingItemIndex = currentItems.findIndex(
-              item =>
-                item.productId === product._id || item.productId === product.id &&
-                JSON.stringify(item.customizations || {}) === JSON.stringify(customizations || {})
-            );
-
-            let newItems: CartItem[];
-            if (existingItemIndex >= 0) {
-              // Update existing item
-              const existingItem = currentItems[existingItemIndex];
-              const newQuantity = existingItem.quantity + quantity;
-              
-              if (stockAvailable > 0 && newQuantity > stockAvailable) {
-                throw new Error(`Cannot add more. Only ${stockAvailable} items available in stock`);
-              }
-
-              newItems = currentItems.map((item, index) => {
-                if (index === existingItemIndex) {
-                  return {
-                    ...item,
-                    quantity: newQuantity,
-                  };
-                }
-                return item;
-              });
-            } else {
-              // Add new item
-              const newItem: CartItem = {
-                id: `${product._id || product.id}_${Date.now()}`,
-                productId: product._id || product.id || '',
-                product,
-                quantity,
-                customizations: customizations || {},
-                isCustom: !!customizations?.measurements,
-                addedAt: new Date().toISOString(),
-                stockAvailable,
-                priceAtAdd: product.pricing?.basePrice || product.price,
-              };
-              newItems = [...currentItems, newItem];
-            }
-
-            const totals = calculateTotals(newItems, 0.05, get().shipping, get().discount);
-
-            set({
-              items: newItems,
-              ...totals,
-              isLoading: false,
-            });
-
-            // Sync with backend (non-blocking)
-            get().syncCart().catch(console.error);
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to add item to cart',
-            });
-            throw error;
-          }
-        },
-
-        removeItem: async (itemId: string) => {
-          try {
-            set({ isLoading: true, error: null });
-
-            const newItems = get().items.filter(item => item.id !== itemId);
-            const currentShipping = get().shipping;
-            const currentDiscount = get().discount;
-            const totals = calculateTotals(newItems, 0.05, currentShipping, currentDiscount);
-
-            set({
-              items: newItems,
-              ...totals,
-              isLoading: false,
-            });
-
-            // Sync with backend
-            await get().syncCart();
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to remove item',
-            });
-            throw error;
-          }
-        },
-
-        updateQuantity: async (itemId: string, quantity: number) => {
-          try {
-            if (quantity < 1) {
-              return get().removeItem(itemId);
-            }
-
-            if (quantity > 99) {
-              throw new Error('Maximum quantity is 99');
-            }
-
-            set({ isLoading: true, error: null });
-
-            const item = get().items.find(i => i.id === itemId);
-            if (!item) {
-              throw new Error('Item not found in cart');
-            }
-
-            // Check stock
-            const stockAvailable = item.stockAvailable || item.product.inventory?.stockQuantity || item.product.stockQuantity || 0;
-            if (stockAvailable > 0 && quantity > stockAvailable) {
-              throw new Error(`Only ${stockAvailable} items available in stock`);
-            }
-
-            const newItems = get().items.map(item => {
-              if (item.id === itemId) {
-                return { ...item, quantity };
-              }
-              return item;
-            });
-
-            const currentShipping = get().shipping;
-            const currentDiscount = get().discount;
-            const totals = calculateTotals(newItems, 0.05, currentShipping, currentDiscount);
-
-            set({
-              items: newItems,
-              ...totals,
-              isLoading: false,
-            });
-
-            // Sync with backend
-            await get().syncCart();
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to update quantity',
-            });
-            throw error;
-          }
-        },
-
-        clearCart: async () => {
-          try {
-            set({ isLoading: true, error: null });
-
-            set({
-              items: [],
-              totalItems: 0,
-              subtotal: 0,
-              tax: 0,
-              shipping: 0,
-              discount: 0,
-              total: 0,
-              promoCode: undefined,
-              isLoading: false,
-            });
-
-            // Sync with backend
-            await get().syncCart();
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to clear cart',
-            });
-            throw error;
-          }
-        },
-
-        isInCart: (productId: string) => {
-          return get().items.some(item => item.productId === productId);
-        },
-
-        getItem: (productId: string) => {
-          return get().items.find(item => item.productId === productId);
-        },
-
-        getProductQuantity: (productId: string) => {
-          return get().items
-            .filter(item => item.productId === productId)
-            .reduce((sum, item) => sum + item.quantity, 0);
-        },
-
-        applyPromoCode: async (code: string) => {
-          try {
-            set({ isLoading: true, error: null });
-
-            const response = await api.cart.applyPromoCode(code, get().items) as any;
-            
-            if (response.success) {
-              const currentSubtotal = get().subtotal;
-              const currentShipping = get().shipping;
-              const discount = response.discountType === 'percentage'
-                ? (currentSubtotal * response.discount) / 100
-                : response.discount;
-
-              const totals = calculateTotals(
-                get().items,
-                0.05,
-                currentShipping,
-                discount
-              );
-
-              set({
-                ...totals,
-                discount,
-                promoCode: code,
-                isLoading: false,
-              });
-
-              return { success: true, discount, message: response.message };
-            } else {
-              throw new Error(response.message || 'Invalid promo code');
-            }
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to apply promo code',
-            });
-            throw error;
-          }
-        },
-
-        removePromoCode: () => {
-          const currentShipping = get().shipping;
-          const totals = calculateTotals(get().items, 0.05, currentShipping, 0);
-          set({
-            ...totals,
-            discount: 0,
-            promoCode: undefined,
-          });
-        },
-
-        calculateShipping: async (address?: ShippingAddress) => {
-          try {
-            // Free shipping over 5000 PKR
-            if (get().subtotal >= 5000) {
-              set({ shipping: 0 });
-              return 0;
-            }
-
-            // Calculate based on address if provided
-            if (address) {
-              const response = await api.cart.calculateShipping(address, get().items);
-              set({ shipping: response.cost });
-              return response.cost;
-            }
-
-            // Default flat rate
-            const defaultShipping = 200;
-            set({ shipping: defaultShipping });
-            return defaultShipping;
-          } catch (error: any) {
-            // Fallback to default shipping
-            const defaultShipping = 200;
-            set({ shipping: defaultShipping });
-            return defaultShipping;
-          }
-        },
-
-        syncCart: async () => {
-          try {
-            // Only sync if user is authenticated
-            const token = typeof window !== 'undefined' 
-              ? document.cookie.split('; ').find(row => row.startsWith('token='))
-              : null;
-            
-            if (!token) return;
-
-            const response = await api.cart.sync(get().items) as any;
-            
-            if (response.success) {
-              set({
-                lastSynced: new Date().toISOString(),
-              });
-            }
-          } catch (error) {
-            // Fail silently - cart is still in localStorage
-            console.error('Cart sync failed:', error);
-          }
-        },
-
-        loadCart: async () => {
-          try {
-            set({ isLoading: true, error: null });
-
-            const token = typeof window !== 'undefined' 
-              ? document.cookie.split('; ').find(row => row.startsWith('token='))
-              : null;
-            
-            if (!token) {
-              set({ isLoading: false });
-              return;
-            }
-
-            const response = await api.cart.get() as any;
-            
-            if (response.items && response.items.length > 0) {
-              const totals = calculateTotals(response.items, 0.05, get().shipping, get().discount);
-              set({
-                items: response.items,
-                ...totals,
-                isLoading: false,
-                lastSynced: new Date().toISOString(),
-              });
-            } else {
-              set({ isLoading: false });
-            }
-          } catch (error: any) {
-            set({
-              isLoading: false,
-              error: error.message || 'Failed to load cart',
-            });
-          }
-        },
-
-        validateCart: async () => {
-          try {
-            const errors: Array<{ itemId: string; productId: string; message: string }> = [];
-            const items = get().items;
-
-            for (const item of items) {
-              // Check if product still exists
-              try {
-                const response = await api.products.getById(item.productId);
-                const product = response.data;
-                
-                // Check stock
-                const stockAvailable = product.inventory?.stockQuantity || product.stockQuantity || 0;
-                if (stockAvailable > 0 && item.quantity > stockAvailable) {
-                  errors.push({
-                    itemId: item.id,
-                    productId: item.productId,
-                    message: `Only ${stockAvailable} items available in stock`,
-                  });
-                }
-
-                // Check price changes
-                const currentPrice = product.pricing?.basePrice || product.price || 0;
-                const cartPrice = item.priceAtAdd || currentPrice;
-                if (Math.abs(currentPrice - cartPrice) > 0.01) {
-                  errors.push({
-                    itemId: item.id,
-                    productId: item.productId,
-                    message: 'Product price has changed',
-                  });
-                }
-              } catch (error) {
-                errors.push({
-                  itemId: item.id,
-                  productId: item.productId,
-                  message: 'Product no longer available',
-                });
-              }
-            }
-
-            return {
-              valid: errors.length === 0,
-              errors,
-            };
-          } catch (error: any) {
-            return {
-              valid: false,
-              errors: [{ itemId: '', productId: '', message: error.message || 'Validation failed' }],
-            };
-          }
-        },
-      })
-      ),
-      {
-        name: 'laraibcreative-cart',
-        storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({
-          items: state.items,
-          promoCode: state.promoCode,
-          discount: state.discount,
-        }),
-      }
-    ),
-    { name: 'CartStore' }
-  )
-);
-
-// Analytics middleware - track cart events (client-side only)
-if (typeof window !== 'undefined') {
-  useCartStore.subscribe(
-    (state: CartStore) => state.totalItems,
-    (totalItems: number, prevTotalItems: number) => {
-      if (totalItems !== prevTotalItems) {
-        // Track add to cart events
-        if ((window as any).gtag) {
-          (window as any).gtag('event', 'cart_item_count', {
-            value: totalItems,
-          });
-        }
+      addItem: async (product, quantity = 1, customizations) => {
+        set({ isLoading: true, error: null })
         
-        // Facebook Pixel
-        if ((window as any).fbq) {
-          const state = useCartStore.getState();
-          (window as any).fbq('track', 'AddToCart', {
-            content_ids: state.items.map((item: CartItem) => item.productId),
-            value: state.subtotal,
-            currency: 'PKR',
-          });
+        try {
+          const productId = product._id || product.id || ''
+          const newItem: CartItem = {
+            id: `${productId}-${Date.now()}`,
+            productId,
+            product,
+            quantity,
+            customizations,
+            addedAt: new Date().toISOString(),
+            priceAtAdd: product.price,
+          }
+
+          set((state) => {
+            const existingIndex = state.items.findIndex(
+              item =>
+                item.productId === productId &&
+                JSON.stringify(item.customizations) === JSON.stringify(customizations)
+            )
+
+            if (existingIndex > -1) {
+              const updated = [...state.items]
+              updated[existingIndex].quantity += quantity
+              return {
+                items: updated,
+                totalItems: updated.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+                subtotal: updated.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+                total: updated.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+                isOpen: true
+              }
+            }
+
+            const newItems = [...state.items, newItem]
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+              isOpen: true
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to add item to cart' })
+        } finally {
+          set({ isLoading: false })
         }
-      }
-    }
-  );
+      },
 
-  // Track cart abandonment
-  let abandonmentTimer: NodeJS.Timeout;
+      removeItem: async (itemId) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          set((state) => {
+            const newItems = state.items.filter(item => item.id !== itemId)
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to remove item from cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
 
-  useCartStore.subscribe(
-    (state: CartStore) => state.items.length,
-    (itemCount: number) => {
-      if (abandonmentTimer) clearTimeout(abandonmentTimer);
-      
-      if (itemCount > 0) {
-        // Set abandonment timer (30 minutes)
-        abandonmentTimer = setTimeout(() => {
-          const currentItems = useCartStore.getState().items;
-          if (currentItems.length > 0) {
-            // Track abandonment
-            if ((window as any).gtag) {
-              (window as any).gtag('event', 'cart_abandonment', {
-                value: useCartStore.getState().subtotal,
-                currency: 'PKR',
-              });
+      updateQuantity: async (itemId, quantity) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          if (quantity <= 0) {
+            await get().removeItem(itemId)
+            return
+          }
+
+          set((state) => {
+            const newItems = state.items.map(item =>
+              item.id === itemId ? { ...item, quantity } : item
+            )
+            return {
+              items: newItems,
+              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+            }
+          })
+        } catch (error) {
+          set({ error: 'Failed to update quantity' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      clearCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          set({
+            items: [],
+            totalItems: 0,
+            subtotal: 0,
+            total: 0,
+            discount: 0,
+            shipping: 0
+          })
+        } catch (error) {
+          set({ error: 'Failed to clear cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      isInCart: (productId) => {
+        return get().items.some(item => item.productId === productId)
+      },
+
+      getItem: (productId) => {
+        return get().items.find(item => item.productId === productId)
+      },
+
+      getProductQuantity: (productId) => {
+        return get().items
+          .filter(item => item.productId === productId)
+          .reduce((sum, item) => sum + item.quantity, 0)
+      },
+
+      applyPromoCode: async (code: string) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/promo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success) {
+            set({
+              promoCode: code,
+              discount: data.discount || 0,
+              total: get().subtotal - (data.discount || 0) + get().shipping
+            })
+            return { success: true, discount: data.discount, message: data.message }
+          }
+          
+          return { success: false, discount: 0, message: data.message || 'Invalid promo code' }
+        } catch (error) {
+          set({ error: 'Failed to apply promo code' })
+          return { success: false, discount: 0, message: 'Network error' }
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      removePromoCode: () => {
+        set({
+          promoCode: undefined,
+          discount: 0,
+          total: get().subtotal + get().shipping
+        })
+      },
+
+      calculateShipping: async (address?: ShippingAddress) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/shipping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ address })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success) {
+            const shippingCost = data.cost || 0
+            set({
+              shipping: shippingCost,
+              total: get().subtotal - get().discount + shippingCost
+            })
+            return shippingCost
+          }
+          
+          return 0
+        } catch (error) {
+          set({ error: 'Failed to calculate shipping' })
+          return 0
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      syncCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              items: get().items.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                priceAtAdd: item.priceAtAdd,
+                customizations: item.customizations,
+                isCustom: item.isCustom || false
+              }))
+            })
+          })
+          
+          const data = await response.json()
+          
+          if (data.success && data.items) {
+            set({
+              items: data.items,
+              totalItems: data.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              lastSynced: new Date().toISOString()
+            })
+          }
+        } catch (error) {
+          set({ error: 'Failed to sync cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      loadCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart', {
+            credentials: 'include'
+          })
+          
+          const data = await response.json()
+          
+          if (data.success && data.items) {
+            set({
+              items: data.items,
+              totalItems: data.items.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
+              subtotal: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
+              total: data.items.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - get().discount + get().shipping,
+              lastSynced: new Date().toISOString()
+            })
+          }
+        } catch (error) {
+          set({ error: 'Failed to load cart' })
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      validateCart: async () => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const response = await fetch('/api/v1/cart/validate', {
+            method: 'POST',
+            credentials: 'include'
+          })
+          
+          const data = await response.json()
+          
+          if (data.success) {
+            return {
+              valid: data.valid,
+              errors: data.errors || []
             }
           }
-        }, 30 * 60 * 1000); // 30 minutes
-      }
+          
+          return {
+            valid: false,
+            errors: []
+          }
+        } catch (error) {
+          set({ error: 'Failed to validate cart' })
+          return {
+            valid: false,
+            errors: []
+          }
+        } finally {
+          set({ isLoading: false })
+        }
+      },
+
+      clearCorruptedCart: () => {
+        set((state) => ({
+          items: state.items.filter(item =>
+            item.id &&
+            item.productId &&
+            item.quantity > 0 &&
+            item.product &&
+            item.product.title &&
+            item.product.price
+          )
+        }))
+      },
+
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
+      toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+      getItemById: (itemId) => get().items.find(item => item.id === itemId),
+    }),
+    {
+      name: 'laraib-cart',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ items: state.items, lastSynced: state.lastSynced }),
     }
-  );
+  )
+)
+
+// Helper functions
+export async function syncCartToBackend() {
+  const store = useCartStore.getState()
+  await store.syncCart()
 }
 
-// Export as default
-export default useCartStore;
-
+export async function loadCartFromBackend() {
+  const store = useCartStore.getState()
+  await store.loadCart()
+}

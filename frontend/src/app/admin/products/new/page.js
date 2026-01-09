@@ -38,53 +38,62 @@ export default function NewProductPage() {
   const handleSubmit = async (productData, draft = false) => {
     setLoading(true);
     setIsDraft(draft);
-    
+
     try {
       // Add draft status to product data
       const dataToSubmit = {
         ...productData,
         status: draft ? 'draft' : 'published'
       };
-      
+
       // Create FormData for file uploads
       const formData = new FormData();
+
+      // Add images as files if they are File objects, otherwise as URLs
+      if (dataToSubmit.images && Array.isArray(dataToSubmit.images)) {
+        dataToSubmit.images.forEach((img, index) => {
+          if (img instanceof File) {
+            formData.append('images', img);
+          } else {
+            // Store image URLs in a separate field
+            formData.append(`existingImages[${index}]`, typeof img === 'string' ? img : img.url);
+          }
+        });
+      }
+
+      // Add all other fields
       Object.keys(dataToSubmit).forEach(key => {
-        if (key === 'images' && Array.isArray(dataToSubmit[key])) {
-          dataToSubmit[key].forEach((img, index) => {
-            if (typeof img === 'object' && img.file) {
-              formData.append(`images[${index}]`, img.file);
-            } else {
-              formData.append(`images[${index}]`, JSON.stringify(img));
-            }
-          });
-        } else if (typeof dataToSubmit[key] === 'object') {
-          formData.append(key, JSON.stringify(dataToSubmit[key]));
-        } else {
-          formData.append(key, dataToSubmit[key]);
+        if (key !== 'images') {
+          const value = dataToSubmit[key];
+          if (typeof value === 'object') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
         }
       });
-      
+
       const response = await api.products.admin.create(formData);
-      
+
       const result = response;
-      
+
       setToast({
         type: 'success',
         message: draft 
           ? 'Product saved as draft successfully' 
           : 'Product created successfully'
       });
-      
+
       // Redirect to products list after short delay
       setTimeout(() => {
         router.push('/admin/products');
       }, 1500);
-      
+
     } catch (error) {
       console.error('Error creating product:', error);
       setToast({
         type: 'error',
-        message: error.message || 'Failed to create product. Please try again.'
+        message: error.message || error.response?.data?.message || 'Failed to create product. Please try again.'
       });
       setLoading(false);
     }

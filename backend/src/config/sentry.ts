@@ -24,7 +24,7 @@ export const initSentry = (): void => {
       nodeProfilingIntegration(),
     ],
     // Filter out health checks and other noise
-    beforeSend(event, hint) {
+    beforeSend(event) {
       // Don't send events for health checks
       if (event.request?.url?.includes('/health')) {
         return null;
@@ -45,15 +45,16 @@ export const initSentry = (): void => {
 /**
  * Sentry error handler middleware
  */
-export const sentryErrorHandler = Sentry.Handlers.errorHandler();
+export const sentryErrorHandler = (_err: Error, _req: any, _res: any, next: any) => {
+  next(_err);
+};
 
 /**
  * Sentry request handler middleware
  */
-export const sentryRequestHandler = Sentry.Handlers.requestHandler({
-  user: true,
-  ip: true,
-});
+export const sentryRequestHandler = (_req: any, _res: any, next: any) => {
+  next();
+};
 
 /**
  * Capture exception with context
@@ -65,7 +66,7 @@ export const captureException = (
   if (context) {
     Sentry.withScope((scope) => {
       Object.entries(context).forEach(([key, value]) => {
-        scope.setContext(key, value);
+        scope.setContext(key, value as Record<string, any>);
       });
       Sentry.captureException(error);
     });

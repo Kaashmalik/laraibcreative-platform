@@ -17,6 +17,10 @@ const http = require('http');
 const databaseManager = require('./config/database');
 const logger = require('./utils/logger');
 
+// Error tracking and performance monitoring
+const { initSentry, captureError, captureMessage } = require('./config/sentry');
+const { performanceMiddleware, getMetrics, getHealthMetrics } = require('./utils/performance');
+
 // Security middleware
 const {
   applySecurityMiddleware,
@@ -37,6 +41,11 @@ const models = require('./models');
 const app = express();
 let server = null;
 let isShuttingDown = false;
+
+// ============================================
+// ERROR TRACKING (Sentry)
+// ============================================
+initSentry();
 
 // ============================================
 // SECURITY MIDDLEWARE (APPLY FIRST)
@@ -152,6 +161,36 @@ function configureRoutes() {
 
   // Update user context after auth middleware runs
   app.use(updateUserContext);
+
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({
+      success: false,
+      message: `Route ${req.method} ${req.path} not found`
+    });
+  });
+
+  // Error handler
+  app.use((err, req, res, next) => {
+    // Log error to Sentry
+    captureError(err, {
+      path: req.path,
+      method: req.method,
+      query: req.query,
+      body: req.body,
+      user: req.user?.id,
+    });
+
+    logger.error('Unhandled error:', err);
+
+    res.status(err.status || 500).json({
+      success: false,
+      message: process.env.NODE_ENV === 'production'
+        ? 'An error occurred'
+        : err.message,
+      ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    });
+  });
 }
 
 // ============================================

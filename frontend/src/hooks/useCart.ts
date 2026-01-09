@@ -20,8 +20,11 @@ import type { Product } from '@/types/product';
 export function useCart() {
   const store = useCartStore();
 
-  // Load cart from backend on mount (if authenticated)
+  // Clear corrupted cart on mount and load from backend (if authenticated)
   useEffect(() => {
+    // Clear any corrupted cart items
+    store.clearCorruptedCart();
+
     const loadCart = async () => {
       try {
         await store.loadCart();

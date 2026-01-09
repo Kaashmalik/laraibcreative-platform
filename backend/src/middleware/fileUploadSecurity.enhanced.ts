@@ -3,7 +3,7 @@
  * Provides comprehensive security checks including virus scanning
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction } from 'express';
 import path from 'path';
 import { AppError, HttpStatus, ErrorCode } from '../utils/AppError';
 
@@ -140,7 +140,7 @@ const validateFileContent = (buffer: Buffer, mimetype: string): boolean => {
  * 2. Use cloud-based scanning service
  * 3. Use file-type detection libraries
  */
-const scanForVirus = async (buffer: Buffer, filename: string): Promise<boolean> => {
+const scanForVirus = async (_buffer: Buffer, _filename: string): Promise<boolean> => {
   // TODO: Implement actual virus scanning
   // Example with node-clamscan:
   /*
@@ -159,7 +159,7 @@ const scanForVirus = async (buffer: Buffer, filename: string): Promise<boolean> 
  * Enhanced file upload security middleware
  */
 export const fileUploadSecurity = (uploadType: UploadType = 'product') => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (req: any, _res: any, next: NextFunction): Promise<void> => {
     try {
       const files = (req.files as FileWithBuffer[]) || 
                    (req.file ? [req.file as FileWithBuffer] : []);

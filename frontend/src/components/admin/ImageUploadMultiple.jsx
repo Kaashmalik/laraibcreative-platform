@@ -51,6 +51,7 @@ export default function ImageUploadMultiple({
   
   /**
    * Handle file selection
+   * Stores File objects for later upload via backend
    */
   const handleFileSelect = useCallback(async (files) => {
     if (!files || files.length === 0) return;
@@ -65,7 +66,7 @@ export default function ImageUploadMultiple({
     setUploadProgress(0);
     
     try {
-      const uploadedUrls = [];
+      const newFiles = [];
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -82,30 +83,28 @@ export default function ImageUploadMultiple({
           continue;
         }
         
-        // Compress and upload image
+        // Compress image and store as File object
         const compressedFile = await compressImage(file);
-        const url = await uploadToCloudinary(compressedFile);
-        
-        if (url) {
-          uploadedUrls.push(url);
-        }
+        newFiles.push(compressedFile);
         
         // Update progress
         setUploadProgress(((i + 1) / files.length) * 100);
       }
       
-      // Add uploaded images to existing images
-      const newImages = [...images, ...uploadedUrls];
+      // Add new File objects to existing images
+      const newImages = [...images, ...newFiles];
       onImagesChange(newImages);
       
       // Set first image as primary if no primary image exists
       if (!primaryImage && newImages.length > 0) {
-        onPrimaryImageChange(newImages[0]);
+        // For File objects, create a preview URL
+        const previewUrl = URL.createObjectURL(newImages[0]);
+        onPrimaryImageChange(previewUrl);
       }
       
     } catch (error) {
-      console.error('Error uploading images:', error);
-      alert('Failed to upload some images. Please try again.');
+      console.error('Error processing images:', error);
+      alert('Failed to process some images. Please try again.');
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -379,88 +378,94 @@ export default function ImageUploadMultiple({
       {/* Image Grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {images.map((imageUrl, index) => (
-            <div
-              key={index}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnd={handleDragEnd}
-              className={`relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 transition-all cursor-move ${
-                imageUrl === primaryImage
-                  ? 'border-yellow-500 ring-2 ring-yellow-200'
-                  : 'border-gray-200 hover:border-gray-300'
-              } ${draggedIndex === index ? 'opacity-50' : ''}`}
-            >
-              {/* Image */}
-              <Image
-                src={imageUrl}
-                alt={`Product photo ${index + 1}${primaryImage === imageUrl ? ' (primary image)' : ''}`}
-                fill
-                className="object-cover"
-                quality={75}
-                sizes="200px"
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
-              />
+          {images.map((image, index) => {
+            // Handle both File objects and URL strings
+            const imageUrl = image instanceof File ? URL.createObjectURL(image) : (typeof image === 'string' ? image : image.url);
+            const isPrimary = imageUrl === primaryImage;
+            
+            return (
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`relative group aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 transition-all cursor-move ${
+                  isPrimary
+                    ? 'border-yellow-500 ring-2 ring-yellow-200'
+                    : 'border-gray-200 hover:border-gray-300'
+                } ${draggedIndex === index ? 'opacity-50' : ''}`}
+              >
+                {/* Image */}
+                <Image
+                  src={imageUrl}
+                  alt={`Product photo ${index + 1}${isPrimary ? ' (primary image)' : ''}`}
+                  fill
+                  className="object-cover"
+                  quality={75}
+                  sizes="200px"
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPg=="
+                />
               
-              {/* Primary Badge */}
-              {imageUrl === primaryImage && (
-                <div className="absolute top-2 left-2 z-10">
-                  <div className="flex items-center gap-1 bg-yellow-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                    <Star size={12} className="fill-white" />
-                    Primary
+                {/* Primary Badge */}
+                {isPrimary && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <div className="flex items-center gap-1 bg-yellow-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                      <Star size={12} className="fill-white" />
+                      Primary
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {/* Drag Handle */}
-              <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="bg-black/50 text-white p-1 rounded">
-                  <Move size={16} />
-                </div>
-              </div>
-              
-              {/* Overlay Actions */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {/* Preview */}
-                <button
-                  type="button"
-                  onClick={() => setPreviewImage(imageUrl)}
-                  className="p-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Preview"
-                >
-                  <ZoomIn size={18} />
-                </button>
-                
-                {/* Set Primary */}
-                {imageUrl !== primaryImage && (
-                  <button
-                    type="button"
-                    onClick={() => handleSetPrimary(imageUrl)}
-                    className="p-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="Set as primary"
-                  >
-                    <Star size={18} />
-                  </button>
                 )}
                 
-                {/* Remove */}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(index)}
-                  className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  title="Remove"
-                >
-                  <X size={18} />
-                </button>
+                {/* Drag Handle */}
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-black/50 text-white p-1 rounded">
+                    <Move size={16} />
+                  </div>
+                </div>
+                
+                {/* Overlay Actions */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {/* Preview */}
+                  <button
+                    type="button"
+                    onClick={() => setPreviewImage(imageUrl)}
+                    className="p-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+                    title="Preview"
+                  >
+                    <ZoomIn size={18} />
+                  </button>
+                  
+                  {/* Set Primary */}
+                  {!isPrimary && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimary(imageUrl)}
+                      className="p-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+                      title="Set as primary"
+                    >
+                      <Star size={18} />
+                    </button>
+                  )}
+                  
+                  {/* Remove */}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    title="Remove"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                
+                {/* Image Number */}
+                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                  {index + 1}
+                </div>
               </div>
-              
-              {/* Image Number */}
-              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {index + 1}
-              </div>
-            </div>
-          ))}
+            );
+          })}
           
           {/* Add More Button */}
           {images.length < maxImages && (
