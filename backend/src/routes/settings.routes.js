@@ -7,7 +7,7 @@ const {
   updatePaymentSettings,
   updateShippingSettings,
   updateEmailSettings,
-  updateSeoSettings: updateSEOSettings,
+  updateSEOSettings: updateSeoSettings,
   updateNotificationSettings,
   updateOrderSettings,
   updateFeatureSettings,

@@ -1072,7 +1072,6 @@ exports.getAllProductsAdmin = async (req, res) => {
   }
 };
 
-/**
  * POST /api/v1/admin/products
  * Create new product (admin only)
  * @access Private (Admin)
@@ -1253,7 +1252,7 @@ exports.createProductAdmin = async (req, res) => {
 
     // Combine existing images and newly uploaded images
     let finalImages = [];
-
+    
     // Add existing images first
     if (existingImages.length > 0) {
       finalImages = existingImages.map((img, idx) => ({
@@ -1265,7 +1264,7 @@ exports.createProductAdmin = async (req, res) => {
         caption: img.caption || ''
       }));
     }
-
+    
     // Add newly uploaded images
     if (uploadedImages.length > 0) {
       uploadedImages.forEach((img, idx) => {
