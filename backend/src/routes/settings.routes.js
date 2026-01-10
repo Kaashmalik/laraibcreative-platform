@@ -7,7 +7,7 @@ const {
   updatePaymentSettings,
   updateShippingSettings,
   updateEmailSettings,
-  updateSeoSettings,
+  updateSeoSettings: updateSEOSettings,
   updateNotificationSettings,
   updateOrderSettings,
   updateFeatureSettings,
@@ -15,7 +15,7 @@ const {
   resetSettings,
   importSettings,
   exportSettings,
-  sendTestEmail
+  sendTestEmail: testEmailSettings
 } = require('../controllers/settingsController');
 const { protect, authorize } = require('../middleware/auth.middleware');
 
