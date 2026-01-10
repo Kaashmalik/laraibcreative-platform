@@ -15,7 +15,7 @@ const {
   resetSettings,
   importSettings,
   exportSettings,
-  sendTestEmail: testEmailSettings
+  testEmailSettings: sendTestEmail
 } = require('../controllers/settingsController');
 const { protect, authorize } = require('../middleware/auth.middleware');
 
