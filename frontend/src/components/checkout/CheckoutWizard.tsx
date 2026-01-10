@@ -8,7 +8,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronRight, Truck, CreditCard, ClipboardCheck, Scissors } from 'lucide-react'
-import { useCartStore } from '@/store/cart-store'
+import { useCartStore } from '@/store/cartStore'
 import { createNewOrder, calculateShipping, type CheckoutData } from '@/app/actions/orders'
 import { cn } from '@/lib/utils'
 
@@ -27,12 +27,14 @@ interface StepConfig {
 }
 
 export function CheckoutWizard() {
-  const { items, subtotal, clearCart } = useCartStore()
-  
+  const items = useCartStore((state) => state.items)
+  const subtotal = useCartStore((state) => state.subtotal)
+  const clearCart = useCartStore((state) => state.clearCart)
+
   const [currentStep, setCurrentStep] = useState<Step>('shipping')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderResult, setOrderResult] = useState<{ orderNumber: string } | null>(null)
-  
+
   const [checkoutData, setCheckoutData] = useState<Partial<CheckoutData>>({
     items: items.map(item => ({
       productId: item.productId,
@@ -90,7 +92,7 @@ export function CheckoutWizard() {
 
     try {
       const shippingFee = await calculateShipping(checkoutData.shippingAddress.city)
-      
+
       const orderData: CheckoutData = {
         email: checkoutData.email!,
         phone: checkoutData.phone!,
@@ -132,23 +134,23 @@ export function CheckoutWizard() {
         >
           <Check className="w-10 h-10 text-green-600" />
         </motion.div>
-        
+
         <h1 className="text-3xl font-display font-bold text-neutral-800 mb-4">
           Order Confirmed!
         </h1>
-        
+
         <p className="text-neutral-600 mb-2">
           Thank you for your order. Your order number is:
         </p>
-        
+
         <p className="text-2xl font-bold text-primary-gold mb-8">
           {orderResult.orderNumber}
         </p>
-        
+
         <p className="text-neutral-500 mb-8">
           We&apos;ve sent a confirmation to your email and WhatsApp.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href={`/track/${orderResult.orderNumber}`}
@@ -198,7 +200,7 @@ export function CheckoutWizard() {
                   </span>
                   <span className="hidden sm:block font-medium">{step.title}</span>
                 </button>
-                
+
                 {index < steps.length - 1 && (
                   <ChevronRight className={cn(
                     'w-5 h-5 mx-2',
@@ -228,7 +230,7 @@ export function CheckoutWizard() {
                 onNext={goToNextStep}
               />
             )}
-            
+
             {currentStep === 'stitching' && (
               <StitchingStep
                 items={items.filter(i => i.customizations?.isStitched)}
@@ -238,7 +240,7 @@ export function CheckoutWizard() {
                 onBack={goToPrevStep}
               />
             )}
-            
+
             {currentStep === 'payment' && (
               <PaymentStep
                 data={checkoutData}
@@ -247,7 +249,7 @@ export function CheckoutWizard() {
                 onBack={goToPrevStep}
               />
             )}
-            
+
             {currentStep === 'review' && (
               <ReviewStep
                 data={checkoutData}

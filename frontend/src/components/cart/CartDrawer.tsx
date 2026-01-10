@@ -10,20 +10,18 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useCartStore } from '@/store/cart-store'
+import { useCartStore } from '@/store/cartStore'
 import type { CartItem } from '@/types/cart'
 
 export function CartDrawer() {
-  const { 
-    items, 
-    isOpen, 
-    closeCart, 
-    updateQuantity, 
-    removeItem,
-    subtotal,
-    total,
-    totalItems
-  } = useCartStore()
+  const items = useCartStore((state) => state.items)
+  const isOpen = useCartStore((state) => state.isOpen)
+  const closeCart = useCartStore((state) => state.closeCart)
+  const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const removeItem = useCartStore((state) => state.removeItem)
+  const subtotal = useCartStore((state) => state.subtotal)
+  const total = useCartStore((state) => state.total)
+  const totalItems = useCartStore((state) => state.totalItems)
 
   return (
     <AnimatePresence>
@@ -140,11 +138,11 @@ export function CartDrawer() {
   )
 }
 
-function CartItemCard({ 
-  item, 
-  onUpdateQuantity, 
-  onRemove 
-}: { 
+function CartItemCard({
+  item,
+  onUpdateQuantity,
+  onRemove
+}: {
   item: CartItem
   onUpdateQuantity: (qty: number) => void
   onRemove: () => void
@@ -171,7 +169,7 @@ function CartItemCard({
 
       {/* Details */}
       <div className="flex-1 min-w-0">
-        <Link 
+        <Link
           href={`/products/${item.product.slug}`}
           className="font-medium text-neutral-800 line-clamp-2 hover:text-primary-gold transition-colors"
         >

@@ -20,6 +20,7 @@ interface CartState {
   isLoading: boolean
   error: string | null
   lastSynced?: string
+  stitchingTotal: number
 }
 
 interface CartActions {
@@ -61,12 +62,15 @@ export const useCartStore = create<CartStore>()(
       isLoading: false,
       error: null,
       isOpen: false,
+      stitchingTotal: 0,
 
       addItem: async (product, quantity = 1, customizations) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const productId = product._id || product.id || ''
+          const priceAtAdd = product.pricing?.comparePrice || product.pricing?.basePrice || product.price || 0
+
           const newItem: CartItem = {
             id: `${productId}-${Date.now()}`,
             productId,
@@ -74,7 +78,7 @@ export const useCartStore = create<CartStore>()(
             quantity,
             customizations,
             addedAt: new Date().toISOString(),
-            priceAtAdd: product.price,
+            priceAtAdd,
           }
 
           set((state) => {
@@ -87,21 +91,19 @@ export const useCartStore = create<CartStore>()(
             if (existingIndex > -1) {
               const updated = [...state.items]
               updated[existingIndex].quantity += quantity
+              const totals = calculateTotals(updated, state.discount, state.shipping)
               return {
                 items: updated,
-                totalItems: updated.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
-                subtotal: updated.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
-                total: updated.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+                ...totals,
                 isOpen: true
               }
             }
 
             const newItems = [...state.items, newItem]
+            const totals = calculateTotals(newItems, state.discount, state.shipping)
             return {
               items: newItems,
-              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
-              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
-              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping,
+              ...totals,
               isOpen: true
             }
           })
@@ -114,15 +116,14 @@ export const useCartStore = create<CartStore>()(
 
       removeItem: async (itemId) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           set((state) => {
             const newItems = state.items.filter(item => item.id !== itemId)
+            const totals = calculateTotals(newItems, state.discount, state.shipping)
             return {
               items: newItems,
-              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
-              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
-              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+              ...totals
             }
           })
         } catch (error) {
@@ -134,7 +135,7 @@ export const useCartStore = create<CartStore>()(
 
       updateQuantity: async (itemId, quantity) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           if (quantity <= 0) {
             await get().removeItem(itemId)
@@ -145,11 +146,10 @@ export const useCartStore = create<CartStore>()(
             const newItems = state.items.map(item =>
               item.id === itemId ? { ...item, quantity } : item
             )
+            const totals = calculateTotals(newItems, state.discount, state.shipping)
             return {
               items: newItems,
-              totalItems: newItems.reduce((sum: number, item: CartItem) => sum + item.quantity, 0),
-              subtotal: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0),
-              total: newItems.reduce((sum: number, item: CartItem) => sum + (item.priceAtAdd || 0) * item.quantity, 0) - state.discount + state.shipping
+              ...totals
             }
           })
         } catch (error) {
@@ -161,7 +161,7 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: async () => {
         set({ isLoading: true, error: null })
-        
+
         try {
           set({
             items: [],
@@ -169,7 +169,8 @@ export const useCartStore = create<CartStore>()(
             subtotal: 0,
             total: 0,
             discount: 0,
-            shipping: 0
+            shipping: 0,
+            stitchingTotal: 0
           })
         } catch (error) {
           set({ error: 'Failed to clear cart' })
@@ -194,7 +195,7 @@ export const useCartStore = create<CartStore>()(
 
       applyPromoCode: async (code: string) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await fetch('/api/v1/cart/promo', {
             method: 'POST',
@@ -202,9 +203,9 @@ export const useCartStore = create<CartStore>()(
             credentials: 'include',
             body: JSON.stringify({ code })
           })
-          
+
           const data = await response.json()
-          
+
           if (data.success) {
             set({
               promoCode: code,
@@ -213,7 +214,7 @@ export const useCartStore = create<CartStore>()(
             })
             return { success: true, discount: data.discount, message: data.message }
           }
-          
+
           return { success: false, discount: 0, message: data.message || 'Invalid promo code' }
         } catch (error) {
           set({ error: 'Failed to apply promo code' })
@@ -233,7 +234,7 @@ export const useCartStore = create<CartStore>()(
 
       calculateShipping: async (address?: ShippingAddress) => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await fetch('/api/v1/cart/shipping', {
             method: 'POST',
@@ -241,9 +242,9 @@ export const useCartStore = create<CartStore>()(
             credentials: 'include',
             body: JSON.stringify({ address })
           })
-          
+
           const data = await response.json()
-          
+
           if (data.success) {
             const shippingCost = data.cost || 0
             set({
@@ -252,7 +253,7 @@ export const useCartStore = create<CartStore>()(
             })
             return shippingCost
           }
-          
+
           return 0
         } catch (error) {
           set({ error: 'Failed to calculate shipping' })
@@ -264,7 +265,7 @@ export const useCartStore = create<CartStore>()(
 
       syncCart: async () => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await fetch('/api/v1/cart/sync', {
             method: 'POST',
@@ -280,9 +281,9 @@ export const useCartStore = create<CartStore>()(
               }))
             })
           })
-          
+
           const data = await response.json()
-          
+
           if (data.success && data.items) {
             set({
               items: data.items,
@@ -300,14 +301,14 @@ export const useCartStore = create<CartStore>()(
 
       loadCart: async () => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await fetch('/api/v1/cart', {
             credentials: 'include'
           })
-          
+
           const data = await response.json()
-          
+
           if (data.success && data.items) {
             set({
               items: data.items,
@@ -326,22 +327,22 @@ export const useCartStore = create<CartStore>()(
 
       validateCart: async () => {
         set({ isLoading: true, error: null })
-        
+
         try {
           const response = await fetch('/api/v1/cart/validate', {
             method: 'POST',
             credentials: 'include'
           })
-          
+
           const data = await response.json()
-          
+
           if (data.success) {
             return {
               valid: data.valid,
               errors: data.errors || []
             }
           }
-          
+
           return {
             valid: false,
             errors: []
@@ -384,6 +385,23 @@ export const useCartStore = create<CartStore>()(
 )
 
 // Helper functions
+function calculateTotals(items: CartItem[], discount: number, shipping: number) {
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = items.reduce((sum, item) => sum + (item.priceAtAdd || 0) * item.quantity, 0)
+
+  const stitchingTotal = items.reduce((sum, item) => {
+    const charge = item.product.pricing?.customStitchingCharge || 0
+    return sum + (item.customizations?.isStitched ? charge * item.quantity : 0)
+  }, 0)
+
+  return {
+    totalItems,
+    subtotal,
+    stitchingTotal,
+    total: subtotal + stitchingTotal - discount + shipping
+  }
+}
+
 export async function syncCartToBackend() {
   const store = useCartStore.getState()
   await store.syncCart()

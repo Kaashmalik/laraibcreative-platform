@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { Heart, ShoppingBag, Eye } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { useCartStore } from '@/store/cart-store'
+import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlist-store'
 import { cloudinaryPresets } from '@/lib/cloudinary'
 import { ProductImage } from '@/components/shared/ProductImage'
@@ -30,26 +30,26 @@ export function ProductCard({ product, className, priority = false }: ProductCar
   const { toggleItem, isInWishlist } = useWishlistStore()
 
   const isWishlisted = isInWishlist(product.id)
-  
+
   // Parse pricing - handle both old and new API formats
-  let pricing = typeof product.pricing === 'string' 
-    ? JSON.parse(product.pricing) 
+  let pricing = typeof product.pricing === 'string'
+    ? JSON.parse(product.pricing)
     : product.pricing
-  
+
   // Normalize pricing structure
   const basePrice = pricing.basePrice || pricing.comparePrice || 0
   const salePrice = pricing.discount?.amount ? (pricing.basePrice - pricing.discount.amount) : 0
-  
+
   const hasDiscount = salePrice > 0 && salePrice < basePrice
   const displayPrice = hasDiscount ? salePrice : basePrice
-  const discountPercent = hasDiscount 
-    ? Math.round((1 - salePrice / basePrice) * 100) 
+  const discountPercent = hasDiscount
+    ? Math.round((1 - salePrice / basePrice) * 100)
     : 0
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const productForCart: Product = {
       id: product.id,
       title: product.title,
@@ -60,14 +60,14 @@ export function ProductCard({ product, className, priority = false }: ProductCar
         customStitchingCharge: pricing.stitching,
       },
     } as Product
-    
+
     addItem(productForCart, 1)
   }
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     toggleItem(product.id, {
       title: product.title,
       slug: product.slug,
@@ -125,7 +125,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
           </div>
 
           {/* Quick Actions */}
-          <div 
+          <div
             className={cn(
               'absolute top-3 right-3 flex flex-col gap-2 transition-opacity duration-300',
               isHovered ? 'opacity-100' : 'opacity-0 md:opacity-0'
@@ -135,15 +135,15 @@ export function ProductCard({ product, className, priority = false }: ProductCar
               onClick={handleToggleWishlist}
               className={cn(
                 'w-10 h-10 rounded-full flex items-center justify-center transition-colors',
-                isWishlisted 
-                  ? 'bg-primary-rose text-white' 
+                isWishlisted
+                  ? 'bg-primary-rose text-white'
                   : 'bg-white/90 backdrop-blur-sm text-neutral-600 hover:bg-primary-rose hover:text-white'
               )}
               aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             >
               <Heart className={cn('w-5 h-5', isWishlisted && 'fill-current')} />
             </button>
-            
+
             <Link
               href={`/products/${product.slug}`}
               className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-neutral-600 hover:bg-primary-gold hover:text-white transition-colors"
@@ -154,7 +154,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
           </div>
 
           {/* Add to Cart Button */}
-          <div 
+          <div
             className={cn(
               'absolute bottom-0 left-0 right-0 p-4 transition-transform duration-300',
               isHovered ? 'translate-y-0' : 'translate-y-full'
@@ -193,8 +193,8 @@ export function ProductCard({ product, className, priority = false }: ProductCar
                     key={i}
                     className={cn(
                       'w-4 h-4',
-                      i < Math.floor(product.average_rating) 
-                        ? 'text-primary-gold fill-current' 
+                      i < Math.floor(product.average_rating)
+                        ? 'text-primary-gold fill-current'
                         : 'text-neutral-300'
                     )}
                     viewBox="0 0 20 20"

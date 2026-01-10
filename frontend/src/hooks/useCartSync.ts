@@ -25,13 +25,16 @@ export function useCartSync(options: {
 } = {}) {
   const { syncInterval = 30000, enableCrossTab = true } = options;
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const store = useCartStore();
+
+  const syncCartAction = useCartStore((state) => state.syncCart);
+  const items = useCartStore((state) => state.items);
+  const lastSynced = useCartStore((state) => state.lastSynced);
 
   // Backend sync interval
   useEffect(() => {
     const sync = async () => {
       try {
-        await store.syncCart();
+        await syncCartAction();
       } catch (error) {
         console.error('Cart sync failed:', error);
       }
@@ -50,7 +53,7 @@ export function useCartSync(options: {
         clearInterval(syncIntervalRef.current);
       }
     };
-  }, [store, syncInterval]);
+  }, [syncCartAction, syncInterval]);
 
   // Cross-tab synchronization
   useEffect(() => {
@@ -62,16 +65,12 @@ export function useCartSync(options: {
           const newCart = JSON.parse(e.newValue);
           if (newCart.state?.items) {
             // Zustand persist middleware automatically handles this
-            // The store will be updated automatically when localStorage changes
-            // We just need to trigger a re-render by accessing the store
-            const currentItems = store.items;
+            // Only update if different (avoid infinite loop)
             const newItems = newCart.state.items;
 
-            // Only update if different (avoid infinite loop)
-            if (JSON.stringify(currentItems) !== JSON.stringify(newItems)) {
-              // Force store update by setting items directly
-              // Note: Zustand persist will handle the sync automatically
-              // This is just to ensure UI updates
+            if (JSON.stringify(items) !== JSON.stringify(newItems)) {
+              // Force store update or re-render if needed
+              // The items are already reactive via the selector above
             }
           }
         } catch (error) {
@@ -85,11 +84,11 @@ export function useCartSync(options: {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [store, enableCrossTab]);
+  }, [items, enableCrossTab]);
 
   return {
-    syncCart: store.syncCart,
-    lastSynced: store.lastSynced,
+    syncCart: syncCartAction,
+    lastSynced,
   };
 }
 

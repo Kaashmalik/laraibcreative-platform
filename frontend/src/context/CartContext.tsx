@@ -11,7 +11,7 @@
 
 
 import { createContext, useContext, useEffect } from 'react';
-import { useCartStore } from '@/store/cart-store';
+import { useCartStore } from '@/store/cartStore';
 import { useCartSync } from '@/hooks/useCartSync';
 import type { CartContextValue } from '@/types/cart';
 
@@ -22,7 +22,31 @@ const CartContext = createContext<CartContextValue | null>(null);
  * Wraps app with cart context and sync functionality
  */
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const store = useCartStore();
+  const items = useCartStore((state) => state.items);
+  const totalItems = useCartStore((state) => state.totalItems);
+  const subtotal = useCartStore((state) => state.subtotal);
+  const tax = useCartStore((state) => state.tax);
+  const shipping = useCartStore((state) => state.shipping);
+  const discount = useCartStore((state) => state.discount);
+  const total = useCartStore((state) => state.total);
+  const isLoading = useCartStore((state) => state.isLoading);
+  const error = useCartStore((state) => state.error);
+  const promoCode = useCartStore((state) => state.promoCode);
+  const lastSynced = useCartStore((state) => state.lastSynced);
+
+  const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const isInCart = useCartStore((state) => state.isInCart);
+  const getItem = useCartStore((state) => state.getItem);
+  const getProductQuantity = useCartStore((state) => state.getProductQuantity);
+  const applyPromoCode = useCartStore((state) => state.applyPromoCode);
+  const removePromoCode = useCartStore((state) => state.removePromoCode);
+  const calculateShipping = useCartStore((state) => state.calculateShipping);
+  const syncCart = useCartStore((state) => state.syncCart);
+  const loadCartAction = useCartStore((state) => state.loadCart);
+  const validateCart = useCartStore((state) => state.validateCart);
 
   // Enable cart sync across tabs and with backend
   useCartSync({
@@ -32,52 +56,52 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from backend on mount (if authenticated)
   useEffect(() => {
-    const loadCart = async () => {
+    const fetchCart = async () => {
       try {
-        await store.loadCart();
-      } catch (error) {
-        console.error('Failed to load cart:', error);
+        await loadCartAction();
+      } catch (err) {
+        console.error('Failed to load cart:', err);
       }
     };
 
     // Check if user is authenticated
-    const token = typeof window !== 'undefined' 
+    const token = typeof window !== 'undefined'
       ? document.cookie.split('; ').find(row => row.startsWith('token='))
       : null;
 
     if (token) {
-      loadCart();
+      fetchCart();
     }
-  }, [store]);
+  }, [loadCartAction]);
 
   const value: CartContextValue = {
     // State
-    items: store.items,
-    totalItems: store.totalItems,
-    subtotal: store.subtotal,
-    tax: store.tax,
-    shipping: store.shipping,
-    discount: store.discount,
-    total: store.total,
-    isLoading: store.isLoading,
-    error: store.error,
-    promoCode: store.promoCode,
-    lastSynced: store.lastSynced,
+    items,
+    totalItems,
+    subtotal,
+    tax,
+    shipping,
+    discount,
+    total,
+    isLoading,
+    error,
+    promoCode,
+    lastSynced,
 
     // Actions
-    addItem: store.addItem,
-    removeItem: store.removeItem,
-    updateQuantity: store.updateQuantity,
-    clearCart: store.clearCart,
-    isInCart: store.isInCart,
-    getItem: store.getItem,
-    getProductQuantity: store.getProductQuantity,
-    applyPromoCode: store.applyPromoCode,
-    removePromoCode: store.removePromoCode,
-    calculateShipping: store.calculateShipping,
-    syncCart: store.syncCart,
-    loadCart: store.loadCart,
-    validateCart: store.validateCart,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    isInCart,
+    getItem,
+    getProductQuantity,
+    applyPromoCode,
+    removePromoCode,
+    calculateShipping,
+    syncCart,
+    loadCart: loadCartAction,
+    validateCart,
     clearCorruptedCart: () => {
       console.warn('clearCorruptedCart not implemented in store');
     },

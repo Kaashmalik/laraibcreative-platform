@@ -18,110 +18,134 @@ import type { Product } from '@/types/product';
  * const { items, addItem, removeItem, total } = useCart();
  */
 export function useCart() {
-  const store = useCartStore();
+  const items = useCartStore((state) => state.items);
+  const totalItems = useCartStore((state) => state.totalItems);
+  const subtotal = useCartStore((state) => state.subtotal);
+  const tax = useCartStore((state) => state.tax);
+  const shipping = useCartStore((state) => state.shipping);
+  const discount = useCartStore((state) => state.discount);
+  const total = useCartStore((state) => state.total);
+  const isLoading = useCartStore((state) => state.isLoading);
+  const error = useCartStore((state) => state.error);
+  const promoCode = useCartStore((state) => state.promoCode);
+
+  const addItemAction = useCartStore((state) => state.addItem);
+  const removeItemAction = useCartStore((state) => state.removeItem);
+  const updateQuantityAction = useCartStore((state) => state.updateQuantity);
+  const clearCartAction = useCartStore((state) => state.clearCart);
+  const isInCartAction = useCartStore((state) => state.isInCart);
+  const getItemAction = useCartStore((state) => state.getItem);
+  const getProductQuantityAction = useCartStore((state) => state.getProductQuantity);
+  const applyPromoCodeAction = useCartStore((state) => state.applyPromoCode);
+  const removePromoCodeAction = useCartStore((state) => state.removePromoCode);
+  const calculateShippingAction = useCartStore((state) => state.calculateShipping);
+  const syncCartAction = useCartStore((state) => state.syncCart);
+  const validateCartAction = useCartStore((state) => state.validateCart);
+  const loadCartAction = useCartStore((state) => state.loadCart);
+  const clearCorruptedCartAction = useCartStore((state) => state.clearCorruptedCart);
 
   // Clear corrupted cart on mount and load from backend (if authenticated)
   useEffect(() => {
     // Clear any corrupted cart items
-    store.clearCorruptedCart();
+    clearCorruptedCartAction();
 
     const loadCart = async () => {
       try {
-        await store.loadCart();
-      } catch (error) {
-        console.error('Failed to load cart:', error);
+        await loadCartAction();
+      } catch (err) {
+        console.error('Failed to load cart:', err);
       }
     };
 
     // Check if user is authenticated
-    const token = typeof window !== 'undefined' 
+    const token = typeof window !== 'undefined'
       ? document.cookie.split('; ').find(row => row.startsWith('token='))
       : null;
 
     if (token) {
       loadCart();
     }
-  }, [store]);
+  }, [clearCorruptedCartAction, loadCartAction]);
 
   // Wrapper functions with better error handling
   const addItem = useCallback(
     async (product: Product, quantity: number = 1, customizations?: CartItemCustomizations) => {
       try {
-        await store.addItem(product, quantity, customizations);
-      } catch (error: any) {
-        throw new Error(error.message || 'Failed to add item to cart');
+        await addItemAction(product, quantity, customizations);
+      } catch (err: any) {
+        throw new Error(err.message || 'Failed to add item to cart');
       }
     },
-    [store]
+    [addItemAction]
   );
 
   const removeItem = useCallback(
     async (itemId: string) => {
       try {
-        await store.removeItem(itemId);
-      } catch (error: any) {
-        throw new Error(error.message || 'Failed to remove item from cart');
+        await removeItemAction(itemId);
+      } catch (err: any) {
+        throw new Error(err.message || 'Failed to remove item from cart');
       }
     },
-    [store]
+    [removeItemAction]
   );
 
   const updateQuantity = useCallback(
     async (itemId: string, quantity: number) => {
       try {
-        await store.updateQuantity(itemId, quantity);
-      } catch (error: any) {
-        throw new Error(error.message || 'Failed to update quantity');
+        await updateQuantityAction(itemId, quantity);
+      } catch (err: any) {
+        throw new Error(err.message || 'Failed to update quantity');
       }
     },
-    [store]
+    [updateQuantityAction]
   );
 
   const clearCart = useCallback(async () => {
     try {
-      await store.clearCart();
-    } catch (error: any) {
-      throw new Error(error.message || 'Failed to clear cart');
+      await clearCartAction();
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to clear cart');
     }
-  }, [store]);
+  }, [clearCartAction]);
 
   const applyPromoCode = useCallback(
     async (code: string) => {
       try {
-        return await store.applyPromoCode(code);
-      } catch (error: any) {
-        throw new Error(error.message || 'Failed to apply promo code');
+        return await applyPromoCodeAction(code);
+      } catch (err: any) {
+        throw new Error(err.message || 'Failed to apply promo code');
       }
     },
-    [store]
+    [applyPromoCodeAction]
   );
 
   return {
     // State
-    items: store.items,
-    totalItems: store.totalItems,
-    subtotal: store.subtotal,
-    tax: store.tax,
-    shipping: store.shipping,
-    discount: store.discount,
-    total: store.total,
-    isLoading: store.isLoading,
-    error: store.error,
-    promoCode: store.promoCode,
+    items,
+    totalItems,
+    subtotal,
+    tax,
+    shipping,
+    discount,
+    total,
+    isLoading,
+    error,
+    promoCode,
 
     // Actions
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
-    isInCart: store.isInCart,
-    getItem: store.getItem,
-    getProductQuantity: store.getProductQuantity,
+    isInCart: isInCartAction,
+    getItem: getItemAction,
+    getProductQuantity: getProductQuantityAction,
     applyPromoCode,
-    removePromoCode: store.removePromoCode,
-    calculateShipping: store.calculateShipping,
-    syncCart: store.syncCart,
-    validateCart: store.validateCart,
+    removePromoCode: removePromoCodeAction,
+    calculateShipping: calculateShippingAction,
+    syncCart: syncCartAction,
+    validateCart: validateCartAction,
   };
 }
 
