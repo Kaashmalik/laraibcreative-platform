@@ -42,7 +42,7 @@ export function useFeaturedProducts(initialProducts = [], limit = 8) {
           setLoading(false);
         });
     }
-  }, [limit, initialProducts.length, products.length, loading]);
+  }, [limit, initialProducts.length]);
 
   return { products, loading, error };
 }
@@ -84,7 +84,7 @@ export function useCategories(initialCategories = []) {
           setLoading(false);
         });
     }
-  }, [initialCategories.length, categories.length, loading]);
+  }, [initialCategories.length]);
 
   return { categories, loading, error };
 }
