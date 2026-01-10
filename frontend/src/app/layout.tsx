@@ -27,23 +27,23 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL('https://laraibcreative.studio'),
   title: {
-    default: 'LaraibCreative - Custom Ladies Suits Stitching Online | Designer Wear Pakistan',
+    default: 'LaraibCreative - Hand Karahi & Custom Ladies Suits | Lahore',
     template: '%s | LaraibCreative'
   },
-  description: 'Transform your vision into beautiful reality. Expert custom stitched ladies suits, bridal wear, party suits with perfect measurements. Fast delivery across Pakistan. 500+ happy customers. Order now!',
+  description: 'Premium Hand Crafted and Hand Karahi Ladies Suits. #1 Custom Stitching Shop in Lahore. Expert tailoring for bridal wear, party suits, and designer replicas. Order online.',
   keywords: [
-    'custom stitching Pakistan',
-    'ladies suit stitching online',
-    'designer replica stitching',
-    'bridal wear online Pakistan',
-    'party suits Lahore',
-    'custom tailoring Pakistan',
-    'online stitching service',
-    'ladies suit stitching Lahore',
-    'designer wear Pakistan',
-    'custom made suits Pakistan',
-    'wedding dress stitching',
-    'Pakistani suit stitching'
+    'Hand Karahi Suites',
+    'Hand Crafted Ladies Suits',
+    'Ladies Suits Shop in Lahore',
+    'Custom Stitching Lahore',
+    'Bridal Wear Pakistan',
+    'Party Wear Suites',
+    'Designer Replicas',
+    'Online Stitching Service',
+    'Laraib Creative',
+    'Laraib',
+    'Handwork Suits',
+    'Pakistani Fashion'
   ],
   authors: [{ name: 'LaraibCreative', url: 'https://laraibcreative.studio' }],
   creator: 'LaraibCreative',
@@ -54,8 +54,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: 'LaraibCreative - Custom Ladies Suits Stitching Online | #1 in Pakistan',
-    description: 'We turn your thoughts & emotions into reality and happiness. Get custom stitched designer suits delivered to your door. 98% customer satisfaction rate.',
+    title: 'LaraibCreative - Hand Karahi & Custom Suits | Lahore',
+    description: 'Experience the art of Hand Karahi and premium custom stitching. The best ladies suit shop in Lahore delivering worldwide.',
     url: 'https://laraibcreative.studio',
     siteName: 'LaraibCreative',
     images: [
@@ -200,40 +200,40 @@ export default function RootLayout({ children }: RootLayoutProps) {
                   Skip to content
                 </a>
                 {children}
-                  <Toaster
-                    position="top-right"
-                    toastOptions={{
-                      duration: 3000,
-                      style: {
-                        background: '#333',
-                        color: '#fff',
-                        borderRadius: '8px',
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                    style: {
+                      background: '#333',
+                      color: '#fff',
+                      borderRadius: '8px',
+                    },
+                    success: {
+                      iconTheme: {
+                        primary: '#10B981',
+                        secondary: '#fff',
                       },
-                      success: {
-                        iconTheme: {
-                          primary: '#10B981',
-                          secondary: '#fff',
-                        },
+                    },
+                    error: {
+                      iconTheme: {
+                        primary: '#EF4444',
+                        secondary: '#fff',
                       },
-                      error: {
-                        iconTheme: {
-                          primary: '#EF4444',
-                          secondary: '#fff',
-                        },
-                      },
-                    }}
-                  />
-                </CartProvider>
-              </ToastProvider>
-              {process.env.NEXT_PUBLIC_GA_ID && (
-                <>
-                  <script
-                    async
-                    src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                  />
-                  <script
-                    dangerouslySetInnerHTML={{
-                      __html: `
+                    },
+                  }}
+                />
+              </CartProvider>
+            </ToastProvider>
+            {process.env.NEXT_PUBLIC_GA_ID && (
+              <>
+                <script
+                  async
+                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+                />
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
                       window.dataLayer = window.dataLayer || [];
                       function gtag(){dataLayer.push(arguments);}
                       gtag('js', new Date());
@@ -241,14 +241,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         page_path: window.location.pathname,
                       });
                       `,
-                    }}
-                  />
-                </>
-              )}
-              {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
-                <script
-                  dangerouslySetInnerHTML={{
-                    __html: `
+                  }}
+                />
+              </>
+            )}
+            {process.env.NEXT_PUBLIC_FB_PIXEL_ID && (
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
                     !function(f,b,e,v,n,t,s)
                     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
                     n.callMethod.apply(n.arguments):n.queue.push(arguments)};
@@ -260,12 +260,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
                     fbq('init', '${process.env.NEXT_PUBLIC_FB_PIXEL_ID}');
                     fbq('track', 'PageView');
                   `,
-                    }}
-                />
-              )}
-              <Analytics />
-              <SpeedInsights />
-            </ThemeProvider>
+                }}
+              />
+            )}
+            <Analytics />
+            <SpeedInsights />
+          </ThemeProvider>
         </GlobalErrorBoundary>
       </body>
     </html>

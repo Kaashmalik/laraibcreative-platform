@@ -8,35 +8,36 @@ import { ArrowRight, Sparkles, Star, ChevronLeft, ChevronRight, Crown, Gem, Snow
 
 const SLIDES = [
   {
+    id: 'hand-karahi',
+    title: 'Where Heritage Meets Modern Elegance',
+    highlight: 'Modern Elegance',
+    tagline: 'Pakistan\'s Premier Destination for Hand-Crafted Bridal & Party Wear. Experience the timeless art of Hand Karahi.',
+    image: '/images/hero-hand-karahi.png',
+    // Matching the Pistachio Green & Maroon/Red Embroidery
+    color: 'from-red-800 via-rose-900 to-red-700',
+    bgGradient: 'from-green-50 via-emerald-50 to-stone-50',
+    badge: 'Hand Karahi',
+    badgeIcon: Crown,
+    stats: [
+      { value: 'Premium', label: 'Hand Craft' },
+      { value: 'Custom', label: 'Stitching' },
+      { value: 'Lahore', label: 'Based' }
+    ]
+  },
+  {
     id: 'custom',
     title: 'Transform Your Vision Into Beautiful Reality',
     highlight: 'Vision Into',
     tagline: 'We turn your thoughts & emotions into reality and happiness through custom stitched designer suits',
     image: 'https://res.cloudinary.com/dupjniwgq/image/upload/v1/laraibcreative/hero/hero_fashion_model_v1',
-    color: 'from-pink-600 via-purple-600 to-rose-600',
-    bgGradient: 'from-pink-50 via-purple-50 to-rose-50',
+    color: 'from-purple-600 via-violet-600 to-indigo-600',
+    bgGradient: 'from-purple-50 via-violet-50 to-indigo-50',
     badge: 'Custom Stitching',
     badgeIcon: Sparkles,
     stats: [
       { value: '500+', label: 'Orders Completed' },
       { value: '98%', label: 'Happy Customers' },
       { value: '7-10', label: 'Days Delivery' }
-    ]
-  },
-  {
-    id: 'bridal',
-    title: 'Royal Elegance for Your Special Day',
-    highlight: 'Royal Elegance',
-    tagline: 'Exquisite bridal couture handcrafted with intricate zardozi, tilla work, and traditional artistry',
-    image: 'https://res.cloudinary.com/dupjniwgq/image/upload/v1766074944/laraibcreative/hero/hero_bridal.jpg',
-    color: 'from-red-600 via-amber-600 to-orange-600',
-    bgGradient: 'from-orange-50 via-red-50 to-amber-50',
-    badge: 'Bridal Collection',
-    badgeIcon: Crown,
-    stats: [
-      { value: 'Pure', label: 'Handwork' },
-      { value: 'Custom', label: 'Fitting' },
-      { value: 'Global', label: 'Shipping' }
     ]
   },
   {
@@ -146,17 +147,19 @@ export default function HeroSection() {
                 </div>
 
                 {/* Heading */}
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-gray-900 tracking-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] text-gray-900 tracking-tight drop-shadow-sm">
                   <span className="block">{slide.title.replace(slide.highlight, '')}</span>
-                  <span className={`block bg-clip-text text-transparent bg-gradient-to-r ${slide.color}`}>
+                  <span className={`block bg-clip-text text-transparent bg-gradient-to-r ${slide.color} font-serif italic`}>
                     {slide.highlight}
                   </span>
                 </h1>
 
-                {/* Tagline */}
-                <p className="text-lg sm:text-xl text-gray-600 max-w-lg leading-relaxed font-light">
-                  {slide.tagline}
-                </p>
+                {/* Tagline - Glassmorphism */}
+                <div className="inline-block rounded-2xl bg-white/30 backdrop-blur-md border border-white/40 p-6 shadow-sm">
+                  <p className="text-lg sm:text-xl text-gray-800 max-w-lg leading-relaxed font-medium">
+                    {slide.tagline}
+                  </p>
+                </div>
 
                 {/* CTAs */}
                 <div className="flex flex-wrap gap-4 pt-4">

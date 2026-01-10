@@ -263,16 +263,16 @@ function ProductsContent() {
         }}
       />
 
-      <div className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <header className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
             Our Products
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Discover our collection of beautiful Pakistani fashion
           </p>
-        </div>
+        </header>
 
         {/* Active Filters Bar */}
         <ActiveFilters
@@ -317,7 +317,7 @@ function ProductsContent() {
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Desktop Filters Sidebar */}
-          <div className="hidden lg:block lg:col-span-1">
+          <aside className="hidden lg:block lg:col-span-1">
             <div className="sticky top-4">
               <ProductFilters
                 filters={filters}
@@ -330,10 +330,10 @@ function ProductsContent() {
                 }}
               />
             </div>
-          </div>
+          </aside>
 
           {/* Products Grid */}
-          <div className="lg:col-span-3">
+          <section className="lg:col-span-3">
             {/* Results count and sort */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <p className="text-gray-600 dark:text-gray-400">
@@ -454,9 +454,9 @@ function ProductsContent() {
                 )}
               </>
             )}
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
 
       {/* Mobile Filter Drawer */}
       <MobileFilterDrawer

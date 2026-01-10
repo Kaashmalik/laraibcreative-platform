@@ -97,9 +97,9 @@ export default function ProductStructuredData({
     const productImages = extractImageUrls();
 
     // Extract product price
-    const productPrice = 
-      product.pricing?.basePrice || 
-      product.price || 
+    const productPrice =
+      product.pricing?.basePrice ||
+      product.price ||
       0;
 
     // Extract SKU
@@ -125,8 +125,8 @@ export default function ProductStructuredData({
 
       // Fallback to inStock boolean
       if (product.inStock !== undefined) {
-        return product.inStock 
-          ? 'https://schema.org/InStock' 
+        return product.inStock
+          ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock';
       }
 
@@ -144,7 +144,7 @@ export default function ProductStructuredData({
     const availability = getAvailability();
 
     // Get current page URL or construct from product slug
-    const productUrl = url || 
+    const productUrl = url ||
       (product.slug ? `${siteUrl}/products/${product.slug}` : '') ||
       (product._id ? `${siteUrl}/products/${product._id}` : '') ||
       (product.id ? `${siteUrl}/products/${product.id}` : '') ||
@@ -154,27 +154,27 @@ export default function ProductStructuredData({
     const productSchema: any = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      
+
       // Required fields
       name: productName,
-      
+
       // Description (recommended)
       ...(productDescription && { description: productDescription }),
-      
+
       // Images (at least one required)
       image: productImages.length === 1 ? productImages[0] : productImages,
-      
+
       // SKU (recommended for e-commerce)
       ...(productSku && { sku: productSku }),
-      
+
       // Brand information
       brand: {
         '@type': 'Brand',
-        name: 
-          (typeof product.brand === 'string' ? product.brand : product.brand?.name) || 
+        name:
+          (typeof product.brand === 'string' ? product.brand : product.brand?.name) ||
           brandName,
       },
-      
+
       // Offer information (required for e-commerce)
       offers: {
         '@type': 'Offer',
@@ -190,18 +190,54 @@ export default function ProductStructuredData({
           '@type': 'Organization',
           name: brandName,
         },
+        // Trust Signals: Shipping & Returns (New for 2026 Standards)
+        shippingDetails: {
+          '@type': 'OfferShippingDetails',
+          shippingRate: {
+            '@type': 'MonetaryAmount',
+            value: 0,
+            currency: 'PKR',
+          },
+          shippingDestination: {
+            '@type': 'DefinedRegion',
+            addressCountry: 'PK',
+          },
+          deliveryTime: {
+            '@type': 'ShippingDeliveryTime',
+            handlingTime: {
+              '@type': 'QuantitativeValue',
+              minValue: 1,
+              maxValue: 3,
+              unitCode: 'DAY',
+            },
+            transitTime: {
+              '@type': 'QuantitativeValue',
+              minValue: 3,
+              maxValue: 7,
+              unitCode: 'DAY',
+            },
+          },
+        },
+        hasMerchantReturnPolicy: {
+          '@type': 'MerchantReturnPolicy',
+          applicableCountry: 'PK',
+          returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+          merchantReturnDays: 30,
+          returnMethod: 'https://schema.org/ReturnByMail',
+          returnFees: 'https://schema.org/ReturnShippingFees',
+        },
       },
     };
 
     // Add AggregateRating if reviews exist
-    const rating = 
-      product.averageRating || 
-      product.rating || 
+    const rating =
+      product.averageRating ||
+      product.rating ||
       0;
-    
-    const reviewCount = 
-      product.totalReviews || 
-      product.reviewCount || 
+
+    const reviewCount =
+      product.totalReviews ||
+      product.reviewCount ||
       0;
 
     if (rating > 0 && reviewCount > 0) {
@@ -226,8 +262,8 @@ export default function ProductStructuredData({
             name: review.author || 'Customer',
           },
           ...(review.datePublished && {
-            datePublished: typeof review.datePublished === 'string' 
-              ? review.datePublished 
+            datePublished: typeof review.datePublished === 'string'
+              ? review.datePublished
               : new Date(review.datePublished).toISOString(),
           }),
           reviewBody: review.reviewBody || '',
@@ -242,22 +278,42 @@ export default function ProductStructuredData({
 
     // Add category if available (helps with categorization)
     if (product.category) {
-      const categoryName = typeof product.category === 'string' 
-        ? product.category 
+      const categoryName = typeof product.category === 'string'
+        ? product.category
         : product.category.name || '';
-      
+
       if (categoryName) {
         productSchema.category = categoryName;
       }
     }
 
-    // Add product features if available
+    // Add product accessories/material if available
     if (product.features && Array.isArray(product.features) && product.features.length > 0) {
       productSchema.additionalProperty = product.features.map((feature) => ({
         '@type': 'PropertyValue',
         name: 'Feature',
         value: feature,
       }));
+    }
+
+    // Visual Search Optimization (Material & Pattern)
+    // Helps Google Lens identify the fabric and technique
+    if (product.fabric?.type) {
+      productSchema.material = {
+        '@type': 'ProductModel',
+        name: product.fabric.type,
+      };
+    }
+
+    // Explicitly tag Hand Karahi items for visual search
+    const isHandCrafted =
+      productName.toLowerCase().includes('hand') ||
+      productDescription.toLowerCase().includes('karahi') ||
+      productDescription.toLowerCase().includes('craft');
+
+    if (isHandCrafted) {
+      productSchema.pattern = 'Hand Karahi';
+      productSchema.keywords = 'Hand Craft, Hand Work, Hand Karahi, Embroidered';
     }
 
     // Render JSON-LD script tag
@@ -286,17 +342,17 @@ export default function ProductStructuredData({
  */
 function getAbsoluteUrl(url: string, siteUrl: string = SITE_URL): string {
   if (!url) return `${siteUrl}/images/placeholder.png`;
-  
+
   // Already absolute URL
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  
+
   // Cloudinary URL (already absolute)
   if (url.includes('cloudinary.com') || url.includes('res.cloudinary.com')) {
     return url;
   }
-  
+
   // Relative URL - make absolute
   const cleanUrl = url.startsWith('/') ? url : `/${url}`;
   return `${siteUrl}${cleanUrl}`;
