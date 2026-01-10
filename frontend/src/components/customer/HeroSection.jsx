@@ -118,7 +118,7 @@ export default function HeroSection() {
 
       {/* Background Animated Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-full h-full bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
+        {/* <div className="absolute top-0 right-0 w-full h-full bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" /> */}
         <div className={`absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl opacity-30 animate-pulse transition-colors duration-1000 bg-${slide.color.split(' ')[1]}`} />
         <div className={`absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl opacity-30 animate-pulse delay-1000 transition-colors duration-1000 bg-${slide.color.split(' ')[3]}`} />
       </div>
