@@ -5,16 +5,35 @@
 
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Copy, Share2, Gift, Users, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ReferralsPage() {
-  const [, setCopied] = useState(false);
-  
-  const { data: referralData, isLoading } = trpc.referral.getCode.useQuery();
-  const { data: stats } = trpc.referral.getStats.useQuery();
+  const [referralData, setReferralData] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const [referralRes, statsRes] = await Promise.all([
+        axios.get('/api/v1/referrals/code'),
+        axios.get('/api/v1/referrals/stats'),
+      ]);
+      setReferralData(referralRes.data);
+      setStats(statsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch referral data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const referralCode = referralData?.referralCode || '';
   const referralUrl = typeof window !== 'undefined' 
@@ -24,9 +43,7 @@ export default function ReferralsPage() {
   const handleCopy = () => {
     if (referralUrl) {
       navigator.clipboard.writeText(referralUrl);
-      setCopied(true);
       toast.success('Referral link copied!');
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 

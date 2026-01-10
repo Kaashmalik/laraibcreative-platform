@@ -1,7 +1,9 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Lock, Eye, EyeOff, ArrowLeft, ArrowRight, Loader2, CheckCircle2, XCircle } from 'lucide-react'
@@ -9,7 +11,6 @@ import axiosInstance from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
 export default function ResetPasswordPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 

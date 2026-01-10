@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, Plus, Trash2, Save, Loader2, CheckCircle2 } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
@@ -37,7 +37,6 @@ const CITIES = [
 export default function AddressForm({ onSuccess }: { onSuccess?: () => void }) {
   const [addresses, setAddresses] = useState<Address[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -67,10 +66,11 @@ export default function AddressForm({ onSuccess }: { onSuccess?: () => void }) {
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value } = e.target
+    const checked = 'checked' in e.target ? (e.target as HTMLInputElement).checked : undefined
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: checked !== undefined ? checked : value
     }))
   }
 
@@ -87,15 +87,12 @@ export default function AddressForm({ onSuccess }: { onSuccess?: () => void }) {
         toast.success('Address added successfully!')
       }
 
-      setIsSuccess(true)
       setShowForm(false)
       setEditingId(null)
       resetForm()
       loadAddresses()
 
       if (onSuccess) onSuccess()
-
-      setTimeout(() => setIsSuccess(false), 3000)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to save address')
     } finally {

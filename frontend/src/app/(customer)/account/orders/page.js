@@ -1,5 +1,5 @@
-export const dynamic = 'force-dynamic';
 "use client";
+export const dynamic = 'force-dynamic';
 
 // app/(customer)/account/orders/page.js
 import { useState, useEffect, useCallback } from 'react';

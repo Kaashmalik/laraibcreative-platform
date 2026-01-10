@@ -9,15 +9,6 @@
 import { useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 
-interface User {
-  id: string
-  email: string
-  fullName?: string
-  role: string
-  phone?: string
-  profileImage?: string
-}
-
 export default function useAuth() {
   const {
     user,

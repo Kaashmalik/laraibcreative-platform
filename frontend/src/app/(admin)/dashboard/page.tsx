@@ -5,8 +5,8 @@
 
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { 
   DollarSign, Users, ShoppingCart, TrendingUp, 
   AlertCircle, RefreshCw 
@@ -18,11 +18,30 @@ export default function DashboardPage() {
     from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     to: new Date().toISOString().split('T')[0],
   });
+  const [metrics, setMetrics] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data, isLoading, refetch } = trpc.analytics.getDashboard.useQuery({
-    dateFrom: dateRange.from,
-    dateTo: dateRange.to,
-  });
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get('/api/v1/analytics/dashboard', {
+        params: {
+          dateFrom: dateRange.from,
+          dateTo: dateRange.to,
+        },
+      });
+      setMetrics(response.data.data || {});
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      setMetrics({});
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [dateRange]);
 
   if (isLoading) {
     return (
@@ -39,7 +58,6 @@ export default function DashboardPage() {
     );
   }
 
-  const metrics = data?.data || {};
 
   return (
     <div className="p-6">
@@ -63,7 +81,7 @@ export default function DashboardPage() {
             className="px-4 py-2 border rounded-lg"
           />
           <button
-            onClick={() => refetch()}
+            onClick={() => fetchDashboardData()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />

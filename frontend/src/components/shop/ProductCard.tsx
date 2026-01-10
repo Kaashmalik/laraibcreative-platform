@@ -14,10 +14,11 @@ import { useCartStore } from '@/store/cart-store'
 import { useWishlistStore } from '@/store/wishlist-store'
 import { cloudinaryPresets } from '@/lib/cloudinary'
 import { ProductImage } from '@/components/shared/ProductImage'
-import type { Product } from '@/lib/tidb/products'
+import type { Product as TiDBProduct } from '@/lib/tidb/products'
+import type { Product } from '@/types/product'
 
 interface ProductCardProps {
-  product: Product
+  product: TiDBProduct
   className?: string
   priority?: boolean
 }
@@ -49,18 +50,18 @@ export function ProductCard({ product, className, priority = false }: ProductCar
     e.preventDefault()
     e.stopPropagation()
     
-    addItem({
-      productId: product.id,
-      quantity: 1,
-      product: {
-        title: product.title,
-        slug: product.slug,
-        image: product.thumbnail_image || '',
-        price: pricing.base,
-        salePrice: pricing.sale,
-        stitchingPrice: pricing.stitching,
+    const productForCart: Product = {
+      id: product.id,
+      title: product.title,
+      slug: product.slug,
+      pricing: {
+        basePrice: pricing.base || basePrice,
+        comparePrice: pricing.sale || basePrice,
+        customStitchingCharge: pricing.stitching,
       },
-    })
+    } as Product
+    
+    addItem(productForCart, 1)
   }
 
   const handleToggleWishlist = (e: React.MouseEvent) => {

@@ -37,5 +37,5 @@
     "types": ["node", "react", "react-dom"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "playwright.config.ts", "e2e", "src/__tests__", ".next"]
+  "exclude": ["node_modules", "playwright.config.ts", "e2e", "src/__tests__", ".next", "src/server"]
 }

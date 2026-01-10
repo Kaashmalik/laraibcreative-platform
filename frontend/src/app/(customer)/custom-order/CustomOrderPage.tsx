@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 
 /**
  * Custom Order Wizard - Main Page
@@ -9,7 +11,7 @@
  */
 
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import React, { useState } from 'react';
 import { DynamicErrorBoundary } from '@/components/shared/DynamicErrorBoundary';
 import { useWizard } from '@/hooks/useWizard';
@@ -19,12 +21,12 @@ import toast from 'react-hot-toast';
 import type { OrderSubmissionData, OrderSubmissionResponse, ReferenceImage, CustomOrderFormData, PriceBreakdown, SuitType } from '@/types/custom-order';
 
 // Dynamically import step components for code splitting
-const StepIndicator = dynamic(() => import('./components/StepIndicator'), {
+const StepIndicator = nextDynamic(() => import('./components/StepIndicator'), {
   loading: () => <div className="h-16 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
-const ServiceTypeSelection = dynamic(() => import('./components/ServiceTypeSelection'), {
+const ServiceTypeSelection = nextDynamic(() => import('./components/ServiceTypeSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 }) as unknown as React.ComponentType<{
@@ -34,12 +36,12 @@ const ServiceTypeSelection = dynamic(() => import('./components/ServiceTypeSelec
   errors: Record<string, string>;
 }>;
 
-const ImageUpload = dynamic(() => import('./components/ImageUpload'), {
+const ImageUpload = nextDynamic(() => import('./components/ImageUpload'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
-const SuitTypeSelection = dynamic(() => import('./components/SuitTypeSelection'), {
+const SuitTypeSelection = nextDynamic(() => import('./components/SuitTypeSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 }) as unknown as React.ComponentType<{
@@ -48,22 +50,22 @@ const SuitTypeSelection = dynamic(() => import('./components/SuitTypeSelection')
   errors: Record<string, string>;
 }>;
 
-const FabricSelection = dynamic(() => import('./components/FabricSelection'), {
+const FabricSelection = nextDynamic(() => import('./components/FabricSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
-const KarhaiPatternSelection = dynamic(() => import('./components/KarhaiPatternSelection'), {
+const KarhaiPatternSelection = nextDynamic(() => import('./components/KarhaiPatternSelection'), {
   loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
-const MeasurementForm = dynamic(() => import('./components/MeasurementForm'), {
+const MeasurementForm = nextDynamic(() => import('./components/MeasurementForm'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });
 
-const OrderSummary = dynamic(() => import('./components/OrderSummary'), {
+const OrderSummary = nextDynamic(() => import('./components/OrderSummary'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 }) as unknown as React.ComponentType<{
@@ -75,7 +77,7 @@ const OrderSummary = dynamic(() => import('./components/OrderSummary'), {
   onAddToCart?: () => void;
 }>;
 
-const SuccessConfirmation = dynamic(() => import('./components/SuccessConfirmation'), {
+const SuccessConfirmation = nextDynamic(() => import('./components/SuccessConfirmation'), {
   loading: () => <div className="h-96 bg-gray-100 animate-pulse rounded-lg" />,
   ssr: false,
 });

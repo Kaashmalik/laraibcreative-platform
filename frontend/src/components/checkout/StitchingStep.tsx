@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import type { CartItem } from '@/store/cart-store'
+import type { CartItem } from '@/types/cart'
 import type { CheckoutData } from '@/app/actions/orders'
 import { cn } from '@/lib/utils'
 
@@ -104,12 +104,14 @@ export function StitchingStep({ items, data, onUpdate, onNext, onBack }: Stitchi
       {/* Current Item */}
       <div className="flex items-center gap-4 p-4 bg-neutral-50 rounded-xl">
         <div className="relative w-16 h-20 rounded-lg overflow-hidden">
-          <Image
-            src={currentItem.product.image}
-            alt={currentItem.product.title}
-            fill
-            className="object-cover"
-          />
+          {currentItem.product.image && (
+            <Image
+              src={currentItem.product.image}
+              alt={currentItem.product.title}
+              fill
+              className="object-cover"
+            />
+          )}
         </div>
         <div>
           <h3 className="font-semibold text-neutral-800">{currentItem.product.title}</h3>

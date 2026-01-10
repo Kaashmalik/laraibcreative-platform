@@ -27,7 +27,7 @@ interface StepConfig {
 }
 
 export function CheckoutWizard() {
-  const { items, getSubtotal, getStitchingTotal, clearCart } = useCartStore()
+  const { items, subtotal, clearCart } = useCartStore()
   
   const [currentStep, setCurrentStep] = useState<Step>('shipping')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,26 +36,25 @@ export function CheckoutWizard() {
   const [checkoutData, setCheckoutData] = useState<Partial<CheckoutData>>({
     items: items.map(item => ({
       productId: item.productId,
-      variantId: item.variantId,
       quantity: item.quantity,
-      unitPrice: item.product.salePrice || item.product.price,
-      totalPrice: (item.product.salePrice || item.product.price) * item.quantity,
-      isStitched: item.customization?.isStitched || false,
-      stitchingPrice: item.customization?.isStitched ? (item.product.stitchingPrice || 0) : 0,
+      unitPrice: item.product.pricing?.comparePrice || item.product.price || 0,
+      totalPrice: (item.product.pricing?.comparePrice || item.product.price || 0) * item.quantity,
+      isStitched: item.customizations?.isStitched || false,
+      stitchingPrice: item.customizations?.isStitched ? (item.product.pricing?.customStitchingCharge || 0) : 0,
       measurements: undefined,
-      customization: item.customization as Record<string, string> | undefined,
+      customization: item.customizations as Record<string, string> | undefined,
       productSnapshot: {
         title: item.product.title,
-        image: item.product.image,
-        price: item.product.price,
+        image: item.product.image || '',
+        price: item.product.price || 0,
       },
     })),
-    subtotal: getSubtotal(),
-    stitchingFee: getStitchingTotal(),
+    subtotal: subtotal,
+    stitchingFee: items.reduce((sum, item) => sum + (item.customizations?.isStitched ? (item.product.pricing?.customStitchingCharge || 0) * item.quantity : 0), 0),
     discountAmount: 0,
   })
 
-  const hasStitchedItems = items.some(item => item.customization?.isStitched)
+  const hasStitchedItems = items.some(item => item.customizations?.isStitched)
 
   const steps: StepConfig[] = [
     { id: 'shipping', title: 'Shipping', icon: Truck },
@@ -232,7 +231,7 @@ export function CheckoutWizard() {
             
             {currentStep === 'stitching' && (
               <StitchingStep
-                items={items.filter(i => i.customization?.isStitched)}
+                items={items.filter(i => i.customizations?.isStitched)}
                 data={checkoutData}
                 onUpdate={updateCheckoutData}
                 onNext={goToNextStep}

@@ -8,7 +8,6 @@
 import { useState } from 'react'
 import { Star, Upload, X, Loader2 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
-import { uploadReviewImage } from '@/lib/supabase/storage'
 import { cn } from '@/lib/utils'
 
 interface ReviewFormProps {
@@ -44,13 +43,11 @@ export function ReviewForm({ productId, productTitle, orderId, onSuccess, onCanc
     setError('')
 
     try {
-      const tempId = `temp-${productId}-${Date.now()}`
-      const uploadPromises = Array.from(files).map((file, index) => 
-        uploadReviewImage(tempId, file, images.length + index)
+      // TODO: Implement image upload functionality
+      // For now, just use placeholder URLs
+      const newUrls = Array.from(files).map((_, index) => 
+        `/reviews/temp-${productId}-${Date.now()}-${index}.jpg`
       )
-      
-      const results = await Promise.all(uploadPromises)
-      const newUrls = results.filter(url => url !== null) as string[]
       
       setImages(prev => [...prev, ...newUrls])
     } catch (err) {

@@ -53,7 +53,7 @@ export default function ProfileForm() {
     if (file) {
       setPreviewImage(URL.createObjectURL(file))
       // TODO: Upload image to Cloudinary
-      toast.info('Image upload will be implemented with Cloudinary')
+      toast('Image upload will be implemented with Cloudinary')
     }
   }
 

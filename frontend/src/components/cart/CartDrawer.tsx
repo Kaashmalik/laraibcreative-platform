@@ -10,7 +10,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useCartStore, type CartItem } from '@/store/cart-store'
+import { useCartStore } from '@/store/cart-store'
+import type { CartItem } from '@/types/cart'
 
 export function CartDrawer() {
   const { 
@@ -19,10 +20,9 @@ export function CartDrawer() {
     closeCart, 
     updateQuantity, 
     removeItem,
-    getSubtotal,
-    getStitchingTotal,
-    getTotal,
-    getItemCount
+    subtotal,
+    total,
+    totalItems
   } = useCartStore()
 
   return (
@@ -51,7 +51,7 @@ export function CartDrawer() {
               <div className="flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary-gold" />
                 <h2 className="text-lg font-semibold text-neutral-800">
-                  Your Cart ({getItemCount()})
+                  Your Cart ({totalItems})
                 </h2>
               </div>
               <button
@@ -101,17 +101,11 @@ export function CartDrawer() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-neutral-600">
                       <span>Subtotal</span>
-                      <span>PKR {getSubtotal().toLocaleString()}</span>
+                      <span>PKR {subtotal.toLocaleString()}</span>
                     </div>
-                    {getStitchingTotal() > 0 && (
-                      <div className="flex justify-between text-neutral-600">
-                        <span>Stitching</span>
-                        <span>PKR {getStitchingTotal().toLocaleString()}</span>
-                      </div>
-                    )}
                     <div className="flex justify-between text-lg font-bold text-neutral-800">
                       <span>Total</span>
-                      <span className="text-primary-gold">PKR {getTotal().toLocaleString()}</span>
+                      <span className="text-primary-gold">PKR {total.toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -127,7 +121,7 @@ export function CartDrawer() {
                       onClick={closeCart}
                       className="block w-full py-4 bg-primary-gold text-white text-center rounded-xl font-semibold hover:bg-primary-gold-dark transition-colors"
                     >
-                      Checkout - PKR {getTotal().toLocaleString()}
+                      Checkout - PKR {total.toLocaleString()}
                     </Link>
                     <button
                       onClick={closeCart}
@@ -155,22 +149,24 @@ function CartItemCard({
   onUpdateQuantity: (qty: number) => void
   onRemove: () => void
 }) {
-  const price = item.product.salePrice || item.product.price
+  const price = item.product.pricing?.comparePrice || item.product.price || 0
   const itemTotal = price * item.quantity
-  const stitchingTotal = item.customization?.isStitched && item.product.stitchingPrice
-    ? item.product.stitchingPrice * item.quantity
+  const stitchingTotal = item.customizations?.isStitched && item.product.pricing?.customStitchingCharge
+    ? item.product.pricing.customStitchingCharge * item.quantity
     : 0
 
   return (
     <div className="flex gap-4 p-3 bg-neutral-50 rounded-xl">
       {/* Image */}
       <Link href={`/products/${item.product.slug}`} className="relative w-20 h-24 rounded-lg overflow-hidden bg-neutral-200 flex-shrink-0">
-        <Image
-          src={item.product.image}
-          alt={item.product.title}
-          fill
-          className="object-cover"
-        />
+        {item.product.image && (
+          <Image
+            src={item.product.image}
+            alt={item.product.title}
+            fill
+            className="object-cover"
+          />
+        )}
       </Link>
 
       {/* Details */}
@@ -184,14 +180,14 @@ function CartItemCard({
 
         {/* Badges */}
         <div className="flex flex-wrap gap-1 mt-1">
-          {item.customization?.isStitched && (
+          {item.customizations?.isStitched && (
             <span className="text-xs bg-primary-rose/20 text-primary-rose-dark px-2 py-0.5 rounded">
               Stitched
             </span>
           )}
-          {item.customization?.neckStyle && (
+          {item.customizations?.neckStyle && (
             <span className="text-xs bg-neutral-200 text-neutral-600 px-2 py-0.5 rounded">
-              {item.customization.neckStyle}
+              {item.customizations.neckStyle}
             </span>
           )}
         </div>

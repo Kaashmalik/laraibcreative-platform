@@ -6,6 +6,9 @@
 
 import api from '@/lib/api';
 
+// Force dynamic rendering to prevent build-time timeout
+export const dynamic = 'force-dynamic';
+
 // ==========================================
 // DYNAMIC SITEMAP GENERATION
 // ==========================================

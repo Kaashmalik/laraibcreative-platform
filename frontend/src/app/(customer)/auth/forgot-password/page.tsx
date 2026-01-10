@@ -1,7 +1,8 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
@@ -9,8 +10,6 @@ import axiosInstance from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
-
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)

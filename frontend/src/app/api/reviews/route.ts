@@ -3,14 +3,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createReview, type CreateReviewInput } from '@/lib/tidb/reviews'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createSupabaseServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
     const body: CreateReviewInput = await request.json()
     
     // Validate required fields
@@ -37,31 +33,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Set customer info
+    // TODO: Get user from auth context (cookies/JWT)
+    // For now, use customer_email from body
     const reviewData: CreateReviewInput = {
       ...body,
-      customer_id: user?.id,
-      customer_email: user?.email || body.customer_email,
+      customer_id: undefined,
+      customer_email: body.customer_email,
     }
 
     const result = await createReview(reviewData)
 
     if (result.success) {
-      // Award loyalty points if user is logged in
-      if (user?.id) {
-        try {
-          // @ts-expect-error - Types available after migration
-          await supabase.from('loyalty_transactions').insert({
-            user_id: user.id,
-            points: 50,
-            type: 'bonus',
-            source: 'review',
-            description: 'Points for submitting a review (pending approval)',
-          })
-        } catch (e) {
-          console.error('Failed to award review points:', e)
-        }
-      }
+      // TODO: Award loyalty points if user is logged in (requires auth integration)
 
       return NextResponse.json({ 
         success: true, 

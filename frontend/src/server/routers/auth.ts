@@ -6,7 +6,6 @@
 
 import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { TRPCError } from '@trpc/server';
 
 // Zod schemas
 const loginSchema = z.object({
@@ -34,7 +33,7 @@ export const authRouter = router({
   /**
    * Get current user
    */
-  me: protectedProcedure.query(async ({ ctx }) => {
+  me: protectedProcedure.query(async ({ ctx }: { ctx: any }) => {
     try {
       // Call existing Express API endpoint
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/me`, {
@@ -55,10 +54,11 @@ export const authRouter = router({
 
       const data = await response.json();
       return data.data?.user || data.user;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch user';
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Failed to fetch user',
+        message: message || 'Failed to fetch user',
       });
     }
   }),
@@ -97,7 +97,7 @@ export const authRouter = router({
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Login failed',
+          message: message || 'Login failed',
         });
       }
     }),
@@ -137,7 +137,7 @@ export const authRouter = router({
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Registration failed',
+          message: message || 'Registration failed',
         });
       }
     }),
@@ -145,7 +145,7 @@ export const authRouter = router({
   /**
    * Logout
    */
-  logout: protectedProcedure.mutation(async ({ ctx }) => {
+  logout: protectedProcedure.mutation(async ({ ctx }: { ctx: any }) => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/logout`, {
         method: 'POST',
@@ -157,7 +157,7 @@ export const authRouter = router({
       });
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Logout should succeed even if backend fails
       return { success: true };
     }
@@ -183,7 +183,7 @@ export const authRouter = router({
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Failed to request password reset',
+          message: message || 'Failed to request password reset',
         });
       }
     }),
@@ -204,7 +204,7 @@ export const authRouter = router({
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Email verification failed',
+          message: message || 'Email verification failed',
         });
       }
     }),

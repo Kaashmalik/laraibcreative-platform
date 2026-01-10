@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
-import type { CartItem } from '@/store/cart-store'
+import type { CartItem } from '@/types/cart'
 import type { CheckoutData } from '@/app/actions/orders'
 
 interface ReviewStepProps {
@@ -41,19 +41,21 @@ export function ReviewStep({ data, items, onPlaceOrder, onBack, isSubmitting }: 
           {items.map(item => (
             <div key={item.id} className="flex items-center gap-4 p-4">
               <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-neutral-100">
-                <Image
-                  src={item.product.image}
-                  alt={item.product.title}
-                  fill
-                  className="object-cover"
-                />
+                {item.product.image && (
+                  <Image
+                    src={item.product.image}
+                    alt={item.product.title}
+                    fill
+                    className="object-cover"
+                  />
+                )}
               </div>
               <div className="flex-1">
                 <h4 className="font-medium text-neutral-800 line-clamp-1">
                   {item.product.title}
                 </h4>
                 <p className="text-sm text-neutral-500">Qty: {item.quantity}</p>
-                {item.customization?.isStitched && (
+                {item.customizations?.isStitched && (
                   <span className="inline-block mt-1 text-xs bg-primary-rose/20 text-primary-rose-dark px-2 py-0.5 rounded">
                     Stitched
                   </span>
@@ -61,11 +63,11 @@ export function ReviewStep({ data, items, onPlaceOrder, onBack, isSubmitting }: 
               </div>
               <div className="text-right">
                 <p className="font-semibold text-neutral-800">
-                  PKR {((item.product.salePrice || item.product.price) * item.quantity).toLocaleString()}
+                  PKR {((item.product.pricing?.comparePrice || item.product.price || 0) * item.quantity).toLocaleString()}
                 </p>
-                {item.customization?.isStitched && item.product.stitchingPrice && (
+                {item.customizations?.isStitched && item.product.pricing?.customStitchingCharge && (
                   <p className="text-sm text-neutral-500">
-                    +PKR {(item.product.stitchingPrice * item.quantity).toLocaleString()} stitching
+                    +PKR {(item.product.pricing.customStitchingCharge * item.quantity).toLocaleString()} stitching
                   </p>
                 )}
               </div>

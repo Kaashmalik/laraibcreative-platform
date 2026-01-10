@@ -5,35 +5,52 @@
 
 'use client';
 export const dynamic = 'force-dynamic';
-import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Coins, TrendingUp, History, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoyaltyPage() {
   const [redeemAmount, setRedeemAmount] = useState('');
   const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [account, setAccount] = useState<any>(null);
+  const [transactionsData, setTransactionsData] = useState<any>(null);
+  const [accountLoading, setAccountLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [isRedeeming, setIsRedeeming] = useState(false);
 
-  const { data: account, isLoading: accountLoading } = trpc.loyalty.getAccount.useQuery();
-  const { data: transactionsData, isLoading: transactionsLoading } = trpc.loyalty.getTransactions.useQuery({
-    page: 1,
-    limit: 20,
-  });
+  const fetchAccount = async () => {
+    try {
+      setAccountLoading(true);
+      const response = await axios.get('/api/v1/loyalty/account');
+      setAccount(response.data);
+    } catch (error) {
+      console.error('Failed to fetch account:', error);
+    } finally {
+      setAccountLoading(false);
+    }
+  };
 
-  const redeemMutation = trpc.loyalty.redeemPoints.useMutation({
-    onSuccess: () => {
-      toast.success('Points redeemed successfully!');
-      setShowRedeemModal(false);
-      setRedeemAmount('');
-      // Refetch account data
-      window.location.reload();
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to redeem points');
-    },
-  });
+  const fetchTransactions = async () => {
+    try {
+      setTransactionsLoading(true);
+      const response = await axios.get('/api/v1/loyalty/transactions', {
+        params: { page: 1, limit: 20 },
+      });
+      setTransactionsData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    } finally {
+      setTransactionsLoading(false);
+    }
+  };
 
-  const handleRedeem = () => {
+  useEffect(() => {
+    fetchAccount();
+    fetchTransactions();
+  }, []);
+
+  const handleRedeem = async () => {
     const points = parseInt(redeemAmount);
     if (!points || points < 1) {
       toast.error('Please enter a valid amount');
@@ -43,7 +60,19 @@ export default function LoyaltyPage() {
       toast.error('Insufficient points');
       return;
     }
-    redeemMutation.mutate({ points });
+    
+    try {
+      setIsRedeeming(true);
+      await axios.post('/api/v1/loyalty/redeem', { points });
+      toast.success('Points redeemed successfully!');
+      setShowRedeemModal(false);
+      setRedeemAmount('');
+      fetchAccount();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to redeem points');
+    } finally {
+      setIsRedeeming(false);
+    }
   };
 
   if (accountLoading) {
@@ -181,10 +210,10 @@ export default function LoyaltyPage() {
                 </button>
                 <button
                   onClick={handleRedeem}
-                  disabled={redeemMutation.isPending || !redeemAmount || parseInt(redeemAmount) < 1}
+                  disabled={isRedeeming || !redeemAmount || parseInt(redeemAmount) < 1}
                   className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {redeemMutation.isPending ? 'Processing...' : 'Redeem'}
+                  {isRedeeming ? 'Processing...' : 'Redeem'}
                 </button>
               </div>
             </div>

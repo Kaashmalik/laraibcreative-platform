@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Ruler, Save, Loader2, CheckCircle2, User } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
@@ -37,7 +37,6 @@ interface MeasurementProfile {
 export default function MeasurementForm({ onSuccess }: { onSuccess?: () => void }) {
   const [profiles, setProfiles] = useState<MeasurementProfile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -84,15 +83,12 @@ export default function MeasurementForm({ onSuccess }: { onSuccess?: () => void 
         toast.success('Measurement profile created successfully!')
       }
 
-      setIsSuccess(true)
       setShowForm(false)
       setEditingId(null)
       resetForm()
       loadProfiles()
 
       if (onSuccess) onSuccess()
-
-      setTimeout(() => setIsSuccess(false), 3000)
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to save measurements')
     } finally {
