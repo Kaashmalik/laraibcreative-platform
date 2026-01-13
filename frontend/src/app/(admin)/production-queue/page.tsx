@@ -6,7 +6,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const STATUS_COLUMNS = [
@@ -28,7 +28,7 @@ export default function ProductionQueuePage() {
   const fetchQueue = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('/api/v1/production-queue', {
+      const response = await axiosInstance.get('/api/v1/production-queue', {
         params: {
           page: 1,
           limit: 100,
@@ -49,7 +49,7 @@ export default function ProductionQueuePage() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await axios.put(`/api/v1/production-queue/${id}`, { status });
+      await axiosInstance.put(`/api/v1/production-queue/${id}`, { status });
       fetchQueue();
     } catch (error) {
       console.error('Failed to update status:', error);

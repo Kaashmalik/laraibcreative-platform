@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 /**
  * Fabric Inventory Model
@@ -132,7 +133,7 @@ fabricInventorySchema.index({ status: 1, 'stock.quantity': 1 });
 fabricInventorySchema.index({ type: 1, color: 1 });
 
 // Pre-save: Update status based on stock
-fabricInventorySchema.pre('save', function(next) {
+fabricInventorySchema.pre('save', async function(next) {
   const quantity = this.stock.quantity;
   const threshold = this.stock.lowStockThreshold;
   const reorderPoint = this.stock.reorderPoint;
@@ -140,7 +141,31 @@ fabricInventorySchema.pre('save', function(next) {
   if (quantity === 0) {
     this.status = 'out-of-stock';
     if (this.autoDisable) {
-      // TODO: Disable products using this fabric
+      // Disable products using this fabric
+      try {
+        const Product = require('./Product');
+        
+        // Find all products that use this fabric
+        const products = await Product.find({
+          'fabric.fabricId': this._id,
+          isActive: true,
+          isDeleted: false
+        });
+
+        // Disable each product
+        for (const product of products) {
+          product.isActive = false;
+          product.availabilityStatus = 'out-of-stock';
+          product.inventory.stockQuantity = 0;
+          product.inventory.reservedQuantity = 0;
+          await product.save();
+        }
+
+        // Log the action
+        logger.info(`Disabled ${products.length} products for fabric: ${this.name} (${this._id})`);
+      } catch (error) {
+        logger.error('Error disabling products:', { error, fabricId: this._id });
+      }
     }
   } else if (quantity <= reorderPoint) {
     this.status = 'out-of-stock';

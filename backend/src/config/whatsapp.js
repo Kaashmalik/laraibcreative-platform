@@ -127,13 +127,13 @@ const sendWhatsAppMessage = async (to, message, mediaUrl = null) => {
     throw new Error('Phone number and message are required');
   }
 
-  // Mock mode
-  if (process.env.MOCK_WHATSAPP === 'true' || !twilioClient) {
-    console.log('💬 MOCK WHATSAPP:');
-    console.log('   To:', to);
-    console.log('   Message:', message.substring(0, 100));
-    if (mediaUrl) console.log('   Media:', mediaUrl);
-    return { success: true, sid: 'mock-whatsapp-id', mocked: true };
+  // Check if Twilio client is initialized
+  if (!twilioClient) {
+    return {
+      success: false,
+      error: 'WhatsApp service not configured. Please check TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_NUMBER.',
+      code: 'NOT_CONFIGURED'
+    };
   }
 
   try {
@@ -161,11 +161,6 @@ const sendWhatsAppMessage = async (to, message, mediaUrl = null) => {
     // Send message via Twilio
     const result = await twilioClient.messages.create(messageOptions);
 
-    console.log('✅ WhatsApp sent successfully');
-    console.log('   SID:', result.sid);
-    console.log('   To:', to);
-    console.log('   Status:', result.status);
-
     return {
       success: true,
       sid: result.sid,
@@ -174,8 +169,6 @@ const sendWhatsAppMessage = async (to, message, mediaUrl = null) => {
     };
 
   } catch (error) {
-    console.error('❌ Send WhatsApp Error:', error.message);
-
     return {
       success: false,
       error: error.message,

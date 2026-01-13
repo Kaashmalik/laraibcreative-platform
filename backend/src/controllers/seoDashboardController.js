@@ -506,21 +506,9 @@ exports.optimizeProductSEO = async (req, res) => {
       await Product.findByIdAndUpdate(id, { $set: updates });
     }
 
-    // Calculate new SEO score
-    const mockProduct = {
-      ...product,
-      description: generatedContent.description,
-      seo: {
-        ...product.seo,
-        metaTitle: generatedContent.metaTitle,
-        metaDescription: generatedContent.metaDescription,
-        keywords: generatedContent.keywords
-      },
-      tags: generatedContent.keywords,
-      features: generatedContent.features,
-      careInstructions: generatedContent.careInstructions
-    };
-    const projectedScore = calculateSEOScore(mockProduct);
+    // Calculate new SEO score with real product data
+    const updatedProduct = await Product.findById(id);
+    const projectedScore = calculateSEOScore(updatedProduct);
     const currentScore = calculateSEOScore(product);
 
     res.status(200).json({
@@ -783,8 +771,8 @@ exports.analyzeContent = async (req, res) => {
       });
     }
 
-    // Create mock product for analysis
-    const mockProduct = {
+    // Create product object for analysis using provided data
+    const productForAnalysis = {
       title,
       description,
       seo: {
@@ -793,12 +781,12 @@ exports.analyzeContent = async (req, res) => {
         keywords
       },
       tags: keywords,
-      images: [{ alt: 'test' }],
-      features: description ? ['Feature 1', 'Feature 2', 'Feature 3'] : [],
-      careInstructions: 'Test care instructions'
+      images: [{ alt: metaTitle || title }],
+      features: description ? [description.substring(0, 100)] : [],
+      careInstructions: description ? description.substring(0, 100) : ''
     };
 
-    const analysis = calculateSEOScore(mockProduct);
+    const analysis = calculateSEOScore(productForAnalysis);
 
     // Additional content analysis
     const contentAnalysis = {

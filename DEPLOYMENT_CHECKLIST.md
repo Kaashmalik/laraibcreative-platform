@@ -25,29 +25,40 @@ PORT=5000
 MONGODB_URI=mongodb://...
 
 # JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRE=7d
-REFRESH_TOKEN_EXPIRE=30d
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+JWT_REFRESH_SECRET=your-super-secret-refresh-token-key-min-32-chars
+JWT_EXPIRE=15m
+JWT_REFRESH_EXPIRE=7d
 
 # Facebook Conversion API
 FB_PIXEL_ID=1234567890123456
 FB_CONVERSION_API_ACCESS_TOKEN=your-access-token
 
 # Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-ADMIN_EMAIL=admin@laraibcreative.studio
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_FROM=noreply@laraibcreative.studio
+EMAIL_FROM_NAME=LaraibCreative
+EMAIL_REPLY_TO=support@laraibcreative.studio
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 
-# WhatsApp (if using)
-TWILIO_ACCOUNT_SID=your-sid
-TWILIO_AUTH_TOKEN=your-token
+# WhatsApp (Twilio)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_WHATSAPP_NUMBER=+1234567890
+
+# Frontend URL (for CORS)
+FRONTEND_URL=https://laraibcreative.studio
+
+# Virus Scanning (Optional - VirusTotal API)
+VIRUSTOTAL_API_KEY=your_virustotal_api_key_here
 TWILIO_WHATSAPP_NUMBER=whatsapp:+1234567890
 ```
 

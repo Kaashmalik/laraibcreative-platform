@@ -7,7 +7,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist, devtools } from 'zustand/middleware';
+import { devtools } from 'zustand/middleware';
 import axiosInstance from '@/lib/axios';
 
 interface User {
@@ -59,107 +59,105 @@ export const useAuthStore = typeof window === 'undefined'
   : // Client-side: create the actual Zustand store
     create<AuthState>()(
       devtools(
-        persist(
-          (set, get) => ({
-            user: null,
-            loading: false,
-            isAuthenticated: false,
-            isAdmin: false,
+        (set, get) => ({
+          user: null,
+          loading: false,
+          isAuthenticated: false,
+          isAdmin: false,
 
-            login: async (email, password) => {
-              set({ loading: true });
-              try {
-                // Use REST API for login (backend JWT auth)
-                const response = await axiosInstance.post('/auth/login', {
-                  email,
-                  password
-                });
+          login: async (email, password) => {
+            set({ loading: true });
+            try {
+              // Use REST API for login (backend JWT auth)
+              const response = await axiosInstance.post('/auth/login', {
+                email,
+                password
+              });
 
-                set({
-                  user: response.data.user,
-                  isAuthenticated: true,
-                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
-                  loading: false,
-                });
-                return { success: true };
-              } catch (error: any) {
-                set({ loading: false });
-                return {
-                  success: false,
-                  error: error.response?.data?.message || error.message || 'Login failed'
-                };
-              }
-            },
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+                isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
+                loading: false,
+              });
+              return { success: true };
+            } catch (error: any) {
+              set({ loading: false });
+              return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Login failed'
+              };
+            }
+          },
 
-            register: async (userData) => {
-              set({ loading: true });
-              try {
-                const response = await axiosInstance.post('/auth/register', userData);
+          register: async (userData) => {
+            set({ loading: true });
+            try {
+              const response = await axiosInstance.post('/auth/register', userData);
 
-                set({
-                  user: response.data.user,
-                  isAuthenticated: true,
-                  isAdmin: false,
-                  loading: false,
-                });
-                return { success: true };
-              } catch (error: any) {
-                set({ loading: false });
-                return {
-                  success: false,
-                  error: error.response?.data?.message || error.message || 'Registration failed'
-                };
-              }
-            },
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+                isAdmin: false,
+                loading: false,
+              });
+              return { success: true };
+            } catch (error: any) {
+              set({ loading: false });
+              return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Registration failed'
+              };
+            }
+          },
 
-            logout: async () => {
-              try {
-                await axiosInstance.post('/auth/logout');
-              } catch (error) {
+          logout: async () => {
+            try {
+              await axiosInstance.post('/auth/logout');
+            } catch (error) {
+              // Log error silently - logout should not fail
+              if (process.env.NODE_ENV === 'development') {
                 console.error('Logout error:', error);
-              } finally {
-                set({
-                  user: null,
-                  isAuthenticated: false,
-                  isAdmin: false,
-                });
               }
-            },
+            } finally {
+              set({
+                user: null,
+                isAuthenticated: false,
+                isAdmin: false,
+              });
+            }
+          },
 
-            checkAuth: async () => {
-              set({ loading: true });
-              try {
-                const response = await axiosInstance.get('/auth/me');
-                set({
-                  user: response.data.user,
-                  isAuthenticated: true,
-                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
-                  loading: false,
-                });
-              } catch (error) {
-                set({
-                  user: null,
-                  isAuthenticated: false,
-                  isAdmin: false,
-                  loading: false,
-                });
-              }
-            },
+          checkAuth: async () => {
+            set({ loading: true });
+            try {
+              const response = await axiosInstance.get('/auth/me');
+              set({
+                user: response.data.user,
+                isAuthenticated: true,
+                isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
+                loading: false,
+              });
+            } catch (error) {
+              set({
+                user: null,
+                isAuthenticated: false,
+                isAdmin: false,
+                loading: false,
+              });
+            }
+          },
 
-            updateUser: (updatedUser) => {
-              const currentUser = get().user;
-              if (currentUser) {
-                set({
-                  user: { ...currentUser, ...updatedUser },
-                });
-              }
-            },
+          updateUser: (updatedUser) => {
+            const currentUser = get().user;
+            if (currentUser) {
+              set({
+                user: { ...currentUser, ...updatedUser },
+              });
+            }
+          },
 
-          }),
-          {
-            name: 'auth-storage'
-          }
-        ),
+        }),
         { name: 'AuthStore' }
       )
     );

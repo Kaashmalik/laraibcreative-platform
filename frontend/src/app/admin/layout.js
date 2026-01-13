@@ -18,15 +18,24 @@ export default function AdminLayout({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Get user from localStorage
-    try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        setUser(JSON.parse(userStr));
+    // Get user from API (cookies are sent automatically)
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUser(data.user);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
       }
-    } catch (error) {
-      console.error('Error loading user:', error);
-    }
+    };
+
+    fetchUser();
 
     // Load dark mode preference from localStorage
     const savedTheme = localStorage.getItem('adminTheme');
@@ -54,8 +63,17 @@ export default function AdminLayout({ children }) {
   };
 
   // Handle logout
-  const handleLogout = () => {
-    // Clear auth data (use correct token keys)
+  const handleLogout = async () => {
+    try {
+      // Call logout API to clear cookies
+      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    // Clear any localStorage data
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');

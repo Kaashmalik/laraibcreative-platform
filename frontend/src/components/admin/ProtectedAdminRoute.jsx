@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axiosInstance from '@/lib/axios';
 
 /**
  * Protected Admin Route Component
  * Verifies user is authenticated and has admin role
- * Uses localStorage directly to avoid hook timing issues
+ * Uses API call to verify auth status from cookies
  */
 export default function ProtectedAdminRoute({ children }) {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function ProtectedAdminRoute({ children }) {
 
   useEffect(() => {
     // Immediately check auth - no delay
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
         // Check if we're in a browser
         if (typeof window === 'undefined') {
@@ -22,26 +23,16 @@ export default function ProtectedAdminRoute({ children }) {
           return;
         }
 
-        const token = localStorage.getItem('auth_token');
-        const userStr = localStorage.getItem('user');
+        // Use API call to verify auth status (cookies are sent automatically)
+        const response = await axiosInstance.get('/auth/me');
 
-        if (!token || !userStr) {
-          console.log('[ProtectedAdminRoute] No token or user found');
+        if (!response.data?.user) {
+          console.log('[ProtectedAdminRoute] No user data in response');
           setAuthState('unauthorized');
           return;
         }
 
-        let user;
-        try {
-          user = JSON.parse(userStr);
-        } catch (parseError) {
-          console.log('[ProtectedAdminRoute] Invalid user data, clearing');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          setAuthState('unauthorized');
-          return;
-        }
-
+        const user = response.data.user;
         const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
         if (!isAdmin) {
@@ -54,8 +45,6 @@ export default function ProtectedAdminRoute({ children }) {
         setAuthState('authorized');
       } catch (error) {
         console.error('[ProtectedAdminRoute] Auth check error:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
         setAuthState('unauthorized');
       }
     };

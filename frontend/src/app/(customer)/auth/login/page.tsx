@@ -15,7 +15,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('returnUrl') || '/account'
 
-  const { login, loading, isAuthenticated } = useAuth()
+  const { login, loading, isAuthenticated, checkAuth } = useAuth()
 
   const [formData, setFormData] = useState({
     email: '',
@@ -23,12 +23,22 @@ export default function LoginPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Check authentication status on mount to sync with cookie state
+    if (!hasCheckedAuth) {
+      checkAuth()
+      setHasCheckedAuth(true)
+    }
+  }, [checkAuth, hasCheckedAuth])
+
+  useEffect(() => {
+    // Only redirect after we've checked auth status
+    if (hasCheckedAuth && isAuthenticated) {
       router.push(returnUrl)
     }
-  }, [isAuthenticated, router, returnUrl])
+  }, [isAuthenticated, router, returnUrl, hasCheckedAuth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

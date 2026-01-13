@@ -6,7 +6,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { 
   DollarSign, Users, ShoppingCart, TrendingUp, 
   AlertCircle, RefreshCw 
@@ -20,11 +20,13 @@ export default function DashboardPage() {
   });
   const [metrics, setMetrics] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isCheckingAlerts, setIsCheckingAlerts] = useState(false);
+  const [alertResults, setAlertResults] = useState<any>(null);
 
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('/api/v1/analytics/dashboard', {
+      const response = await axiosInstance.get('/api/v1/analytics/dashboard', {
         params: {
           dateFrom: dateRange.from,
           dateTo: dateRange.to,
@@ -36,6 +38,22 @@ export default function DashboardPage() {
       setMetrics({});
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const runAlertChecks = async () => {
+    try {
+      setIsCheckingAlerts(true);
+      const response = await axiosInstance.post('/api/v1/admin/alerts/check');
+      setAlertResults(response.data.data || {});
+      
+      // Refresh dashboard data after alert checks
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Failed to run alert checks:', error);
+      setAlertResults({ error: 'Failed to run alert checks' });
+    } finally {
+      setIsCheckingAlerts(false);
     }
   };
 
@@ -215,13 +233,21 @@ export default function DashboardPage() {
             System Alerts
           </h3>
           <button
-            onClick={() => {
-              // TODO: Implement alert check mutation
-              console.log('Run alert checks');
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            onClick={runAlertChecks}
+            disabled={isCheckingAlerts}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Run Checks
+            {isCheckingAlerts ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <AlertCircle className="w-4 h-4" />
+                Run Checks
+              </>
+            )}
           </button>
         </div>
         <div className="space-y-2 text-sm">
@@ -235,6 +261,36 @@ export default function DashboardPage() {
             Abandonment Rate: {metrics.alerts?.abandonment?.abandonmentRate || 0}%
           </p>
         </div>
+        {alertResults && (
+          <div className="mt-4 pt-4 border-t">
+            <p className="font-semibold mb-2">Alert Check Results:</p>
+            <div className="space-y-1 text-sm">
+              {alertResults.error ? (
+                <p className="text-red-600">{alertResults.error}</p>
+              ) : (
+                <>
+                  <p className="text-green-600">
+                    ✓ Low Stock Products: {alertResults.lowStock || 0}
+                  </p>
+                  <p className="text-green-600">
+                    ✓ Failed Payments: {alertResults.failedPayments || 0}
+                  </p>
+                  <p className="text-green-600">
+                    ✓ Pending Orders: {alertResults.pendingOrders || 0}
+                  </p>
+                  {alertResults.warnings && alertResults.warnings.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-yellow-600 font-semibold">Warnings:</p>
+                      {alertResults.warnings.map((warning: string, idx: number) => (
+                        <p key={idx} className="text-yellow-600">⚠ {warning}</p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

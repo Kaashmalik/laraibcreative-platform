@@ -87,12 +87,18 @@ export async function syncWishlistToBackend() {
   const items = useWishlistStore.getState().items
 
   try {
-    // TODO: Implement wishlist sync with backend API
-    // await api.customers.syncWishlist({ items: items.map(item => ({
-    //   productId: item.productId,
-    //   addedAt: item.addedAt
-    // })) })
-    console.log('Wishlist sync not yet implemented', items.length, 'items')
+    const axiosInstance = (await import('@/lib/axios')).default
+    
+    const response = await axiosInstance.post('/wishlist/sync', {
+      items: items.map(item => ({
+        productId: item.productId,
+        addedAt: item.addedAt
+      }))
+    })
+
+    if ((response.data as any).success) {
+      return (response.data as any).data
+    }
   } catch (error) {
     console.error('Failed to sync wishlist to backend:', error)
   }
@@ -101,20 +107,35 @@ export async function syncWishlistToBackend() {
 // Load wishlist from backend API
 export async function loadWishlistFromBackend() {
   try {
-    // TODO: Implement wishlist loading from backend API
-    // const response = await api.customers.getWishlist()
-    // if (response.success && response.data) {
-    //   const store = useWishlistStore.getState()
-    //   const localItems = store.items
-    //   
-    //   response.data.forEach((item: any) => {
-    //     const exists = localItems.some((local: WishlistItem) => local.productId === item.productId)
-    //     if (!exists) {
-    //       store.addItem(item.productId)
-    //     }
-    //   })
-    // }
-    console.log('Wishlist load from backend not yet implemented')
+    const axiosInstance = (await import('@/lib/axios')).default
+    
+    const response = await axiosInstance.get('/wishlist')
+    
+    if ((response.data as any).success && (response.data as any).data) {
+      const store = useWishlistStore.getState()
+      const backendItems = (response.data as any).items || []
+      
+      // Merge backend items with local items
+      const localItems = store.items
+      
+      backendItems.forEach((item: any) => {
+        const exists = localItems.some((local: WishlistItem) => local.productId === item.productId.toString())
+        if (!exists && item.productId) {
+          store.addItem(
+            item.productId.toString(),
+            item.productId?.title ? {
+              title: item.productId.title,
+              slug: item.productId.slug,
+              image: item.productId.primaryImage || '',
+              price: item.productId.pricing?.basePrice || 0,
+              salePrice: item.productId.pricing?.salePrice
+            } : undefined
+          )
+        }
+      })
+      
+      return response.data
+    }
   } catch (error) {
     console.error('Failed to load wishlist from backend:', error)
   }

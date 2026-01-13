@@ -282,6 +282,12 @@ export const useCartStore = create<CartStore>()(
             })
           })
 
+          // Silently handle unauthorized (guest) users
+          if (response.status === 401) {
+            set({ isLoading: false })
+            return
+          }
+
           const data = await response.json()
 
           if (data.success && data.items) {
@@ -293,7 +299,8 @@ export const useCartStore = create<CartStore>()(
             })
           }
         } catch (error) {
-          set({ error: 'Failed to sync cart' })
+          // Don't log network errors for background syncs to avoid noise
+          // set({ error: 'Failed to sync cart' })
         } finally {
           set({ isLoading: false })
         }
@@ -306,6 +313,12 @@ export const useCartStore = create<CartStore>()(
           const response = await fetch('/api/v1/cart', {
             credentials: 'include'
           })
+
+          // Silently handle unauthorized (guest) users
+          if (response.status === 401) {
+            set({ isLoading: false })
+            return
+          }
 
           const data = await response.json()
 

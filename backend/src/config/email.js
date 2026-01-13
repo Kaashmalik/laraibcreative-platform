@@ -41,12 +41,6 @@ let transporter = null;
 
 const createTransporter = () => {
   try {
-    // Check if email is disabled in environment
-    if (process.env.MOCK_EMAIL === 'true') {
-      console.log('📧 Email: Running in MOCK mode (emails will be logged, not sent)');
-      return null;
-    }
-
     if (!verifyEmailConfig()) {
       return null;
     }
@@ -54,30 +48,25 @@ const createTransporter = () => {
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT, 10),
-      secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for 587
+      secure: process.env.EMAIL_SECURE === 'true',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
-      // Additional security options
       tls: {
-        rejectUnauthorized: process.env.NODE_ENV === 'production', // Strict in production
+        rejectUnauthorized: process.env.NODE_ENV === 'production',
       },
-      // Connection pool
       pool: true,
       maxConnections: 5,
       maxMessages: 100,
-      // Timeouts
-      connectionTimeout: 10000, // 10 seconds
+      connectionTimeout: 10000,
       greetingTimeout: 10000,
-      socketTimeout: 30000, // 30 seconds
+      socketTimeout: 30000,
     });
 
-    console.log('✅ Email: Transporter created successfully');
     return transporter;
 
   } catch (error) {
-    console.error('❌ Email Transporter Error:', error.message);
     return null;
   }
 };

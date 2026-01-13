@@ -6,7 +6,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { Copy, Share2, Gift, Users, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,8 +19,8 @@ export default function ReferralsPage() {
     try {
       setIsLoading(true);
       const [referralRes, statsRes] = await Promise.all([
-        axios.get('/api/v1/referrals/code'),
-        axios.get('/api/v1/referrals/stats'),
+        axiosInstance.get('/api/v1/referrals/code'),
+        axiosInstance.get('/api/v1/referrals/stats'),
       ]);
       setReferralData(referralRes.data);
       setStats(statsRes.data);

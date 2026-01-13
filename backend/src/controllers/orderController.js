@@ -2,10 +2,11 @@
 
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
-const Product = require('../models/Product');
 const User = require('../models/User');
-const orderService = require('../services/orderService');
-const notificationService = require('../services/notificationService');
+const Product = require('../models/Product');
+const logger = require('../utils/logger');
+const notificationService = require('../utils/notificationService');
+const { validateStatusUpdate } = require('../utils/orderStatusValidation');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
 const logger = require('../utils/logger');
 const { 

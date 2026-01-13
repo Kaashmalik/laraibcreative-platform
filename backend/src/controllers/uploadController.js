@@ -378,11 +378,35 @@ exports.uploadAvatar = async (req, res) => {
     }
 
     const userId = req.user._id;
+    const User = require('../models/User');
 
     logger.info(`Avatar upload for user: ${userId}`);
 
-    // TODO: Update user profile with new avatar URL
-    // This would typically update the User model
+    // Update user profile with new avatar URL
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Delete old avatar from Cloudinary if it exists
+    if (user.profileImage && user.profileImagePublicId) {
+      try {
+        const cloudinary = require('cloudinary').v2;
+        await cloudinary.uploader.destroy(user.profileImagePublicId);
+        logger.info(`Deleted old avatar: ${user.profileImagePublicId}`);
+      } catch (error) {
+        logger.error('Error deleting old avatar:', error);
+      }
+    }
+
+    // Update user with new avatar
+    user.profileImage = req.file.path;
+    user.profileImagePublicId = req.file.filename;
+    await user.save();
 
     res.status(200).json({
       success: true,

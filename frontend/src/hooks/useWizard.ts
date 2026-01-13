@@ -171,10 +171,18 @@ export function useWizard(totalSteps: number = 5) {
         });
         break;
       case 3:
-        validation = validateStep.step2({
-          referenceImages: formData.referenceImages,
-          serviceType: formData.serviceType,
-        });
+        // Step 3: Image Upload
+        // Optional for 'fully-custom', required for others (like 'replica')
+        const isImageUploadOptional = formData.serviceType === 'fully-custom' || formData.serviceType === 'brand-article';
+
+        if (isImageUploadOptional && formData.referenceImages.length === 0) {
+          validation = { valid: true, errors: {} };
+        } else {
+          validation = validateStep.step2({
+            referenceImages: formData.referenceImages,
+            serviceType: formData.serviceType,
+          });
+        }
         break;
       case 4:
         // Step 4: Fabric or Karhai Pattern

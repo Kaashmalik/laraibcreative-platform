@@ -51,7 +51,7 @@ export default function ImageUpload({ images, onChange, serviceType, suitType, e
     setUploadError('');
 
     const files = Array.from(fileList);
-    
+
     // Check total count
     if (images.length + files.length > MAX_IMAGES) {
       setUploadError(`Maximum ${MAX_IMAGES} images allowed`);
@@ -131,7 +131,7 @@ export default function ImageUpload({ images, onChange, serviceType, suitType, e
   const removeImage = (index) => {
     const newImages = images.filter((_, i) => i !== index);
     onChange(newImages);
-    
+
     // Revoke URL to free memory
     if (images[index].preview) {
       URL.revokeObjectURL(images[index].preview);
@@ -154,31 +154,21 @@ export default function ImageUpload({ images, onChange, serviceType, suitType, e
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Skip this step if service type is fully custom
-  if (serviceType === 'fully-custom') {
-    return (
-      <div className="text-center py-12">
-        <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Reference Images Not Required
-        </h3>
-        <p className="text-gray-600 max-w-md mx-auto">
-          Since you've chosen fully custom design, you don't need to upload reference images. 
-          Click "Continue" to proceed to fabric selection.
-        </p>
-      </div>
-    );
-  }
+  // Determine if upload is optional based on service type
+  const isOptional = serviceType === 'fully-custom' || serviceType === 'brand-article';
 
   return (
     <div className="space-y-6">
       {/* Section Title */}
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Upload Reference Images
+          Upload Reference Images {isOptional && <span className="text-gray-500 font-normal text-lg">(Optional)</span>}
         </h2>
         <p className="text-gray-600">
-          Upload {MIN_IMAGES}-{MAX_IMAGES} clear photos of the design you want us to replicate
+          {isOptional
+            ? 'You can upload photos to help us understand your vision (optional)'
+            : `Upload ${MIN_IMAGES}-${MAX_IMAGES} clear photos of the design you want us to replicate`
+          }
         </p>
       </div>
 
@@ -190,8 +180,8 @@ export default function ImageUpload({ images, onChange, serviceType, suitType, e
         onClick={handleUploadClick}
         className={`
           relative border-2 border-dashed rounded-2xl p-8 transition-all duration-300 cursor-pointer
-          ${isDragging 
-            ? 'border-purple-500 bg-purple-50 scale-102' 
+          ${isDragging
+            ? 'border-purple-500 bg-purple-50 scale-102'
             : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
           }
           ${images.length >= MAX_IMAGES ? 'opacity-50 cursor-not-allowed' : ''}

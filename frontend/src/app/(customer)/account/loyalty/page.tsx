@@ -6,7 +6,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios';
 import { Coins, TrendingUp, History, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -22,7 +22,7 @@ export default function LoyaltyPage() {
   const fetchAccount = async () => {
     try {
       setAccountLoading(true);
-      const response = await axios.get('/api/v1/loyalty/account');
+      const response = await axiosInstance.get('/api/v1/loyalty/account');
       setAccount(response.data);
     } catch (error) {
       console.error('Failed to fetch account:', error);
@@ -34,7 +34,7 @@ export default function LoyaltyPage() {
   const fetchTransactions = async () => {
     try {
       setTransactionsLoading(true);
-      const response = await axios.get('/api/v1/loyalty/transactions', {
+      const response = await axiosInstance.get('/api/v1/loyalty/transactions', {
         params: { page: 1, limit: 20 },
       });
       setTransactionsData(response.data);
@@ -63,7 +63,7 @@ export default function LoyaltyPage() {
     
     try {
       setIsRedeeming(true);
-      await axios.post('/api/v1/loyalty/redeem', { points });
+      await axiosInstance.post('/api/v1/loyalty/redeem', { points });
       toast.success('Points redeemed successfully!');
       setShowRedeemModal(false);
       setRedeemAmount('');

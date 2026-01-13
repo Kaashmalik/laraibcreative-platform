@@ -18,13 +18,11 @@ export default function AdminLoginPage() {
   // Check if already logged in as admin
   useEffect(() => {
     // Immediate check without delay
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
-        const userStr = localStorage.getItem('user');
-        
-        if (token && userStr) {
-          const user = JSON.parse(userStr);
+        const response = await api.auth.verifyToken();
+        if (response.data?.user) {
+          const user = response.data.user;
           if (user?.role === 'admin' || user?.role === 'super-admin') {
             // Already logged in as admin - redirect to dashboard
             router.push('/admin/dashboard');
@@ -87,11 +85,8 @@ export default function AdminLoginPage() {
           return;
         }
 
-        // Store tokens and user data (use 'auth_token' to match axios interceptor)
-        localStorage.setItem('auth_token', tokens.accessToken);
-        localStorage.setItem('refresh_token', tokens.refreshToken);
-        localStorage.setItem('user', JSON.stringify(user));
-
+        // Tokens are set as httpOnly cookies by backend
+        // No need to store in localStorage
         toast.success(`Welcome back, ${user.fullName || user.email}!`);
         
         // Force redirect to admin dashboard using window.location
