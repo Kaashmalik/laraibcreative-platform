@@ -20,13 +20,13 @@ export const dynamic = 'force-dynamic';
  */
 export default function CustomerLayout({ children }) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       {/* Header - sticky navigation */}
       <Header />
 
       {/* Main content area with accessibility ID */}
-      <main 
-        id="main-content" 
+      <main
+        id="main-content"
         className="flex-1"
         role="main"
       >
@@ -41,7 +41,7 @@ export default function CustomerLayout({ children }) {
 
       {/* Back to top button (shows after scrolling down) */}
       <BackToTopButton />
-    </div>
+    </>
   )
 }
 
@@ -60,17 +60,17 @@ function BackToTopButton() {
       aria-label="Back to top"
       id="back-to-top-btn"
     >
-      <svg 
-        className="w-5 h-5" 
-        fill="none" 
-        stroke="currentColor" 
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
         viewBox="0 0 24 24"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M5 10l7-7m0 0l7 7m-7-7v18" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 10l7-7m0 0l7 7m-7-7v18"
         />
       </svg>
     </button>

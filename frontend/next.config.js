@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+
 const nextConfig = {
   // ==================================================
   // PRODUCTION-READY NEXT.JS CONFIGURATION
@@ -59,7 +62,7 @@ const nextConfig = {
   // COMPRESSION & PERFORMANCE
   // ==================================================
   compress: true,
-  
+
   // ==================================================
   // ENVIRONMENT VARIABLES
   // ==================================================
@@ -198,7 +201,7 @@ const nextConfig = {
         },
       };
     }
-    
+
     return config;
   },
 
@@ -255,4 +258,4 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = withBundleAnalyzer(withNextIntl(nextConfig));
