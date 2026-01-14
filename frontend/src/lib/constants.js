@@ -13,17 +13,22 @@ export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 
 // API and Site URLs
 const getApiBaseUrl = () => {
-  // In production, ensure we have a valid API URL
-  if (process.env.NODE_ENV === 'production') {
-    const url = process.env.NEXT_PUBLIC_API_URL;
-    if (!url) {
-      console.warn('NEXT_PUBLIC_API_URL not set in production. Using fallback.');
-      return 'https://laraibcreative-backend.onrender.com/api/v1';
-    }
-    return url.replace(/\/$/, '').includes('/api/v1') ? url.replace(/\/$/, '') : `${url.replace(/\/$/, '')}/api/v1`;
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  const nodeEnv = process.env.NODE_ENV;
+  
+  // Log environment info for debugging (will show in both server and client console)
+  if (typeof window !== 'undefined') {
+    console.log('[API Config] NODE_ENV:', nodeEnv, 'NEXT_PUBLIC_API_URL:', envUrl);
   }
   
-  let url = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api/v1';
+  // In production without env var, use fallback
+  if (nodeEnv === 'production' && !envUrl) {
+    console.warn('NEXT_PUBLIC_API_URL not set in production. Using fallback.');
+    return 'https://laraibcreative-backend.onrender.com/api/v1';
+  }
+  
+  // Use env var or local fallback for development
+  let url = envUrl || 'http://127.0.0.1:5000/api/v1';
 
   // Remove trailing slash
   url = url.replace(/\/$/, '');

@@ -85,8 +85,8 @@ const loyaltyAccountSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true,
-    index: true
+    unique: true
+    // Note: unique: true already creates an index, no need for index: true
   },
   
   totalPointsEarned: {

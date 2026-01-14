@@ -21,13 +21,16 @@ export default function AdminLayout({ children }) {
     // Get user from API (cookies are sent automatically)
     const fetchUser = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+        const response = await fetch(`${apiUrl}/auth/me`, {
           credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
+          // Response structure: { success, data: { user } }
+          const user = data?.data?.user || data?.user;
+          if (user) {
+            setUser(user);
           }
         }
       } catch (error) {
@@ -66,7 +69,8 @@ export default function AdminLayout({ children }) {
   const handleLogout = async () => {
     try {
       // Call logout API to clear cookies
-      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+      await fetch(`${apiUrl}/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       });

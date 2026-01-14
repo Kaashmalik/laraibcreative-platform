@@ -190,7 +190,11 @@ axiosInstance.interceptors.response.use(
         break;
 
       case 401: // Unauthorized
-        handleUnauthorized(originalRequest);
+        // Handle unauthorized - this returns a rejected promise but we let it fall through
+        // to the final return Promise.reject(error) below
+        await handleUnauthorized(originalRequest).catch(() => {
+          // Silently catch - error is already handled
+        });
         break;
 
       case 403: // Forbidden
@@ -248,16 +252,35 @@ axiosInstance.interceptors.response.use(
  * Attempts to refresh token and retry request
  */
 async function handleUnauthorized(originalRequest) {
+  // Check current path to determine appropriate action
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isOnAdminLogin = currentPath.includes('/admin/login');
+  const isOnAdminRoute = currentPath.includes('/admin/');
+  const isOnCustomerAuth = currentPath.includes('/auth/');
+  
+  // Don't do anything if already on login pages - silently fail without error
+  if (isOnAdminLogin || isOnCustomerAuth) {
+    // Return a rejected promise but mark it as handled to prevent error boundary
+    const error = new Error('Unauthorized');
+    error.handled = true;
+    return Promise.reject(error);
+  }
+  
   // Don't retry for auth endpoints
-  const authEndpoints = ['/auth/login', '/auth/register', '/auth/verify-token', '/auth/refresh-token'];
+  const authEndpoints = ['/auth/login', '/auth/register', '/auth/verify-token', '/auth/refresh-token', '/auth/me'];
   const isAuthEndpoint = authEndpoints.some(endpoint =>
     originalRequest.url?.includes(endpoint)
   );
 
   if (isAuthEndpoint) {
-    safeToastError('Session expired. Please login again.');
-    redirectToLogin();
-    return Promise.reject(new Error('Unauthorized'));
+    // Only show toast and redirect if not on admin routes (admin handles its own auth)
+    if (!isOnAdminRoute) {
+      safeToastError('Session expired. Please login again.');
+      redirectToLogin();
+    }
+    const error = new Error('Unauthorized');
+    error.handled = true;
+    return Promise.reject(error);
   }
 
   // Don't show toast for token refresh - we'll handle silently
@@ -275,10 +298,15 @@ async function handleUnauthorized(originalRequest) {
     console.error('Token refresh failed:', refreshError);
   }
 
-  // Refresh failed, redirect to login
-  safeToastError('Session expired. Please login again.');
-  redirectToLogin();
-  return Promise.reject(new Error('Unauthorized'));
+  // Refresh failed - only redirect and show toast if not on admin routes
+  // Admin routes use ProtectedAdminRoute which handles its own redirection
+  if (!isOnAdminRoute) {
+    safeToastError('Session expired. Please login again.');
+    redirectToLogin();
+  }
+  const error = new Error('Unauthorized');
+  error.handled = true;
+  return Promise.reject(error);
 }
 
 /**
@@ -288,13 +316,24 @@ function redirectToLogin() {
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname;
 
-    if (!currentPath.includes('/auth/')) {
-      // Save current path to return after login
-      const returnUrl = currentPath !== '/' ? currentPath : '';
-      setTimeout(() => {
-        window.location.href = `/auth/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`;
-      }, 1000);
+    // Don't redirect if already on login pages or admin routes
+    if (currentPath.includes('/auth/') || currentPath.includes('/admin/login')) {
+      return;
     }
+    
+    // For admin routes, redirect to admin login
+    if (currentPath.includes('/admin/')) {
+      setTimeout(() => {
+        window.location.href = '/admin/login';
+      }, 1000);
+      return;
+    }
+    
+    // For customer routes, redirect to customer login
+    const returnUrl = currentPath !== '/' ? currentPath : '';
+    setTimeout(() => {
+      window.location.href = `/auth/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`;
+    }, 1000);
   }
 }
 

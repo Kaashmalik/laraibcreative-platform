@@ -24,15 +24,17 @@ export default function ProtectedAdminRoute({ children }) {
         }
 
         // Use API call to verify auth status (cookies are sent automatically)
+        // Note: axios interceptor returns response.data directly
         const response = await axiosInstance.get('/auth/me');
+        
+        // Response structure: { success, data: { user } } or { success, user }
+        const user = response?.data?.user || response?.user;
 
-        if (!response.data?.user) {
-          console.log('[ProtectedAdminRoute] No user data in response');
+        if (!user) {
+          console.log('[ProtectedAdminRoute] No user data in response:', response);
           setAuthState('unauthorized');
           return;
         }
-
-        const user = response.data.user;
         const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
         if (!isAdmin) {

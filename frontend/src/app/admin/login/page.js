@@ -21,8 +21,9 @@ export default function AdminLoginPage() {
     const checkAuth = async () => {
       try {
         const response = await api.auth.verifyToken();
-        if (response.data?.user) {
-          const user = response.data.user;
+        // Response structure: { success, data: { user } } - axios interceptor returns response.data
+        const user = response?.data?.user || response?.user;
+        if (user) {
           if (user?.role === 'admin' || user?.role === 'super-admin') {
             // Already logged in as admin - redirect to dashboard
             router.push('/admin/dashboard');
