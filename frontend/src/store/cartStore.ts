@@ -8,6 +8,9 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import type { Product } from '@/types/product'
 import type { CartItem, CartItemCustomizations, ShippingAddress } from '@/types/cart'
 
+// API Base URL for cart operations
+const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'
+
 interface CartState {
   items: CartItem[]
   totalItems: number
@@ -197,7 +200,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch('/api/v1/cart/promo', {
+          const response = await fetch(`${getApiUrl()}/cart/promo`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -236,7 +239,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch('/api/v1/cart/shipping', {
+          const response = await fetch(`${getApiUrl()}/cart/shipping`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -267,7 +270,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch('/api/v1/cart/sync', {
+          const response = await fetch(`${getApiUrl()}/cart/sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -310,7 +313,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch('/api/v1/cart', {
+          const response = await fetch(`${getApiUrl()}/cart`, {
             credentials: 'include'
           })
 
@@ -342,7 +345,7 @@ export const useCartStore = create<CartStore>()(
         set({ isLoading: true, error: null })
 
         try {
-          const response = await fetch('/api/v1/cart/validate', {
+          const response = await fetch(`${getApiUrl()}/cart/validate`, {
             method: 'POST',
             credentials: 'include'
           })
