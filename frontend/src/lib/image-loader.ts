@@ -11,28 +11,39 @@ interface ImageLoaderProps {
 
 // Default export required by Next.js
 const cloudinaryLoader = ({ src, width, quality = 75 }: ImageLoaderProps): string => {
+  // Handle empty or invalid src
+  if (!src || typeof src !== 'string') {
+    return src || '';
+  }
+
   // If it's already a Cloudinary URL, optimize it
   if (src.includes('res.cloudinary.com')) {
-    // Extract the path from Cloudinary URL
-    const url = new URL(src);
-    const pathParts = url.pathname.split('/');
-    const uploadIndex = pathParts.findIndex(part => part === 'upload');
-    
-    if (uploadIndex !== -1) {
-      // Reconstruct with optimizations
-      const beforeUpload = pathParts.slice(0, uploadIndex + 1).join('/');
-      const afterUpload = pathParts.slice(uploadIndex + 1).join('/');
+    try {
+      // Extract the path from Cloudinary URL
+      const url = new URL(src);
+      const pathParts = url.pathname.split('/');
+      const uploadIndex = pathParts.findIndex(part => part === 'upload');
       
-      // Add transformations: auto format, auto quality, width
-      const transformations = [
-        `w_${width}`,
-        'c_limit', // Limit to original dimensions
-        'f_auto', // Auto format (WebP, AVIF when supported)
-        `q_auto:${quality === 75 ? 'good' : quality > 85 ? 'best' : 'eco'}`, // Auto quality
-        'dpr_auto', // Auto device pixel ratio
-      ].join(',');
-      
-      return `${url.origin}${beforeUpload}/${transformations}/${afterUpload}`;
+      if (uploadIndex !== -1) {
+        // Reconstruct with optimizations
+        const beforeUpload = pathParts.slice(0, uploadIndex + 1).join('/');
+        const afterUpload = pathParts.slice(uploadIndex + 1).join('/');
+        
+        // Add transformations: auto format, auto quality, width
+        const transformations = [
+          `w_${width}`,
+          'c_limit', // Limit to original dimensions
+          'f_auto', // Auto format (WebP, AVIF when supported)
+          `q_auto:${quality === 75 ? 'good' : quality > 85 ? 'best' : 'eco'}`, // Auto quality
+          'dpr_auto', // Auto device pixel ratio
+        ].join(',');
+        
+        return `${url.origin}${beforeUpload}/${transformations}/${afterUpload}`;
+      }
+    } catch (error) {
+      // If URL parsing fails, return the original src
+      console.warn('Image loader: Invalid URL', src);
+      return src;
     }
   }
   

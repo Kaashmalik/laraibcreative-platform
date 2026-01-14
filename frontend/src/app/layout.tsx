@@ -1,16 +1,23 @@
-import './globals.css'
+import './globals.css';
+import { CartProvider } from '@/context/CartContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { Toaster } from 'react-hot-toast';
 
-export default function RootLayout({ children }) {
+export const metadata = {
+  title: 'LaraibCreative - Custom Ladies Suits & Designer Wear',
+  description: 'Premium custom stitched ladies suits and designer wear in Pakistan',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ 
-        margin: 0, 
-        padding: 0, 
-        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        backgroundColor: '#fafafa',
-        color: '#333'
-      }}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+        <ThemeProvider>
+          <CartProvider>
+            {children}
+            <Toaster position="top-right" />
+          </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

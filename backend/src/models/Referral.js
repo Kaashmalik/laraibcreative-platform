@@ -92,10 +92,9 @@ const referralSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
+// Indexes - compound indexes only (simple indexes defined on fields)
 referralSchema.index({ referrerId: 1, status: 1 });
-referralSchema.index({ refereeId: 1 });
-referralSchema.index({ referralCode: 1 });
+// Note: refereeId and referralCode already have index: true on field definitions
 
 // Static method: Generate unique referral code
 referralSchema.statics.generateCode = function(userId) {

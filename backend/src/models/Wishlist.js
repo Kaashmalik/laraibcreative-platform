@@ -30,7 +30,7 @@ const wishlistSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-wishlistSchema.index({ userId: 1 });
+// Note: userId already has unique: true which creates an index
 wishlistSchema.index({ userId: 1, 'items.productId': 1 });
 
 module.exports = mongoose.model('Wishlist', wishlistSchema);

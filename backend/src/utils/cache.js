@@ -111,16 +111,32 @@ let isRedis = false;
 const initCache = async () => {
   const redisUrl = process.env.REDIS_URL;
   
-  if (redisUrl && Redis) {
+  // Skip Redis in development if not explicitly enabled
+  const useRedis = process.env.USE_REDIS === 'true' || process.env.NODE_ENV === 'production';
+  
+  if (redisUrl && Redis && useRedis) {
     try {
-      cacheClient = new Redis(redisUrl, {
-        maxRetriesPerRequest: 3,
-        retryDelayOnFailover: 100,
+      const redisClient = new Redis(redisUrl, {
+        maxRetriesPerRequest: 1,
+        retryStrategy: (times) => {
+          // Only retry once, then give up
+          if (times > 1) {
+            return null; // Stop retrying
+          }
+          return 100; // Wait 100ms before first retry
+        },
         enableReadyCheck: true,
         lazyConnect: true,
+        connectTimeout: 5000, // 5 second timeout
       });
       
-      await cacheClient.connect();
+      // Suppress error events to prevent console spam
+      redisClient.on('error', () => {
+        // Silently ignore - we'll use memory cache
+      });
+      
+      await redisClient.connect();
+      cacheClient = redisClient;
       isRedis = true;
       console.log('✅ Redis cache connected');
       return cacheClient;

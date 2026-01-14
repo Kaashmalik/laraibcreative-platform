@@ -141,8 +141,8 @@ const loyaltyAccountSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
-loyaltyAccountSchema.index({ userId: 1 });
+// Indexes - compound and non-field indexes only
+// Note: userId already has unique: true which creates an index
 loyaltyAccountSchema.index({ currentBalance: -1 });
 loyaltyAccountSchema.index({ tier: 1 });
 

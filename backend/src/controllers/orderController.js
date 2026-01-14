@@ -8,7 +8,6 @@ const logger = require('../utils/logger');
 const notificationService = require('../utils/notificationService');
 const { validateStatusUpdate } = require('../utils/orderStatusValidation');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
-const logger = require('../utils/logger');
 const { 
   createOrderSchema, 
   updateOrderStatusSchema, 
