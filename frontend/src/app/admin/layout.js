@@ -2,13 +2,14 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Head from 'next/head';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import LoadingScreen from '@/components/shared/LoadingScreen';
 import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
+import { toast } from 'react-hot-toast';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -16,39 +17,57 @@ export default function AdminLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sidebarStats, setSidebarStats] = useState(null);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+      const response = await fetch(`${apiUrl}/auth/me`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const userData = data?.data?.user || data?.user;
+        if (userData) {
+          setUser(userData);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  }, []);
+
+  const fetchSidebarStats = useCallback(async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+      const response = await fetch(`${apiUrl}/admin/dashboard/stats`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSidebarStats(data?.data || {});
+      }
+    } catch (error) {
+      console.log('Could not fetch sidebar stats:', error.message);
+    }
+  }, []);
 
   useEffect(() => {
-    // Get user from API (cookies are sent automatically)
-    const fetchUser = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
-        const response = await fetch(`${apiUrl}/auth/me`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          // Response structure: { success, data: { user } }
-          const user = data?.data?.user || data?.user;
-          if (user) {
-            setUser(user);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading user:', error);
-      }
+    const initData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchUser(), fetchSidebarStats()]);
+      setIsLoading(false);
     };
+    initData();
 
-    fetchUser();
-
-    // Load dark mode preference from localStorage
     const savedTheme = localStorage.getItem('adminTheme');
     if (savedTheme === 'dark') {
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     }
-  }, []);
+  }, [fetchUser, fetchSidebarStats]);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     if (!isDarkMode) {
@@ -60,15 +79,12 @@ export default function AdminLayout({ children }) {
     }
   };
 
-  // Toggle sidebar visibility
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Handle logout
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
-      // Call logout API to clear cookies
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
       await fetch(`${apiUrl}/auth/logout`, {
         method: 'POST',
@@ -77,15 +93,13 @@ export default function AdminLayout({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    // Clear any localStorage data
     localStorage.removeItem('auth_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-    // Redirect to admin login
+    toast.success('Logged out successfully');
     router.push('/admin/login');
-  };
+  }, [router]);
 
-  // Don't show sidebar/header on login page
   if (pathname === '/admin/login') {
     return (
       <>
@@ -99,20 +113,22 @@ export default function AdminLayout({ children }) {
     );
   }
 
+  if (isLoading) {
+    return <LoadingScreen message="Loading admin panel..." />;
+  }
+
   return (
     <ProtectedAdminRoute>
       <div className={`min-h-screen ${isDarkMode ? 'dark' : ''}`}>
       <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-        {/* Sidebar */}
         <AdminSidebar 
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           currentPath={pathname}
+          stats={sidebarStats}
         />
 
-        {/* Main Content Area */}
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
-          {/* Header */}
           <AdminHeader 
             onToggleSidebar={toggleSidebar}
             onToggleDarkMode={toggleDarkMode}
@@ -121,9 +137,7 @@ export default function AdminLayout({ children }) {
             onLogout={handleLogout}
           />
 
-          {/* Main Content */}
           <main className="relative flex-1 overflow-y-auto focus:outline-none">
-            {/* Page Content */}
             <div className="py-6">
               <div className="px-4 mx-auto max-w-7xl sm:px-6 md:px-8">
                 {children}
@@ -133,7 +147,6 @@ export default function AdminLayout({ children }) {
         </div>
       </div>
 
-      {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 lg:hidden"

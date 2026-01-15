@@ -12,6 +12,7 @@
  * @param {boolean} isOpen - Sidebar visibility state
  * @param {function} onClose - Callback to close sidebar (mobile)
  * @param {string} currentPath - Current route path for active state
+ * @param {Object} stats - Optional dynamic stats data
  */
 
 'use client';
@@ -32,14 +33,15 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronRight,
-  Shirt
+  Shirt,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 
-export default function AdminSidebar({ isOpen, onClose }) {
+export default function AdminSidebar({ isOpen, onClose, stats = null }) {
   const pathname = usePathname();
   const [expandedMenus, setExpandedMenus] = useState({});
 
-  // Toggle submenu expansion
   const toggleMenu = (menuId) => {
     setExpandedMenus(prev => ({
       ...prev,
@@ -47,12 +49,10 @@ export default function AdminSidebar({ isOpen, onClose }) {
     }));
   };
 
-  // Check if path is active
   const isActive = (path) => {
     return pathname === path || pathname.startsWith(path + '/');
   };
 
-  // Navigation menu structure
   const menuItems = [
     {
       id: 'dashboard',
@@ -78,7 +78,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
       label: 'Orders',
       icon: ShoppingCart,
       path: '/admin/orders',
-      badge: 5,
+      badge: stats?.pendingOrders || 5,
       subItems: [
         { label: 'All Orders', path: '/admin/orders' },
         { label: 'Pending Payment', path: '/admin/orders?status=pending-payment' },
@@ -133,7 +133,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
       label: 'Communications',
       icon: MessageSquare,
       path: '/admin/communications',
-      badge: 3,
+      badge: stats?.unreadMessages || 3,
       subItems: [
         { label: 'Inquiries', path: '/admin/communications/inquiries' },
         { label: 'Notifications', path: '/admin/communications/notifications' }
@@ -156,7 +156,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
     }
   ];
 
-  // Render menu item
   const renderMenuItem = (item) => {
     const Icon = item.icon;
     const hasSubItems = item.subItems && item.subItems.length > 0;
@@ -267,14 +266,21 @@ export default function AdminSidebar({ isOpen, onClose }) {
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="p-3 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
-              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Quick Stats</p>
-              <div className="grid grid-cols-2 gap-2 mt-2">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-indigo-600" />
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Quick Stats</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">24</p>
+                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    {stats?.ordersToday || 24}
+                  </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Orders Today</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-purple-600 dark:text-purple-400">5</p>
+                  <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                    {stats?.pendingTasks || 5}
+                  </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
                 </div>
               </div>

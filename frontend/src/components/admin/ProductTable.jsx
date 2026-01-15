@@ -1,16 +1,18 @@
 'use client';
 
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Edit, Trash2, Eye, Star, MoreVertical, Copy } from 'lucide-react';
+import { Edit, Trash2, Eye, Star, MoreVertical, Copy, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Checkbox from '@/components/ui/Checkbox';
 import Skeleton from '@/components/ui/Skeleton';
 import Pagination from '@/components/customer/Pagination';
 import DropdownMenu from '@/components/ui/DropdownMenu';
+import { toast } from 'react-hot-toast';
+import api from '@/lib/api';
 
 /**
  * Product Table Component
@@ -135,54 +137,43 @@ export default function ProductTable({
   };
   
   /**
-   * Handle quick actions
+   * Handle quick actions using proper API
    */
-  const handleQuickAction = async (productId, action) => {
+  const handleQuickAction = useCallback(async (productId, action) => {
+    const loadingToast = toast.loading('Updating product...');
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
-        body: JSON.stringify({ [action]: true })
-      });
+      await api.products.admin.bulkUpdateAdmin([productId], { [action]: true });
       
-      if (!response.ok) throw new Error('Failed to update product');
+      toast.success('Product updated successfully', { id: loadingToast });
       
       // Refresh table
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product');
+      toast.error(error.response?.data?.message || 'Failed to update product', { id: loadingToast });
     }
-  };
+  }, [onRefresh]);
   
   /**
-   * Handle product deletion
+   * Handle product deletion using proper API
    */
-  const handleDelete = async (productId, productTitle) => {
-    if (!confirm(`Are you sure you want to delete "${productTitle}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDelete = useCallback(async (productId, productTitle) => {
+    const confirmDelete = confirm(`Are you sure you want to delete "${productTitle}"? This action cannot be undone.`);
+    if (!confirmDelete) return;
     
+    const loadingToast = toast.loading('Deleting product...');
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
+      await api.products.admin.delete(productId);
       
-      if (!response.ok) throw new Error('Failed to delete product');
+      toast.success('Product deleted successfully', { id: loadingToast });
       
       // Refresh table
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      toast.error(error.response?.data?.message || 'Failed to delete product', { id: loadingToast });
     }
-  };
+  }, [onRefresh]);
   
   /**
    * Loading skeleton

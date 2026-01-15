@@ -9,6 +9,7 @@ import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
 import axios from '@/lib/axios';
 import { API_BASE_URL } from '@/lib/constants';
+import { toast } from 'react-hot-toast';
 
 /**
  * Multiple Image Upload Component
@@ -58,7 +59,7 @@ export default function ImageUploadMultiple({
     
     // Check if adding files would exceed max limit
     if (images.length + files.length > maxImages) {
-      alert(`You can only upload up to ${maxImages} images`);
+      toast.error(`You can only upload up to ${maxImages} images`);
       return;
     }
     
@@ -67,19 +68,20 @@ export default function ImageUploadMultiple({
     
     try {
       const newFiles = [];
+      const errors = [];
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          alert(`File ${file.name} is not an image`);
+          errors.push(`${file.name} is not a valid image`);
           continue;
         }
         
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert(`File ${file.name} is too large. Maximum size is 5MB`);
+          errors.push(`${file.name} exceeds 5MB limit`);
           continue;
         }
         
@@ -89,6 +91,17 @@ export default function ImageUploadMultiple({
         
         // Update progress
         setUploadProgress(((i + 1) / files.length) * 100);
+      }
+      
+      // Show errors if any
+      if (errors.length > 0) {
+        toast.error(errors[0], { duration: 4000 });
+      }
+      
+      if (newFiles.length === 0) {
+        setUploading(false);
+        setUploadProgress(0);
+        return;
       }
       
       // Add new File objects to existing images
@@ -102,9 +115,13 @@ export default function ImageUploadMultiple({
         onPrimaryImageChange(previewUrl);
       }
       
+      if (newFiles.length > 0) {
+        toast.success(`${newFiles.length} image(s) added successfully`);
+      }
+      
     } catch (error) {
       console.error('Error processing images:', error);
-      alert('Failed to process some images. Please try again.');
+      toast.error('Failed to process some images. Please try again.');
     } finally {
       setUploading(false);
       setUploadProgress(0);

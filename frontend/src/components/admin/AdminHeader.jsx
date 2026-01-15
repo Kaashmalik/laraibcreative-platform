@@ -1,25 +1,7 @@
 'use client';
 
 
-/**
- * Admin Header Component
- * 
- * Top navigation bar for admin panel featuring:
- * - Hamburger menu toggle for sidebar (mobile)
- * - Search bar with quick navigation
- * - Notifications dropdown with unread count
- * - Dark mode toggle
- * - User profile dropdown with logout
- * - Quick actions shortcuts
- * 
- * @param {function} onToggleSidebar - Callback to toggle sidebar visibility
- * @param {function} onToggleDarkMode - Callback to toggle dark mode
- * @param {boolean} isDarkMode - Current dark mode state
- * @param {object} user - Current user data
- * @param {function} onLogout - Callback to handle logout
- */
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Menu, 
@@ -32,26 +14,28 @@ import {
   Settings,
   Plus,
   Package,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 
 export default function AdminHeader({ 
   onToggleSidebar, 
   onToggleDarkMode, 
-  isDarkMode, 
-  user, 
+  isDarkMode = false, 
+  user = null, 
   onLogout 
 }) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const notificationRef = useRef(null);
   const profileRef = useRef(null);
   const searchRef = useRef(null);
 
-  const notifications = [
+  const [notifications, setNotifications] = useState([
     {
       id: 1,
       type: 'order',
@@ -92,9 +76,8 @@ export default function AdminHeader({
       time: '3 hours ago',
       unread: false
     }
-  ];
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  ]);
+  const [unreadCount, setUnreadCount] = useState(3);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -116,7 +99,7 @@ export default function AdminHeader({
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Searching for: searchQuery
+      console.log('Searching for:', searchQuery);
       setIsSearchOpen(false);
       setSearchQuery('');
     }
@@ -132,6 +115,18 @@ export default function AdminHeader({
     };
     return colors[type] || 'text-gray-500';
   };
+
+  const handleLogoutClick = useCallback(async () => {
+    if (onLogout) {
+      setIsLoading(true);
+      try {
+        await onLogout();
+      } finally {
+        setIsLoading(false);
+        setIsProfileOpen(false);
+      }
+    }
+  }, [onLogout]);
 
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
@@ -305,11 +300,21 @@ export default function AdminHeader({
 
                 <div className="p-2 border-t border-gray-200 dark:border-gray-700">
                   <button
-                    onClick={onLogout}
-                    className="flex items-center justify-center w-full gap-2 px-3 py-2 text-sm font-medium text-white transition-all bg-red-600 rounded-lg hover:bg-red-700"
+                    onClick={handleLogoutClick}
+                    disabled={isLoading}
+                    className="flex items-center justify-center w-full gap-2 px-3 py-2 text-sm font-medium text-white transition-all bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <LogOut className="w-4 h-4" />
-                    Logout
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Logging out...
+                      </>
+                    ) : (
+                      <>
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

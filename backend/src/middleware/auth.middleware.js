@@ -20,7 +20,7 @@ const generateAccessToken = (userId) => {
   return jwt.sign(
     { id: userId, type: 'access' },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '15m' }
+    { expiresIn: process.env.JWT_EXPIRE || '8h' }
   );
 };
 
@@ -48,12 +48,12 @@ const generateRefreshToken = (userId) => {
 const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
   const isProduction = process.env.NODE_ENV === 'production';
   
-  // Access token cookie options (short-lived)
+  // Access token cookie options (8 hours for admin sessions)
   const accessTokenOptions = {
     httpOnly: true, // Prevents XSS attacks
     secure: isProduction, // HTTPS only in production
     sameSite: 'lax', // CSRF protection with cross-origin support
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge: 8 * 60 * 60 * 1000, // 8 hours
     path: '/'
   };
 

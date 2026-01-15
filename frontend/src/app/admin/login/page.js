@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Button from '@/components/ui/Button';
@@ -14,31 +14,34 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const hasRedirected = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/dashboard';
+    }
+  }, []);
 
   // Check if already logged in as admin
   useEffect(() => {
-    // Immediate check without delay
     const checkAuth = async () => {
       try {
         const response = await api.auth.verifyToken();
-        // Response structure: { success, data: { user } } - axios interceptor returns response.data
         const user = response?.data?.user || response?.user;
-        if (user) {
-          if (user?.role === 'admin' || user?.role === 'super-admin') {
-            // Already logged in as admin - redirect to dashboard
-            router.push('/admin/dashboard');
-            return;
-          }
+        
+        if (user && (user.role === 'admin' || user.role === 'super-admin')) {
+          // Already logged in as admin - redirect to dashboard
+          toast.success(`Welcome back, ${user.fullName || user.email}!`);
+          hasRedirected();
+          return;
         }
       } catch (e) {
-        console.error('Auth check error:', e);
+        // Token expired or invalid - show login form
+        console.log('Auth check failed (expected for non-logged in users):', e.message);
       }
       setCheckingAuth(false);
     };
 
-    // Run immediately
     checkAuth();
-  }, [router]);
+  }, [hasRedirected]);
 
   // Show loading while checking auth
   if (checkingAuth) {
