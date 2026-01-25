@@ -1,7 +1,7 @@
 'use client';
 
 
-import { useState, useEffect, useMemo, useCallback, Suspense, useRef } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter } from 'lucide-react';
