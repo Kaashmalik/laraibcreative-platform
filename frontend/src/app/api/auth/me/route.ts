@@ -1,20 +1,19 @@
 /**
  * Get Current User Endpoint
- * Returns user data if authenticated via JWT cookies
+ * Proxies to backend API to verify JWT token and return user data
+ * This route is DEPRECATED - use /api/v1/auth/me directly from backend
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-// import { verifyToken } from '@/backend/src/middleware/auth.middleware';
-// import User from '@/backend/src/models/User';
+import axiosInstance from '@/lib/axios';
 
 // Force dynamic rendering since this route uses cookies
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify JWT token from cookies
-    const token = request.cookies.get('accessToken')?.value || request.cookies.get('token')?.value;
-    let user = null;
+    // Get token from cookies
+    const token = request.cookies.get('accessToken')?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -23,42 +22,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // For now, return a mock user response
-    // TODO: Implement proper JWT verification
-    user = {
-      id: 'mock-id',
-      _id: 'mock-id',
-      email: 'user@example.com',
-      fullName: 'Mock User',
-      role: 'customer',
-      isActive: true,
-      isLocked: false,
-      phone: '+923001234567',
-      whatsapp: '+923001234567',
-      avatar: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Proxy to backend API
+    const response = await axiosInstance.get('/auth/me');
 
-    // Return user data without sensitive fields
-    const userData = {
-      id: user._id || user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      isActive: user.isActive,
-      isLocked: user.isLocked,
-      phone: user.phone,
-      whatsapp: user.whatsapp,
-      avatar: user.avatar,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
-
-    return NextResponse.json({
-      success: true,
-      data: userData
-    });
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Get current user error:', error);

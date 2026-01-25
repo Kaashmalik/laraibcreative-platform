@@ -3,16 +3,18 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Lock, Eye, EyeOff, ArrowLeft, ArrowRight, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
-export default function ResetPasswordPage() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+export default function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: URLSearchParams | null;
+}) {
+  const token = searchParams?.get('token') || ''
 
   const [formData, setFormData] = useState({
     password: '',

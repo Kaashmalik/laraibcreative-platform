@@ -78,36 +78,39 @@ function getFilterLabel(type: keyof ProductFilters, value: string): string {
 /**
  * Parse filters from URL search params
  */
-function parseFiltersFromURL(searchParams: URLSearchParams): Partial<ProductFilters> {
+const parseFiltersFromURL = useCallback((urlSearchParams: URLSearchParams | null) => {
+  if (!urlSearchParams) return {};
+
   const filters: Partial<ProductFilters> = {};
 
-  // Price range
-  const minPrice = searchParams.get('minPrice');
-  const maxPrice = searchParams.get('maxPrice');
-  if (minPrice) filters.minPrice = parseInt(minPrice, 10);
-  if (maxPrice) filters.maxPrice = parseInt(maxPrice, 10);
-
-  // Array filters
-  const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability'];
-  arrayFilters.forEach((key) => {
-    const value = searchParams.get(key);
-    if (value) {
-      (filters as any)[key] = value.split(',').filter(Boolean);
-    }
-  });
-
-  // String filters
-  const sortBy = searchParams.get('sortBy');
-  if (sortBy) filters.sortBy = sortBy;
-
-  const search = searchParams.get('search');
-  if (search) filters.search = search;
-
-  const category = searchParams.get('category');
+  // Parse category
+  const category = urlSearchParams.get('category');
   if (category) filters.category = category;
 
+  // Parse fabric
+  const fabric = urlSearchParams.get('fabric');
+  if (fabric) filters.fabric = fabric.split(',') as string[];
+
+  // Parse occasion
+  const occasion = urlSearchParams.get('occasion');
+  if (occasion) filters.occasion = occasion.split(',') as string[];
+
+  // Parse price range
+  const minPrice = urlSearchParams.get('minPrice');
+  const maxPrice = urlSearchParams.get('maxPrice');
+  if (minPrice) filters.minPrice = Number(minPrice);
+  if (maxPrice) filters.maxPrice = Number(maxPrice);
+
+  // Parse sort
+  const sort = urlSearchParams.get('sort');
+  if (sort) filters.sortBy = sort;
+
+  // Parse search query
+  const search = urlSearchParams.get('search');
+  if (search) filters.search = search;
+
   return filters;
-}
+}, []);
 
 /**
  * Build URL search params from filters
@@ -247,7 +250,9 @@ export function useFilters(options: UseFiltersOptions = {}): UseFiltersReturn {
           const newURL = params.toString()
             ? `${pathname}?${params.toString()}`
             : pathname;
-          router.replace(newURL, { scroll: false });
+          if (newURL) {
+            router.replace(newURL, { scroll: false });
+          }
         }
 
         // Save to localStorage

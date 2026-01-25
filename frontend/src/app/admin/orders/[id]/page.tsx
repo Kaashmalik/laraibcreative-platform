@@ -8,7 +8,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, Phone, MessageCircle, Mail, MapPin, 
   Download, Printer, Ban, CheckCircle, Clock,
@@ -27,6 +27,8 @@ import toast from 'react-hot-toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Order, OrderStatus, StatusUpdateRequest, PaymentVerificationRequest, CancelOrderRequest, AdminNoteRequest, TrackingUpdate, ShippingAddressUpdate } from '@/types/order-management';
 
+const router = useRouter();
+
 const statusConfig: Record<OrderStatus, { label: string; color: string; bgColor: string }> = {
   'pending-payment': { label: 'Pending Payment', color: 'text-orange-700', bgColor: 'bg-orange-100' },
   'payment-verified': { label: 'Payment Verified', color: 'text-green-700', bgColor: 'bg-green-100' },
@@ -40,10 +42,12 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; bgColor:
   'refunded': { label: 'Refunded', color: 'text-gray-700', bgColor: 'bg-gray-100' },
 };
 
-export default function AdminOrderDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const orderId = params.id as string;
+export default function AdminOrderDetailPage({
+  params,
+}: {
+  params: { id?: string } | null;
+}) {
+  const orderId = params?.id as string;
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);

@@ -3,16 +3,18 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, ArrowLeft, ArrowRight, Loader2, CheckCircle2, XCircle, RefreshCw } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
-export default function VerifyEmailPage() {
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+export default function VerifyEmailPage({
+  searchParams,
+}: {
+  searchParams: URLSearchParams | null;
+}) {
+  const token = searchParams?.get('token') || ''
 
   const [isVerifying, setIsVerifying] = useState(!!token)
   const [isSuccess, setIsSuccess] = useState(false)

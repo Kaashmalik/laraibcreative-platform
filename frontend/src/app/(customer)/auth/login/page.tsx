@@ -3,17 +3,20 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
 import { toast } from 'react-hot-toast'
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: URLSearchParams | null;
+}) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const returnUrl = searchParams.get('returnUrl') || '/account'
+  const returnUrl = searchParams?.get('returnUrl') || '/account'
 
   const { login, loading, isAuthenticated, checkAuth } = useAuth()
 

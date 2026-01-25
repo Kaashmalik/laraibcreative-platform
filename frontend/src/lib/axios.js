@@ -467,5 +467,7 @@ export function isNetworkError(error) {
   return axios.isAxiosError(error) && !error.response;
 }
 
+// Type-safe API client wrapper
+// The interceptor returns response.data directly, so we type it accordingly
 export default axiosInstance;
 

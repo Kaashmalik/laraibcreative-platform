@@ -8,7 +8,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { useCartStore } from '@/store/cartStore';
 import api from '@/lib/api';
-import { mockProducts, mockCartItems, mockCustomizations } from '../__fixtures__/cart.fixtures';
+import { mockProducts, mockCustomizations } from '../__fixtures__/cart.fixtures';
 
 // Mock API
 jest.mock('@/lib/api', () => ({
@@ -478,7 +478,7 @@ describe('Cart Store', () => {
 
       await act(async () => {
         await result.current.addItem(mockProducts[0], 2);
-        await result.current.calculateShipping({ city: 'Lahore' });
+        await result.current.calculateShipping({ city: 'Lahore', province: 'Punjab' });
         await result.current.applyPromoCode('TEST10');
       });
 

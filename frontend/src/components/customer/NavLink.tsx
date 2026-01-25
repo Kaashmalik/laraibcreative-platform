@@ -22,9 +22,9 @@ interface NavLinkProps {
   className?: string;
 }
 
-export default function NavLink({ href, children, ariaLabel, className = '' }: NavLinkProps) {
+export default function NavLink({ href, children, className = '', ariaLabel }: NavLinkProps) {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+  const isActive = pathname && (pathname === href || (href !== '/' && pathname.startsWith(href)));
 
   return (
     <Link

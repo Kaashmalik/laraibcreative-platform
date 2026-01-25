@@ -24,7 +24,7 @@ const getApiBaseUrl = () => {
   // In production without env var, use fallback
   if (nodeEnv === 'production' && !envUrl) {
     console.warn('NEXT_PUBLIC_API_URL not set in production. Using fallback.');
-    return 'https://laraibcreative-backend.onrender.com/api/v1';
+    return 'https://api.laraibcreative.studio/api/v1';
   }
   
   // Use env var or local fallback for development
@@ -44,7 +44,7 @@ const getApiBaseUrl = () => {
 };
 
 export const API_BASE_URL = getApiBaseUrl();
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.laraibcreative.studio';
 export const SITE_NAME = 'LaraibCreative';
 
 // Cloudinary Configuration

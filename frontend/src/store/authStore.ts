@@ -17,6 +17,7 @@ interface User {
   role: string;
   phone?: string;
   profileImage?: string;
+  emailVerified?: boolean;
 }
 
 interface AuthState {
@@ -26,7 +27,7 @@ interface AuthState {
   isAdmin: boolean;
 
   // Actions
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
   register: (userData: {
     fullName: string;
     email: string;
@@ -65,43 +66,54 @@ export const useAuthStore = typeof window === 'undefined'
           isAuthenticated: false,
           isAdmin: false,
 
-          login: async (email, password) => {
+          login: async (email: string, password: string, rememberMe?: boolean) => {
             set({ loading: true });
             try {
-              // Use REST API for login (backend JWT auth)
               const response = await axiosInstance.post('/auth/login', {
                 email,
-                password
-              });
+                password,
+                rememberMe
+              }) as any;
 
-              set({
-                user: response.data.user,
-                isAuthenticated: true,
-                isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
-                loading: false,
-              });
-              return { success: true };
+              // Backend returns { success: true, data: { user, cart } }
+              // axiosInstance interceptor returns response.data directly
+              if (response.success && response.data?.user) {
+                set({
+                  user: response.data.user,
+                  isAuthenticated: true,
+                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
+                  loading: false
+                });
+                
+                // Note: Cart sync removed - cart-store module not yet implemented
+                // TODO: Implement cart sync when cart-store is available
+                
+                return response.data.user;
+              }
+              
+              throw new Error(response.message || 'Login failed');
             } catch (error: any) {
               set({ loading: false });
-              return {
-                success: false,
-                error: error.response?.data?.message || error.message || 'Login failed'
-              };
+              throw error;
             }
           },
 
           register: async (userData) => {
             set({ loading: true });
             try {
-              const response = await axiosInstance.post('/auth/register', userData);
+              const response = await axiosInstance.post('/auth/register', userData) as any;
 
-              set({
-                user: response.data.user,
-                isAuthenticated: true,
-                isAdmin: false,
-                loading: false,
-              });
-              return { success: true };
+              if (response.success && response.data?.user) {
+                set({
+                  user: response.data.user,
+                  isAuthenticated: true,
+                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
+                  loading: false,
+                });
+                return { success: true };
+              }
+              
+              throw new Error(response.message || 'Registration failed');
             } catch (error: any) {
               set({ loading: false });
               return {
@@ -131,20 +143,28 @@ export const useAuthStore = typeof window === 'undefined'
           checkAuth: async () => {
             set({ loading: true });
             try {
-              const response = await axiosInstance.get('/auth/me');
-              set({
-                user: response.data.user,
-                isAuthenticated: true,
-                isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
-                loading: false,
-              });
-            } catch (error) {
+              const response = await axiosInstance.get('/auth/me') as any;
+
+              if (response.success && response.data?.user) {
+                set({
+                  user: response.data.user,
+                  isAuthenticated: true,
+                  isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
+                  loading: false
+                });
+                
+                return response.data.user;
+              }
+              
+              throw new Error(response.message || 'Failed to fetch user');
+            } catch (error: any) {
               set({
                 user: null,
                 isAuthenticated: false,
                 isAdmin: false,
                 loading: false,
               });
+              throw error;
             }
           },
 

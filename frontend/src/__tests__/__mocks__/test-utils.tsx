@@ -10,7 +10,7 @@ import { CartProvider } from '@/context/CartContext';
 /**
  * Custom render function with providers
  */
-function AllTheProviders({ children }: { children: React.ReactNode }) {
+export function AllTheProviders({ children }: { children: React.ReactNode }) {
   return (
     <CartProvider>
       {children}

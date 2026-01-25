@@ -3,7 +3,7 @@
  * Tests for the useCart custom hook
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useCart } from '@/hooks/useCart';
 import { useCartStore } from '@/store/cartStore';
 import { mockProducts } from '../__fixtures__/cart.fixtures';
@@ -40,7 +40,7 @@ describe('useCart Hook', () => {
   };
 
   beforeEach(() => {
-    (useCartStore as jest.Mock).mockReturnValue(mockStore);
+    (useCartStore as any).mockReturnValue(mockStore);
     jest.clearAllMocks();
   });
 

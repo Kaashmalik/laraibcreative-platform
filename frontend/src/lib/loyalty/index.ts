@@ -54,15 +54,14 @@ export interface LoyaltyBalance {
  */
 export async function getLoyaltyBalance(): Promise<LoyaltyBalance> {
   try {
-    const response = await axiosInstance.get('/customers/loyalty/balance')
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data
+    const response = await axiosInstance.get('/customers/loyalty/balance') as any;
+    if (response.success && response.data) {
+      return response.data;
     }
   } catch (error) {
-    console.error('Failed to get loyalty balance:', error)
+    console.error('Failed to get loyalty balance:', error);
   }
   
-  // Fallback return
   return {
     total_points: 0,
     available_points: 0,
@@ -70,7 +69,7 @@ export async function getLoyaltyBalance(): Promise<LoyaltyBalance> {
     lifetime_points: 0,
     tier: 'BRONZE',
     next_tier_points: null,
-  }
+  };
 }
 
 // Calculate loyalty tier based on lifetime points
@@ -100,15 +99,15 @@ export async function getLoyaltyHistory(
   limit = 20
 ): Promise<LoyaltyTransaction[]> {
   try {
-    const response = await axiosInstance.get('/customers/loyalty/history', { params: { limit } })
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data
+    const response = await axiosInstance.get('/customers/loyalty/history', { params: { limit } }) as any;
+    if (response.success && response.data) {
+      return response.data;
     }
   } catch (error) {
-    console.error('Failed to get loyalty history:', error)
+    console.error('Failed to get loyalty history:', error);
   }
   
-  return []
+  return [];
 }
 
 /**
@@ -196,15 +195,15 @@ export interface ReferralStats {
  */
 export async function getReferralStats(): Promise<ReferralStats | null> {
   try {
-    const response = await axiosInstance.get('/customers/referrals/stats')
-    if (response.data && response.data.success && response.data.data) {
-      return response.data.data
+    const response = await axiosInstance.get('/customers/referrals/stats') as any;
+    if (response.success && response.data) {
+      return response.data;
     }
   } catch (error) {
-    console.error('Failed to get referral stats:', error)
+    console.error('Failed to get referral stats:', error);
   }
   
-  return null
+  return null;
 }
 
 /**
