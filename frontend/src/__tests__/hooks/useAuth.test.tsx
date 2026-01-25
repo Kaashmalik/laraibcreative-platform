@@ -4,28 +4,33 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
-import { useAuth, AuthProvider } from '@/context/AuthContext';
-import { AllTheProviders } from '../__mocks__/test-utils';
+import useAuth from '@/hooks/useAuth';
+import axiosInstance from '@/lib/axios';
+import { useAuthStore } from '@/store/authStore';
 
-// Mock fetch
-global.fetch = jest.fn();
+jest.mock('@/lib/axios', () => ({
+  __esModule: true,
+  default: {
+    post: jest.fn(),
+    get: jest.fn(),
+  },
+}));
+
+const mockedAxios = axiosInstance as jest.Mocked<typeof axiosInstance>;
 
 describe('useAuth Hook', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorage.clear();
-  });
-
-  it('should throw error when used outside provider', () => {
-    expect(() => {
-      renderHook(() => useAuth());
-    }).toThrow('useAuth must be used within AuthProvider');
-  });
-
-  it('should return auth context when used inside provider', () => {
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
+    useAuthStore.setState({
+      user: null,
+      loading: false,
+      isAuthenticated: false,
+      isAdmin: false,
     });
+  });
+
+  it('should expose auth state and actions', () => {
+    const { result } = renderHook(() => useAuth());
 
     expect(result.current).toBeDefined();
     expect(result.current.user).toBeNull();
@@ -35,35 +40,34 @@ describe('useAuth Hook', () => {
   });
 
   it('should handle login', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        token: 'test-token',
-        user: { id: '1', email: 'test@example.com' },
-      }),
+    mockedAxios.post.mockResolvedValueOnce({
+      success: true,
+      data: {
+        user: { id: '1', email: 'test@example.com', role: 'customer' },
+      },
     });
 
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
+    const { result } = renderHook(() => useAuth());
 
     const loginResult = await result.current.login('test@example.com', 'password');
 
     expect(loginResult.success).toBe(true);
-    expect(localStorage.getItem('auth_token')).toBe('test-token');
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current.user?.email).toBe('test@example.com');
+    });
   });
 
   it('should handle login failure', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({
-        message: 'Invalid credentials',
-      }),
+    mockedAxios.post.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: 'Invalid credentials',
+        },
+      },
     });
 
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
+    const { result } = renderHook(() => useAuth());
 
     const loginResult = await result.current.login('test@example.com', 'wrong');
 
@@ -72,19 +76,25 @@ describe('useAuth Hook', () => {
   });
 
   it('should handle logout', async () => {
-    localStorage.setItem('auth_token', 'test-token');
+    mockedAxios.post
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          user: { id: '1', email: 'test@example.com', role: 'customer' },
+        },
+      })
+      .mockResolvedValueOnce({ success: true });
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-    });
+    const { result } = renderHook(() => useAuth());
 
-    const { result } = renderHook(() => useAuth(), {
-      wrapper: AuthProvider,
-    });
+    await result.current.login('test@example.com', 'password');
 
     await result.current.logout();
 
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+    });
   });
 });
 

@@ -30,7 +30,7 @@ jobs:
       
       - name: Run linter
         working-directory: ./backend
-        run: npm run lint || true
+        run: npm run lint
       
       - name: Run tests
         working-directory: ./backend
@@ -39,7 +39,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
           JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET_TEST }}
           NODE_ENV: test
-        run: npm test -- --passWithNoTests || true
+        run: npm test -- --passWithNoTests
       
       - name: Build verification
         working-directory: ./backend

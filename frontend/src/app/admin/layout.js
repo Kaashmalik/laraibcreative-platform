@@ -93,9 +93,6 @@ export default function AdminLayout({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
     toast.success('Logged out successfully');
     router.push('/admin/login');
   }, [router]);

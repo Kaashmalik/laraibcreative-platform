@@ -92,10 +92,6 @@ const register = async (req, res) => {
           phone: user.phone,
           role: user.role,
           emailVerified: user.emailVerified
-        },
-        tokens: {
-          accessToken,
-          refreshToken
         }
       }
     });
@@ -298,10 +294,6 @@ const login = async (req, res) => {
           emailVerified: user.emailVerified,
           profileImage: user.profileImage
         },
-        tokens: {
-          accessToken,
-          refreshToken
-        },
         cart: mergedCart
       }
     });
@@ -358,11 +350,7 @@ const refreshToken = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Token refreshed successfully',
-      data: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken
-      }
+      message: 'Token refreshed successfully'
     });
   } catch (error) {
     console.error('Token refresh error:', error);

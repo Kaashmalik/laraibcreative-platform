@@ -1,9 +1,9 @@
-# LaraibCreative - E-Commerce Frontend
+# LaraibCreative - Full-Stack E-Commerce Platform
 
 [![Build Status](https://img.shields.io/vercel/build/YOUR_VERCEL_PROJECT_ID?token=YOUR_VERCEL_TOKEN&label=vercel-build)](https://vercel.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This is the frontend application for LaraibCreative, a bespoke e-commerce platform specializing in custom and ready-to-wear Pakistani fashion. It is built using **Next.js 14** with the **App Router**, **JavaScript (JSX)**, and **Tailwind CSS**.
+This repository contains the full-stack LaraibCreative platform (frontend + backend) for bespoke Pakistani fashion e-commerce. The frontend is built with **Next.js 14** (App Router) and the backend runs on **Node.js/Express** with JWT-based authentication.
 
 **[View Live Demo (https://www.laraibcreative.studio/)](#)**
 
@@ -30,20 +30,18 @@ This application is a complete e-commerce solution with a separate admin panel.
 
 ## 🚀 Tech Stack
 
-* **Framework:** [Next.js](https://nextjs.org/) 14 (App Router)
-* **Language:** JavaScript (ES6+) & JSX
-* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-* **State Management:** React Context API (for Auth, Cart, Toast)
-* **Form Handling:** [React Hook Form](https://react-hook-form.com/)
-* **Validation:** [Yup](https://github.com/jquense/yup)
-* **API Client:** [Axios](https://axios-http.com/)
-* **Animation:** [Framer Motion](https://www.framer.com/motion/)
-* **Charts:** [Recharts](https://recharts.org/) (for Admin Panel)
-* **Testing:** [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/), [Playwright](https://playwright.dev/) (for E2E)
-* **Linting:** [ESLint](https://eslint.org/)
-* **Formatting:** [Prettier](https://prettier.io/)
-* **Deployment:** [Vercel](https://vercel.com/)
+* **Frontend:** [Next.js](https://nextjs.org/) 14 (App Router), Tailwind CSS, Zustand, Axios
+* **Backend:** Node.js/Express, JWT auth (httpOnly cookies), MongoDB
+* **Testing:** Jest, React Testing Library, Playwright (E2E)
+* **Infra/Docs:** Roadmap + hybrid architecture docs in `/docs`
 
 ## 📂 Folder Structure
 
 The project uses a feature-colocated structure within the Next.js App Router. Here is a high-level overview of the `src/` directory:
+
+---
+
+## 📌 Phase 0 Baseline Docs
+- `docs/PHASE_0_AUDIT_BASELINE.md` — current-state baseline + open decisions
+- `docs/PERFORMANCE_BUDGETS.md` — Core Web Vitals + API latency targets
+- `docs/adr/README.md` — ADR index (auth strategy, data ownership, caching)

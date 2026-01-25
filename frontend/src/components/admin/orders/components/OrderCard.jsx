@@ -170,6 +170,7 @@ const OrderCard = ({ order, onViewDetails, onUpdateStatus }) => {
 
           {availableStatuses.length > 0 && (
             <DropdownMenu
+              stopPropagation
               trigger={
                 <Button
                   variant="ghost"
@@ -266,6 +267,7 @@ const OrderCard = ({ order, onViewDetails, onUpdateStatus }) => {
           </Button>
           {availableStatuses.length > 0 && (
             <DropdownMenu
+              stopPropagation
               trigger={
                 <Button variant="outline" size="sm" disabled={isUpdating}>
                   <MoreVertical className="w-4 h-4" />

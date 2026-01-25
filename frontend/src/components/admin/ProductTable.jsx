@@ -428,6 +428,7 @@ export default function ProductTable({
                   {/* Actions */}
                   <td className="px-4 py-4 text-right">
                     <DropdownMenu
+                      stopPropagation
                       trigger={
                         <Button
                           variant="ghost"

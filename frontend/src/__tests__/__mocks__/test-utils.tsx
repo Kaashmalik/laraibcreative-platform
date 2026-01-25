@@ -5,7 +5,6 @@
 
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
-import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 
 /**
@@ -13,11 +12,9 @@ import { CartProvider } from '@/context/CartContext';
  */
 function AllTheProviders({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <CartProvider>
-        {children}
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider>
+      {children}
+    </CartProvider>
   );
 }
 

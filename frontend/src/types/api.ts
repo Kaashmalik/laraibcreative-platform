@@ -53,8 +53,6 @@ export interface AuthResponse {
       role: string;
       profileImage?: string;
     };
-    accessToken?: string;
-    refreshToken?: string;
   };
   message?: string;
 }

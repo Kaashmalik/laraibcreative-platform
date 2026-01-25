@@ -249,8 +249,8 @@ const nextConfig = {
   // ESLINT
   // ==================================================
   eslint: {
-    // Continue build even with lint errors (temporarily enabled for deployment)
-    ignoreDuringBuilds: true,
+    // Enforce linting in production builds
+    ignoreDuringBuilds: false,
   },
 };
 

@@ -1,17 +1,22 @@
 // =============================================
-// Token Utility Functions
-// Handles storing, retrieving, and decoding JWT tokens
+// Token Utility Functions (Deprecated)
+// httpOnly cookies are the source of truth for auth.
 // =============================================
 
 const TOKEN_KEY = 'auth_token';
+
+const warnDeprecated = (action) => {
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.warn(`[auth] ${action} is deprecated. Use httpOnly cookies via backend JWT auth.`);
+  }
+};
 
 /**
  * Get token from localStorage (if available)
  */
 export const getToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem(TOKEN_KEY);
-  }
+  warnDeprecated('getToken');
   return null;
 };
 
@@ -19,19 +24,15 @@ export const getToken = () => {
  * Save token to localStorage
  * @param {string} token - JWT token string
  */
-export const setToken = (token) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, token);
-  }
+export const setToken = () => {
+  warnDeprecated('setToken');
 };
 
 /**
  * Remove token from localStorage
  */
 export const removeToken = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(TOKEN_KEY);
-  }
+  warnDeprecated('removeToken');
 };
 
 /**
