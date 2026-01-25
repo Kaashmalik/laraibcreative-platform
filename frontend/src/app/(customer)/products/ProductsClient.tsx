@@ -227,41 +227,50 @@ function ProductsContent() {
     setCurrentPage(1);
   }, [updateFilter]);
 
-  // SEO Structured Data
-  const structuredData = useMemo(() => ({
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: 'Products - LaraibCreative',
-    description: 'Browse our complete collection of custom stitched ladies suits, bridal wear, party suits, and designer replicas.',
-    url: typeof window !== 'undefined' ? window.location.href : '',
-    mainEntity: {
-      '@type': 'ItemList',
-      numberOfItems: totalProducts,
-      itemListElement: products.slice(0, 10).map((product, index) => ({
-        '@type': 'Product',
-        position: index + 1,
-        name: product.title || product.name,
-        description: product.description,
-        image: product.primaryImage || product.images?.[0],
-        offers: {
-          '@type': 'Offer',
-          price: product.pricing?.basePrice || product.price,
-          priceCurrency: 'PKR',
-          availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
-        }
-      }))
-    }
-  }), [products, totalProducts]);
+  // SEO Structured Data - client-side only to avoid hydration mismatch
+  const [structuredData, setStructuredData] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const data = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Products - LaraibCreative',
+      description: 'Browse our complete collection of custom stitched ladies suits, bridal wear, party suits, and designer replicas.',
+      url: window.location.href,
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: totalProducts,
+        itemListElement: products.slice(0, 10).map((product, index) => ({
+          '@type': 'Product',
+          position: index + 1,
+          name: product.title || product.name,
+          description: product.description,
+          image: product.primaryImage || product.images?.[0],
+          offers: {
+            '@type': 'Offer',
+            price: product.pricing?.basePrice || product.price,
+            priceCurrency: 'PKR',
+            availability: product.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+          }
+        }))
+      }
+    };
+    setStructuredData(data);
+  }, [products, totalProducts]);
 
   return (
     <>
-      {/* JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
+      {/* JSON-LD Structured Data - only render after hydration */}
+      {isMounted && structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
+        />
+      )}
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
