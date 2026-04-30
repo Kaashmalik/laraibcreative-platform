@@ -78,7 +78,7 @@ function getFilterLabel(type: keyof ProductFilters, value: string): string {
 /**
  * Parse filters from URL search params
  */
-const parseFiltersFromURL = useCallback((urlSearchParams: URLSearchParams | null) => {
+function parseFiltersFromURL(urlSearchParams: URLSearchParams | null): Partial<ProductFilters> {
   if (!urlSearchParams) return {};
 
   const filters: Partial<ProductFilters> = {};
@@ -89,11 +89,27 @@ const parseFiltersFromURL = useCallback((urlSearchParams: URLSearchParams | null
 
   // Parse fabric
   const fabric = urlSearchParams.get('fabric');
-  if (fabric) filters.fabric = fabric.split(',') as string[];
+  if (fabric) filters.fabric = fabric.split(',');
+
+  // Parse color
+  const color = urlSearchParams.get('color');
+  if (color) filters.color = color.split(',');
+
+  // Parse size
+  const size = urlSearchParams.get('size');
+  if (size) filters.size = size.split(',');
 
   // Parse occasion
   const occasion = urlSearchParams.get('occasion');
-  if (occasion) filters.occasion = occasion.split(',') as string[];
+  if (occasion) filters.occasion = occasion.split(',');
+
+  // Parse availability
+  const availability = urlSearchParams.get('availability');
+  if (availability) filters.availability = availability.split(',');
+
+  // Parse suit type
+  const suitType = urlSearchParams.get('type') || urlSearchParams.get('suitType');
+  if (suitType) filters.suitType = suitType.split(',');
 
   // Parse price range
   const minPrice = urlSearchParams.get('minPrice');
@@ -101,16 +117,16 @@ const parseFiltersFromURL = useCallback((urlSearchParams: URLSearchParams | null
   if (minPrice) filters.minPrice = Number(minPrice);
   if (maxPrice) filters.maxPrice = Number(maxPrice);
 
-  // Parse sort
-  const sort = urlSearchParams.get('sort');
-  if (sort) filters.sortBy = sort;
+  // Parse sort (support both sortBy and sort for compatibility)
+  const sortBy = urlSearchParams.get('sortBy') || urlSearchParams.get('sort');
+  if (sortBy) filters.sortBy = sortBy;
 
   // Parse search query
   const search = urlSearchParams.get('search');
   if (search) filters.search = search;
 
   return filters;
-}, []);
+}
 
 /**
  * Build URL search params from filters
