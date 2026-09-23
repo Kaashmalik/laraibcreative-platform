@@ -3,19 +3,16 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
 import { toast } from 'react-hot-toast'
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: URLSearchParams | null;
-}) {
+export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const returnUrl = searchParams?.get('returnUrl') || '/account'
 
   const { login, loading, isAuthenticated, checkAuth } = useAuth()
@@ -48,18 +45,18 @@ export default function LoginPage({
     setIsSubmitting(true)
 
     try {
-      const result = await login(formData.email, formData.password)
+      const remember = (document.getElementById('remember') as HTMLInputElement)?.checked
+      const result = await login(formData.email, formData.password, remember)
 
       if (result.success) {
         toast.success('Login successful! Redirecting...')
-        setTimeout(() => {
-          router.push(returnUrl)
-        }, 1000)
+        router.push(returnUrl)
       } else {
         toast.error(result.error || 'Login failed. Please try again.')
       }
-    } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -73,36 +70,36 @@ export default function LoginPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-bone flex items-center justify-center px-4 py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+        <div className="border border-ink/10 bg-white p-8 md:p-10">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-6">
-              <h1 className="text-3xl font-bold text-primary-gold font-playfair">
+              <h1 className="font-display text-3xl tracking-[0.12em] text-ink">
                 LaraibCreative
               </h1>
             </Link>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Welcome Back
+            <h2 className="font-display text-2xl text-ink mb-2">
+              Welcome back
             </h2>
-            <p className="text-gray-600">
-              Sign in to your account to continue
+            <p className="text-ink/60 text-sm">
+              Sign in to continue shopping
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="email" className="block text-xs uppercase tracking-wider text-ink/50 mb-2">
+                Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-4 w-4 text-ink/30" />
                 </div>
                 <input
                   id="email"
@@ -112,19 +109,19 @@ export default function LoginPage({
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                  className="block w-full pl-10 pr-3 py-3 border border-ink/15 bg-bone/40 focus:border-champagne focus:ring-0 transition-colors"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-xs uppercase tracking-wider text-ink/50 mb-2">
                 Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-4 w-4 text-ink/30" />
                 </div>
                 <input
                   id="password"
@@ -134,18 +131,18 @@ export default function LoginPage({
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                  className="block w-full pl-10 pr-10 py-3 border border-ink/15 bg-bone/40 focus:border-champagne focus:ring-0 transition-colors"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink/30 hover:text-ink transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -157,16 +154,16 @@ export default function LoginPage({
                   id="remember"
                   name="remember"
                   type="checkbox"
-                  className="h-4 w-4 text-primary-gold focus:ring-primary-gold border-gray-300 rounded"
+                  className="h-4 w-4 text-champagne focus:ring-champagne border-ink/20"
                 />
-                <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="remember" className="ml-2 block text-sm text-ink/70">
                   Remember me
                 </label>
               </div>
 
               <Link
                 href="/auth/forgot-password"
-                className="text-sm font-medium text-primary-gold hover:text-primary-rose transition-colors"
+                className="text-sm text-champagne hover:text-ink transition-colors"
               >
                 Forgot password?
               </Link>
@@ -175,7 +172,7 @@ export default function LoginPage({
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-gold hover:bg-primary-rose focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-gold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3.5 text-sm font-medium tracking-wide text-bone bg-ink hover:bg-champagne hover:text-ink focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting || loading ? (
                 <>
@@ -185,48 +182,27 @@ export default function LoginPage({
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">
-                  Don't have an account?
-                </span>
-              </div>
-            </div>
-
+          <div className="mt-8 pt-6 border-t border-ink/10 text-center">
+            <p className="text-sm text-ink/50 mb-4">Don&apos;t have an account?</p>
             <Link
               href="/auth/register"
-              className="mt-6 w-full flex items-center justify-center px-4 py-3 border-2 border-primary-gold rounded-lg text-sm font-medium text-primary-gold hover:bg-primary-gold hover:text-white transition-all"
+              className="inline-flex w-full items-center justify-center px-4 py-3 border border-ink text-sm font-medium text-ink hover:bg-ink hover:text-bone transition-colors"
             >
               Create an Account
             </Link>
           </div>
-
-          <p className="mt-6 text-center text-xs text-gray-500">
-            By signing in, you agree to our{' '}
-            <Link href="/terms" className="text-primary-gold hover:underline">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="text-primary-gold hover:underline">
-              Privacy Policy
-            </Link>
-          </p>
         </div>
 
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-primary-gold transition-colors"
+            className="inline-flex items-center text-sm text-ink/50 hover:text-champagne transition-colors"
           >
             <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
             Back to Home

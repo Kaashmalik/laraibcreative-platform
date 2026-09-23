@@ -143,11 +143,13 @@ function buildURLFromFilters(filters: ProductFilters): URLSearchParams {
   }
 
   // Array filters
-  const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability'];
+  const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability', 'suitType'];
   arrayFilters.forEach((key) => {
     const value = filters[key];
     if (Array.isArray(value) && value.length > 0) {
-      params.set(key, value.join(','));
+      // Use 'type' as URL key for suitType for backward compatibility
+      const urlKey = key === 'suitType' ? 'type' : key;
+      params.set(urlKey, value.join(','));
     }
   });
 
@@ -344,14 +346,14 @@ export function useFilters(options: UseFiltersOptions = {}): UseFiltersReturn {
     }
 
     // Array filters
-    const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability'];
+    const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability', 'suitType'];
     arrayFilters.forEach((type) => {
       const values = filters[type];
       if (Array.isArray(values) && values.length > 0) {
         values.forEach((value) => {
           active.push({
             type,
-            label: type.charAt(0).toUpperCase() + type.slice(1),
+            label: type === 'suitType' ? 'Type' : type.charAt(0).toUpperCase() + type.slice(1),
             value,
             displayValue: getFilterLabel(type, value),
           });
@@ -372,7 +374,7 @@ export function useFilters(options: UseFiltersOptions = {}): UseFiltersReturn {
     }
 
     // Count array filters
-    const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability'];
+    const arrayFilters: (keyof ProductFilters)[] = ['fabric', 'color', 'size', 'occasion', 'availability', 'suitType'];
     arrayFilters.forEach((key) => {
       const value = filters[key];
       if (Array.isArray(value)) {

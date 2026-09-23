@@ -274,12 +274,12 @@ function ProductsContent() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-            Our Products
+        <header className="mb-10">
+          <h1 className="font-display text-4xl md:text-5xl text-ink mb-2">
+            Collection
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Discover our collection of beautiful Pakistani fashion
+          <p className="text-ink/60 max-w-xl">
+            Discover custom-stitched Pakistani fashion from the LaraibCreative atelier
           </p>
         </header>
 

@@ -7,6 +7,8 @@ import { motion } from 'framer-motion';
 import { ZoomIn, Upload, Sparkles, Calculator } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useCart } from '@/hooks/useCart';
+import useAuth from '@/hooks/useAuth';
+import { toast } from 'react-hot-toast';
 import ProductStructuredData from '@/components/shared/ProductStructuredData';
 import ProductImageZoom from '@/components/customer/ProductImageZoom';
 import ReplicaUploadSection from '@/components/customer/ReplicaUploadSection';
@@ -24,6 +26,7 @@ export default function ProductDetailClient({ params: serverParams }) {
   const router = useRouter();
   const params = serverParams || clientParams;
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -96,6 +99,14 @@ export default function ProductDetailClient({ params: serverParams }) {
   }, [params.id]);
 
   const handleAddToCart = () => {
+    // Require login before adding to cart
+    if (!isAuthenticated) {
+      toast.error('Please sign in to add items to your cart');
+      const productSlug = params.id;
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(`/products/${productSlug}`)}`);
+      return;
+    }
+
     if (product) {
       // Normalize pricing structure
       const pricing = product.pricing || {};
@@ -110,22 +121,9 @@ export default function ProductDetailClient({ params: serverParams }) {
         priceBreakdown: calculatedPrice,
       };
       
-      // Log the complete product object being passed
-      console.log('=== ADD TO CART DEBUG ===');
-      console.log('Product object:', product);
-      console.log('Product ID:', product._id || product.id);
-      console.log('Product title:', product.title);
-      console.log('Product name:', product.name);
-      console.log('Product pricing:', product.pricing);
-      console.log('Normalized price:', validPrice);
-      console.log('Product images:', product.images);
-      console.log('Product primaryImage:', product.primaryImage);
-      console.log('Quantity:', quantity);
-      console.log('Customizations:', customizations);
-      console.log('=========================');
-      
       // Pass the full product object with quantity and customizations
       addItem(product, quantity, customizations);
+      toast.success('Added to cart!');
     }
   };
 

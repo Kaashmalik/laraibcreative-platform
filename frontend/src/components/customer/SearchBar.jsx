@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, TrendingUp, Clock, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import api from '@/lib/api'
 
 /**
  * SearchBar Component - Production Ready
@@ -82,17 +83,12 @@ export default function SearchBar({ isOpen, onClose }) {
       .slice(0, 100) // Limit length
   }, [])
 
-  // Debounced search function with abort controller
+  // Debounced search function using backend API
   useEffect(() => {
     if (!query.trim()) {
       setSuggestions([])
       setError(null)
       return
-    }
-
-    // Abort previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
     }
 
     setIsLoading(true)
@@ -105,27 +101,20 @@ export default function SearchBar({ isOpen, onClose }) {
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // Create new abort controller
-        abortControllerRef.current = new AbortController()
-        
         const sanitizedQuery = sanitizeInput(query)
-        const response = await fetch(
-          `/api/search?q=${encodeURIComponent(sanitizedQuery)}&limit=5`,
-          { signal: abortControllerRef.current.signal }
-        )
+        const response = await api.products.search(sanitizedQuery, { limit: 5 })
 
-        if (!response.ok) {
-          throw new Error(`Search failed: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setSuggestions(Array.isArray(data.results) ? data.results : [])
+        // Handle backend response shape: { products, data, results }
+        const results = response?.products || response?.data || response?.results || []
+        setSuggestions(Array.isArray(results) ? results : [])
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Search error:', error)
-          setError('Failed to load suggestions')
-          setSuggestions([])
+        // Ignore canceled requests
+        if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
+          return
         }
+        console.error('Search error:', error)
+        setError('Failed to load suggestions')
+        setSuggestions([])
       } finally {
         setIsLoading(false)
       }
@@ -134,9 +123,6 @@ export default function SearchBar({ isOpen, onClose }) {
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current)
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
       }
     }
   }, [query, sanitizeInput])

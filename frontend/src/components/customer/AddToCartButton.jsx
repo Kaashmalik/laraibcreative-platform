@@ -2,6 +2,10 @@
 
 import { ShoppingCart, Check } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCart } from '@/hooks/useCart';
+import useAuth from '@/hooks/useAuth';
+import { toast } from 'react-hot-toast';
 
 export default function AddToCartButton({ 
   product, 
@@ -11,23 +15,31 @@ export default function AddToCartButton({
 }) {
   const [isAdding, setIsAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const router = useRouter();
+  const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const handleAddToCart = async () => {
+    // Require login before adding to cart
+    if (!isAuthenticated) {
+      toast.error('Please sign in to add items to your cart');
+      const productSlug = product?.slug || product?._id || product?.id || '';
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(`/products/${productSlug}`)}`);
+      return;
+    }
+
     setIsAdding(true);
     
     try {
-      // Simulate API call or cart addition
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Here you would typically:
-      // - Add to cart context/store
-      // - Call API endpoint
-      // - Update cart state
+      const customizations = size ? { size } : undefined;
+      await addItem(product, quantity, customizations);
       
       setAdded(true);
+      toast.success('Added to cart!');
       setTimeout(() => setAdded(false), 2000);
     } catch (error) {
       console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart. Please try again.');
     } finally {
       setIsAdding(false);
     }
