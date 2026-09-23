@@ -46,7 +46,7 @@ export default function LoginPage() {
 
     try {
       const remember = (document.getElementById('remember') as HTMLInputElement)?.checked
-      const result = await login(formData.email, formData.password, remember)
+      const result = await (login as (e: string, p: string, r?: boolean) => Promise<{ success: boolean; error?: string; user?: unknown }>)(formData.email, formData.password, remember)
 
       if (result.success) {
         toast.success('Login successful! Redirecting...')
