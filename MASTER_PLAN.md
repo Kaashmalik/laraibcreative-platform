@@ -37,13 +37,18 @@ Confirmed from `vercel.json`, `backend/server.js`, and the live env config:
 Frontend talks to the backend via **axios** (`src/lib/axios.js`), base URL
 `NEXT_PUBLIC_API_URL` → `.../api/v1`. All backend routes are mounted under `/api/v1/*`.
 
-### Dead weight to remove (NOT part of the canonical path)
-- `frontend/src/lib/tidb/*` — TiDB serverless client (abandoned migration). **Still wired into
-  `src/app/api/reviews/route.ts`** → reviews are written to a DB nobody reads. Bug.
-- `supabase/migrations/*` and `env.example`'s Supabase vars — abandoned migration.
-- `backend` `mysql2` / `src/config/tidb.js` — unused alongside Mongoose.
-- Git branches `feature/supabase-migration`, `integrate-tidb`, `mongodb-legacy` — stale.
-- Mock Next.js API routes that shadow real backend endpoints (removed this pass — see §4).
+### Dead weight (NOT part of the canonical path) — now removed (§4)
+- `frontend/src/lib/tidb/*` — TiDB serverless client (abandoned migration). **Removed.**
+- The TiDB-era checkout (`components/checkout/CheckoutWizard` + steps) and server actions
+  (`app/actions/orders.ts`, `app/actions/products.ts`) — dead; the live `/checkout` route uses
+  the backend-wired `CheckoutStepper` flow. **Removed.**
+- `supabase/migrations/*` — abandoned migration. **Removed.** `env.example` Supabase vars →
+  rewritten to the real backend/Cloudinary config.
+- `backend/src/config/tidb.js` + `services/{category,product}Service.js` — unreferenced.
+  **Removed.** (`mysql2` left in `backend/package.json` only for the dev `verify` script.)
+- Mock Next.js API routes that shadowed real backend endpoints. **Removed.**
+- Still stale: git branches `feature/supabase-migration`, `integrate-tidb`, `mongodb-legacy`
+  (delete from the GitHub UI).
 
 ---
 
@@ -55,7 +60,7 @@ Frontend talks to the backend via **axios** (`src/lib/axios.js`), base URL
 | 2 | **"Remember me" ignored** | `useAuth` login wrapper dropped the 3rd `rememberMe` argument. | **FIXED** (§4) |
 | 3 | **Admin can't upload products / images** | FormData posts manually set `Content-Type: multipart/form-data` (no boundary); combined with the axios instance's default `application/json`, axios serialized the upload to JSON. Multer on the backend received no file. | **FIXED** (§4) |
 | 4 | **Orders don't load / save** | Mock Next route `src/app/api/orders/route.js` returned an empty list / fake id and shadowed the real backend route. | **FIXED** (removed, §4) — _verify runtime once backend reachable_ |
-| 5 | **Reviews don't appear** | `src/app/api/reviews/route.ts` writes to **TiDB**, not the MongoDB backend. | Planned — Phase 1 |
+| 5 | **Reviews don't appear** | `src/app/api/reviews/route.ts` wrote to **TiDB**, not the MongoDB backend. | **FIXED** — `ReviewForm` now posts to backend `/reviews` (§4); _verify runtime_ |
 | 6 | **Filters / search "don't work"** | Backend filter logic (`productController.js`) is actually implemented (regex on title/sku/keywords; fabric/price/occasion/availability). Most likely a **data-shape or empty-DB** symptom, or the `$or` (search) colliding with `orConditions` (fabric/occasion). Needs runtime verification against a seeded DB. | Needs verification — Phase 1 |
 | 7 | **Gaps between UI/UX across pages** | Two design languages coexist: a refined `bone/ink/champagne` + `font-display` system (e.g. login) vs. a legacy `rose/gold` + `font-playfair` system (e.g. register). Inconsistent spacing, buttons, shadows. | Planned — Phase 3 |
 
@@ -75,18 +80,32 @@ All in `frontend/`, verified against `tsc --noEmit` (0 errors) and `next build`:
 4. **Removed mock landmine routes** that shadowed the real backend:
    `api/auth/login`, `api/auth/register`, `api/auth/logout`, `api/orders`, `api/orders/[id]`.
 
+### Second pass — data-layer unification, UI, hygiene
+5. **Reviews → backend** — `ReviewForm` now posts to the MongoDB backend `/reviews` via axios
+   (correct field names: `product`, `comment`, …) instead of TiDB.
+6. **Deleted the entire dead TiDB layer** — `src/lib/tidb/*`, the TiDB-era `CheckoutWizard` +
+   steps, `app/actions/{orders,products}.ts`, the dead `components/shop` cards, the backend
+   TiDB config/services, and the Supabase migrations. Removed `@tidbcloud/serverless` from
+   `package.json` and synced the lockfile.
+7. **UI/UX** — rewrote the **register** page onto the refined `bone/ink/champagne` + `font-display`
+   design system so it matches **login** (fixed broken `/terms` `/privacy` links too).
+8. **Repo hygiene** — archived ~130 historical `*_SUMMARY.md` / `PHASE_*.md` docs into
+   `docs/archive/`, deleted one-off `fix-*` / `add-*` / `cleanup-*` scripts, and stopped
+   tracking `tsconfig.tsbuildinfo`.
+
 ---
 
 ## 5. Phased roadmap to "industry level"
 
 ### Phase 1 — Correctness & data-layer unification (highest priority)
-- Repoint `api/reviews/route.ts` to the backend `/api/v1/reviews` (or have `ReviewForm` call
-  axios directly), then delete `src/lib/tidb/*`.
-- Delete remaining TiDB/Supabase/mysql2 dead code and stale git branches.
-- Seed a staging MongoDB and **verify end-to-end at runtime**: sign-up, sign-in, product list,
-  search, each filter, cart, checkout, order creation, order history, admin product CRUD + image
-  upload, admin order status updates.
-- Standardise the frontend↔backend response contract (`{ success, data, pagination, message }`)
+- ✅ Repointed `ReviewForm` to the backend `/reviews`; deleted `src/lib/tidb/*` and all dead
+  TiDB/Supabase code.
+- ⬜ Delete stale git branches (`feature/supabase-migration`, `integrate-tidb`, `mongodb-legacy`).
+- ⬜ **Runtime verification (needs a seeded staging MongoDB + running backend — do this once
+  the branch is deployed to a preview):** sign-up, sign-in, product list, search, each filter,
+  cart, checkout, order creation, order history, admin product CRUD + image upload, admin order
+  status updates, review submission.
+- ⬜ Standardise the frontend↔backend response contract (`{ success, data, pagination, message }`)
   and centralise response parsing (today pages defensively read `data.products || data.data`).
 
 ### Phase 2 — Reliability & security hardening
@@ -97,11 +116,14 @@ All in `frontend/`, verified against `tsc --noEmit` (0 errors) and `next build`:
 - Wire Sentry (already a dependency) on both apps; add health-check alerting.
 
 ### Phase 3 — UI/UX unification
-- Adopt a single design system (recommend the `bone/ink/champagne` + `font-display` tokens).
-  Migrate legacy `rose/gold/playfair` pages (register, many `(customer)` `.js` pages).
-- Standardise shared primitives: Button, Input, Card, Toast, form field + error states.
-- Accessibility pass (labels, focus states, colour contrast, alt text) and responsive audit.
-- Consistent loading / empty / error states for every data view.
+- ✅ Adopted the `bone/ink/champagne` + `font-display` system on the auth flow; register now
+  matches login.
+- ⬜ Migrate the remaining legacy `rose/gold/playfair` pages (many `(customer)` `.js` pages,
+  the checkout step components, admin). This is the largest remaining visual-consistency task
+  and should be done page-group by page-group with a visual check each time.
+- ⬜ Standardise shared primitives: Button, Input, Card, Toast, form field + error states.
+- ⬜ Accessibility pass (labels, focus states, colour contrast, alt text) and responsive audit.
+- ⬜ Consistent loading / empty / error states for every data view.
 
 ### Phase 4 — Performance & SEO
 - Convert client-only pages that can be server-rendered; verify ISR where used.
@@ -109,11 +131,14 @@ All in `frontend/`, verified against `tsc --noEmit` (0 errors) and `next build`:
 - Lighthouse budget in CI; fix CLS/LCP regressions.
 
 ### Phase 5 — Repo hygiene & CI
-- Archive the ~100 historical `*_SUMMARY.md` / `PHASE_*.md` docs into `docs/archive/`; keep
-  `README`, `ARCHITECTURE`, `DEPLOYMENT`, this plan, and the API docs.
-- Delete helper scripts that were one-off fixes (`fix-*.js`, `fix-*.ps1`, `cleanup-*.js`).
-- CI pipeline: `type-check` + `lint` + unit tests + `build` on every PR; block merge on failure.
-- Re-enable ESLint during builds (currently disabled) after fixing violations.
+- ✅ Archived ~130 historical `*_SUMMARY.md` / `PHASE_*.md` docs into `docs/archive/`; kept
+  `README`, `ARCHITECTURE`, `DEPLOYMENT`, `API_DOCUMENTATION`, `SECURITY`, and this plan.
+- ✅ Deleted one-off fix scripts (`fix-*`, `add-*`, `cleanup-*`, `COMMIT_AND_PUSH.sh`).
+- ✅ Stopped tracking `tsconfig.tsbuildinfo`.
+- ⬜ Confirm the existing `.github/workflows` run `type-check` + `build` on every PR and block
+  merge on failure.
+- ⬜ Re-enable ESLint during builds (currently disabled in `next.config.js`) after fixing
+  violations.
 
 ---
 
