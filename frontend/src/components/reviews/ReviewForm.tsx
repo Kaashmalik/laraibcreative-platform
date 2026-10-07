@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { Star, Upload, X, Loader2 } from 'lucide-react'
 import useAuth from '@/hooks/useAuth'
+import axiosInstance from '@/lib/axios'
 import { cn } from '@/lib/utils'
 
 interface ReviewFormProps {
@@ -75,33 +76,36 @@ export function ReviewForm({ productId, productTitle, orderId, onSuccess, onCanc
       return
     }
 
+    if (!user) {
+      setError('Please sign in to write a review.')
+      return
+    }
+
     setSubmitting(true)
     setError('')
 
     try {
-      const response = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: productId,
-          customer_id: user?.id,
-          customer_name: user?.fullName || 'Anonymous',
-          customer_email: user?.email || '',
-          rating,
-          title: title.trim() || null,
-          content: content.trim(),
-          images,
-          order_id: orderId,
-        }),
-      })
+      // Submit to the MongoDB backend. The backend derives the reviewer from
+      // the authenticated JWT (httpOnly cookie) and verifies purchase.
+      const response = await axiosInstance.post('/reviews', {
+        product: productId,
+        rating,
+        title: title.trim() || undefined,
+        comment: content.trim(),
+        images,
+        orderId,
+      }) as { success?: boolean; message?: string }
 
-      if (!response.ok) {
-        throw new Error('Failed to submit review')
+      if (!response?.success) {
+        throw new Error(response?.message || 'Failed to submit review')
       }
 
       onSuccess?.()
-    } catch (err) {
-      setError('Failed to submit review. Please try again.')
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to submit review. Please try again.')
+      setError(message)
       console.error(err)
     } finally {
       setSubmitting(false)

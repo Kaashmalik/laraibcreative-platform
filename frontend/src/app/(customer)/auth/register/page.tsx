@@ -70,8 +70,9 @@ export default function RegisterPage() {
       } else {
         toast.error(result.error || 'Registration failed. Please try again.')
       }
-    } catch (error: any) {
-      toast.error(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -86,38 +87,41 @@ export default function RegisterPage() {
 
   const passwordStrength = formData.password.length >= 8 ? 'strong' : formData.password.length >= 6 ? 'medium' : 'weak'
 
+  const inputClass = 'block w-full pl-10 pr-3 py-3 border border-ink/15 bg-bone/40 focus:border-champagne focus:ring-0 transition-colors'
+  const labelClass = 'block text-xs uppercase tracking-wider text-ink/50 mb-2'
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-bone flex items-center justify-center px-4 py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-2xl"
       >
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+        <div className="border border-ink/10 bg-white p-8 md:p-10">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-6">
-              <h1 className="text-3xl font-bold text-primary-gold font-playfair">
+              <h1 className="font-display text-3xl tracking-[0.12em] text-ink">
                 LaraibCreative
               </h1>
             </Link>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Create Your Account
+            <h2 className="font-display text-2xl text-ink mb-2">
+              Create your account
             </h2>
-            <p className="text-gray-600">
+            <p className="text-ink/60 text-sm">
               Join us and start your custom stitching journey
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="fullName" className={labelClass}>
                   Full Name
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+                    <User className="h-4 w-4 text-ink/30" />
                   </div>
                   <input
                     id="fullName"
@@ -127,19 +131,19 @@ export default function RegisterPage() {
                     required
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                    className={inputClass}
                     placeholder="John Doe"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="phone" className={labelClass}>
                   Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Phone className="h-5 w-5 text-gray-400" />
+                    <Phone className="h-4 w-4 text-ink/30" />
                   </div>
                   <input
                     id="phone"
@@ -149,7 +153,7 @@ export default function RegisterPage() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                    className={inputClass}
                     placeholder="03001234567"
                   />
                 </div>
@@ -157,12 +161,12 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="email" className={labelClass}>
+                Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-4 w-4 text-ink/30" />
                 </div>
                 <input
                   id="email"
@@ -172,19 +176,19 @@ export default function RegisterPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-2">
-                WhatsApp Number <span className="text-gray-400 font-normal">(optional)</span>
+              <label htmlFor="whatsapp" className={labelClass}>
+                WhatsApp Number <span className="text-ink/30 normal-case tracking-normal">(optional)</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
+                  <Phone className="h-4 w-4 text-ink/30" />
                 </div>
                 <input
                   id="whatsapp"
@@ -192,20 +196,20 @@ export default function RegisterPage() {
                   type="tel"
                   value={formData.whatsapp}
                   onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="03001234567"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className={labelClass}>
                   Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-4 w-4 text-ink/30" />
                   </div>
                   <input
                     id="password"
@@ -215,25 +219,21 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                    className="block w-full pl-10 pr-10 py-3 border border-ink/15 bg-bone/40 focus:border-champagne focus:ring-0 transition-colors"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink/30 hover:text-ink transition-colors"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {formData.password && (
                   <div className="mt-2 flex items-center space-x-2">
-                    <div className={`h-1.5 flex-1 rounded-full ${passwordStrength === 'strong' ? 'bg-green-500' : passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-red-500'}`} />
-                    <span className={`text-xs font-medium ${passwordStrength === 'strong' ? 'text-green-600' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}>
+                    <div className={`h-1 flex-1 ${passwordStrength === 'strong' ? 'bg-green-600' : passwordStrength === 'medium' ? 'bg-amber-500' : 'bg-red-500'}`} />
+                    <span className={`text-xs ${passwordStrength === 'strong' ? 'text-green-700' : passwordStrength === 'medium' ? 'text-amber-600' : 'text-red-600'}`}>
                       {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
                     </span>
                   </div>
@@ -241,12 +241,12 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="confirmPassword" className={labelClass}>
                   Confirm Password
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
+                    <Lock className="h-4 w-4 text-ink/30" />
                   </div>
                   <input
                     id="confirmPassword"
@@ -256,23 +256,19 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-gold focus:border-transparent transition-all"
+                    className="block w-full pl-10 pr-10 py-3 border border-ink/15 bg-bone/40 focus:border-champagne focus:ring-0 transition-colors"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-ink/30 hover:text-ink transition-colors"
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                  <div className="mt-2 flex items-center text-green-600">
+                  <div className="mt-2 flex items-center text-green-700">
                     <Check className="h-4 w-4 mr-1" />
                     <span className="text-xs">Passwords match</span>
                   </div>
@@ -289,17 +285,17 @@ export default function RegisterPage() {
                   required
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="h-4 w-4 text-primary-gold focus:ring-primary-gold border-gray-300 rounded"
+                  className="h-4 w-4 text-champagne focus:ring-champagne border-ink/20"
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="terms" className="text-gray-700">
+                <label htmlFor="terms" className="text-ink/70">
                   I agree to the{' '}
-                  <Link href="/terms" className="text-primary-gold hover:underline">
+                  <Link href="/terms-of-service" className="text-champagne hover:text-ink transition-colors">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link href="/privacy" className="text-primary-gold hover:underline">
+                  <Link href="/privacy-policy" className="text-champagne hover:text-ink transition-colors">
                     Privacy Policy
                   </Link>
                 </label>
@@ -309,7 +305,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting || loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-gold hover:bg-primary-rose focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-gold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3.5 text-sm font-medium tracking-wide text-bone bg-ink hover:bg-champagne hover:text-ink focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting || loading ? (
                 <>
@@ -319,27 +315,17 @@ export default function RegisterPage() {
               ) : (
                 <>
                   Create Account
-                  <ArrowRight className="h-5 w-5 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">
-                  Already have an account?
-                </span>
-              </div>
-            </div>
-
+          <div className="mt-8 pt-6 border-t border-ink/10 text-center">
+            <p className="text-sm text-ink/50 mb-4">Already have an account?</p>
             <Link
               href="/auth/login"
-              className="mt-6 w-full flex items-center justify-center px-4 py-3 border-2 border-primary-gold rounded-lg text-sm font-medium text-primary-gold hover:bg-primary-gold hover:text-white transition-all"
+              className="inline-flex w-full items-center justify-center px-4 py-3 border border-ink text-sm font-medium text-ink hover:bg-ink hover:text-bone transition-colors"
             >
               Sign In Instead
             </Link>
@@ -349,7 +335,7 @@ export default function RegisterPage() {
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-primary-gold transition-colors"
+            className="inline-flex items-center text-sm text-ink/50 hover:text-champagne transition-colors"
           >
             <ArrowRight className="h-4 w-4 mr-1 rotate-180" />
             Back to Home
