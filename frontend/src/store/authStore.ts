@@ -27,7 +27,7 @@ interface AuthState {
   isAdmin: boolean;
 
   // Actions
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; user?: User; error?: string }>;
   register: (userData: {
     fullName: string;
     email: string;
@@ -84,17 +84,18 @@ export const useAuthStore = typeof window === 'undefined'
                   isAdmin: response.data.user.role === 'admin' || response.data.user.role === 'super-admin',
                   loading: false
                 });
-                
-                // Note: Cart sync removed - cart-store module not yet implemented
-                // TODO: Implement cart sync when cart-store is available
-                
-                return response.data.user;
+
+                return { success: true, user: response.data.user };
               }
-              
-              throw new Error(response.message || 'Login failed');
+
+              set({ loading: false });
+              return { success: false, error: response.message || 'Login failed' };
             } catch (error: any) {
               set({ loading: false });
-              throw error;
+              return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Login failed'
+              };
             }
           },
 

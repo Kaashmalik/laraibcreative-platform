@@ -44,6 +44,20 @@ axiosInstance.interceptors.request.use(
     // Add request timestamp for performance tracking
     config.metadata = { startTime: Date.now() };
 
+    // For multipart/form-data (file uploads), let the browser set the
+    // Content-Type header so it includes the required multipart boundary.
+    // Without this, the instance default (application/json) would cause axios
+    // to serialize the FormData to JSON, or an explicit "multipart/form-data"
+    // header would omit the boundary — both break server-side parsing (multer).
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      if (config.headers && typeof config.headers.delete === 'function') {
+        config.headers.delete('Content-Type');
+      } else if (config.headers) {
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+      }
+    }
+
     // Log requests in development
     if (process.env.NODE_ENV === 'development') {
       // console.log(

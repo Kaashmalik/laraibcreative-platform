@@ -22,8 +22,8 @@ export default function useAuth() {
     updateUser,
   } = useAuthStore()
 
-  const loginWrapper = useCallback(async (email: string, password: string) => {
-    const result = await login(email, password)
+  const loginWrapper = useCallback(async (email: string, password: string, rememberMe?: boolean) => {
+    const result = await login(email, password, rememberMe)
     return result
   }, [login])
 
